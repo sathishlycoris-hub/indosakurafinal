@@ -1,0 +1,184 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 220 13% 18%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 13% 18%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 13% 18%;
+
+    --primary: 337, 65%, 53%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 13% 18%;
+
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+
+    --accent: 220 14% 96%;
+    --accent-foreground: 220 13% 18%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 217 91% 60%;
+
+    --radius: 0.5rem;
+
+    /* Custom colors for card accents */
+    --accent-blue: 217 91% 60%;
+    --accent-pink: 340 82% 65%;
+    --accent-green: 160 84% 39%;
+    --accent-orange: 25 95% 53%;
+    --accent-purple: 270 70% 60%;
+    --accent-cyan: 190 90% 50%;
+
+    /* Footer */
+    --footer-bg: 220 13% 18%;
+    --footer-foreground: 220 14% 96%;
+    --footer-muted: 220 9% 60%;
+
+    /* Hero gradient */
+    --hero-gradient-start: 337, 65%, 53%;
+    --hero-gradient-end: 337, 65%, 53%;
+     --hero-gradient-end-opacity: 0.8;
+
+    /* Section backgrounds */
+    --section-light: 330, 37%, 95%;
+    --section-dark: 337, 65%, 53%;
+    
+    
+  }
+
+  .dark {
+    --background: 220 13% 10%;
+    --foreground: 220 14% 96%;
+
+    --card: 220 13% 14%;
+    --card-foreground: 220 14% 96%;
+
+    --popover: 220 13% 14%;
+    --popover-foreground: 220 14% 96%;
+
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 13% 20%;
+    --secondary-foreground: 220 14% 96%;
+
+    --muted: 220 13% 20%;
+    --muted-foreground: 220 9% 60%;
+
+    --accent: 220 13% 20%;
+    --accent-foreground: 220 14% 96%;
+
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 25%;
+    --input: 220 13% 25%;
+    --ring: 217 91% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', sans-serif;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-semibold tracking-tight;
+  }
+  #lovable-badge {
+    display: none !important;
+  }
+}
+
+@layer components {
+  .hero-gradient {
+    background: #d83377;
+  }
+
+  .card-accent-blue {
+    border-top: 4px solid hsl(var(--accent-blue));
+  }
+
+  .card-accent-pink {
+    border-top: 4px solid hsl(var(--accent-pink));
+  }
+
+  .card-accent-green {
+    border-top: 4px solid hsl(var(--accent-green));
+  }
+
+  .card-accent-orange {
+    border-top: 4px solid hsl(var(--accent-orange));
+  }
+
+  .card-accent-purple {
+    border-top: 4px solid hsl(var(--accent-purple));
+  }
+
+  .card-accent-cyan {
+    border-top: 4px solid hsl(var(--accent-cyan));
+  }
+
+  .section-divider {
+    @apply border-l-4 border-primary pl-4;
+  }
+
+  .icon-box {
+    @apply w-12 h-12 rounded-xl flex items-center justify-center;
+  }
+
+  .icon-box-blue {
+    @apply bg-blue-500 text-blue-600;
+  }
+
+  .icon-box-pink {
+    @apply bg-pink-100 text-pink-600;
+  }
+
+  .icon-box-green {
+    @apply bg-green-100 text-green-600;
+  }
+
+  .icon-box-orange {
+    @apply bg-orange-100 text-orange-600;
+  }
+
+  .icon-box-purple {
+    @apply bg-purple-100 text-purple-600;
+  }
+
+  .icon-box-cyan {
+    @apply bg-cyan-100 text-cyan-600;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}

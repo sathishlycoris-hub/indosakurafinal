@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Indo-Sakura | Global IT Solutions - Japan, India, USA</title>
+  <meta name="description"
+    content="Indo-Sakura is a global IT consulting firm offering AI-driven development, enterprise solutions, and managed services across Japan, India, and USA. 20+ years of excellence." />
+  <meta name="author" content="Indo-Sakura" />
+  <meta name="keywords"
+    content="IT consulting, AI development, enterprise solutions, digital transformation, Japan, India, USA" />
+  <link rel="canonical" href="https://indosakura.co.jp" />
+
+  <meta property="og:title" content="Indo-Sakura | Global IT Solutions" />
+  <meta property="og:description"
+    content="Transform your business with innovative IT solutions. AI-driven development, enterprise applications, and cybersecurity services." />
+  <meta property="og:type" content="website" />
+  <!-- <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" /> -->
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@IndoSakura" />
+  <meta name="twitter:title" content="Indo-Sakura | Global IT Solutions" />
+  <meta name="twitter:description"
+    content="Transform your business with innovative IT solutions. AI-driven development, enterprise applications, and cybersecurity services." />
+  <!-- <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" /> -->
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+  <style>
+    #lovable-badge {
+      display: none !important
+    }
+  </style>
+</body>
+
+</html>
