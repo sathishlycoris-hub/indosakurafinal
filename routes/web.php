@@ -172,7 +172,7 @@ Route::get('/blogs/infographics/{infographic}', [InfographicPageController::clas
 // Route::get('/corporate/policy', fn() => Inertia::render('Corporate/Policy'));
 
 /* Recruitment */
-Route::get('/recruitment', fn() => Inertia::render('Recruitment'));
+// Route::get('/recruitment', fn() => Inertia::render('Recruitment'));
 
 
 Route::get('/cookie-policy', fn() => Inertia::render('CookiePolicy'));

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\CorporateInfo;
 use Inertia\Inertia;
+use App\Models\Seo;
 
 class CorporateInfoPageController extends Controller
 {
@@ -16,9 +17,11 @@ class CorporateInfoPageController extends Controller
         'title_ja',
         'path',
         'image' // ✅ MUST include
+       
     )
     ->orderBy('sort_order')
-    ->get()
+    ->get(),
+     'seo' => Seo::where('page', 'corporate-info')->first(),
         ]);
     }
 }

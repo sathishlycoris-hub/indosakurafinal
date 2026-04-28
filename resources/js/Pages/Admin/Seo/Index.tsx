@@ -93,10 +93,10 @@ export default function Index({ seos }: { seos: Seo[] }) {
       <div className="mb-5 flex items-center justify-between">
         <h1 className="text-2xl font-bold">SEO Settings</h1>
 
-        <Button onClick={openAdd}>
+        {/* <Button onClick={openAdd}>
           <Plus className="w-4 h-4 mr-2" />
           Add / Update SEO
-        </Button>
+        </Button> */}
       </div>
 
       {/* ================= SHEET ================= */}
@@ -142,7 +142,7 @@ export default function Index({ seos }: { seos: Seo[] }) {
       <div className="space-y-5 mt-6">
 
         {/* Page */}
-        <div className="space-y-1">
+        {/* <div className="space-y-1">
           <label className="font-medium">Page</label>
           <select
             className="w-full border border-input rounded-md px-3 py-2"
@@ -157,7 +157,7 @@ export default function Index({ seos }: { seos: Seo[] }) {
               </option>
             ))}
           </select>
-        </div>
+        </div> */}
 
         {/* Meta Title */}
         <div className="space-y-1">

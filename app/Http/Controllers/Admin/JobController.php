@@ -8,6 +8,7 @@ use App\Models\JobSection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use App\Models\Seo;
 
 class JobController extends Controller
 {
@@ -206,6 +207,7 @@ class JobController extends Controller
                     'experience', 'experience_ja',
                     'salary', 'slug',
                 ]),
+                'seo'  => Seo::where('page', 'recruitment')->first(),
         ]);
     }
 }

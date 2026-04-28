@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Blog;
-
+use App\Models\Seo;
 class BlogPageController extends Controller
 {
     //
@@ -16,6 +16,7 @@ class BlogPageController extends Controller
             'blogs' => Blog::where('status', 'published')
                 ->orderBy('published_date', 'desc')
                 ->get(),
+                 'seo' => Seo::where('page', 'insights')->first(),
         ]);
     }
 
