@@ -26,7 +26,7 @@ class HomeController extends Controller
 
             'updates' => Newsevent::orderBy('date', 'desc')
                 ->take(6)
-                ->get(['id', 'date', 'eventtype', 'short', 'short_ja']),
+                ->get(['id', 'date', 'eventtype', 'eventtype_ja', 'short', 'short_ja']),
 
             'services' => Service::select(
                 'id',

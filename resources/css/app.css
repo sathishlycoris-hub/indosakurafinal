@@ -5,6 +5,7 @@
 @tailwind utilities;
 
 @layer base {
+
   :root {
     --background: 0 0% 100%;
     --foreground: 220 13% 18%;
@@ -52,13 +53,13 @@
     /* Hero gradient */
     --hero-gradient-start: 337, 65%, 53%;
     --hero-gradient-end: 337, 65%, 53%;
-     --hero-gradient-end-opacity: 0.8;
+    --hero-gradient-end-opacity: 0.8;
 
     /* Section backgrounds */
     --section-light: 330, 37%, 95%;
     --section-dark: 337, 65%, 53%;
-    
-    
+
+
   }
 
   .dark {
@@ -102,20 +103,45 @@
     font-family: 'Inter', sans-serif;
   }
 
-  h1,
-  h2,
-  h3,
+  h1 {
+    @apply text-h1 font-semibold tracking-tight;
+  }
+
+  h2 {
+    @apply text-h2 font-semibold tracking-tight;
+  }
+
+  h3 {
+    @apply text-h3 font-semibold tracking-tight;
+  }
+
   h4,
   h5,
   h6 {
     @apply font-semibold tracking-tight;
   }
+
   #lovable-badge {
     display: none !important;
   }
 }
 
 @layer components {
+
+  /* ✅ FIX React Quill list styles */
+
+
+  .prose ul {
+    list-style-type: disc;
+    padding-left: 1.5rem;
+  }
+
+  /* hyper link */
+  .prose a {
+    color: hsl(var(--primary));
+    text-decoration: underline;
+  }
+
   .hero-gradient {
     background: #d83377;
   }

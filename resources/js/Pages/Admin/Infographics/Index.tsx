@@ -24,6 +24,7 @@ interface Infographic {
   id: number;
   title: string;
   title_ja?: string;
+  slug: string;
   short_description?: string;
   short_description_ja?: string;
   content?: string;
@@ -54,6 +55,7 @@ export default function AdminInfographicsIndex() {
   const [tocJa, setTocJa] = useState<string[]>([]);
 
   const { data, setData, post, reset, processing } = useForm({
+    slug: "",
     title: "", title_ja: "",
     category: "", category_ja: "",
     short_description: "", short_description_ja: "",
@@ -125,6 +127,7 @@ export default function AdminInfographicsIndex() {
     const ja = (item.table_of_contents_ja ?? []).map((t) => t.label);
     setTocEn(en); setTocJa(ja);
     setData({
+      slug: item.slug || "",
       title: item.title || "",
       title_ja: item.title_ja || "",
       category: item.category || "",
@@ -158,7 +161,7 @@ export default function AdminInfographicsIndex() {
   const submitUpdate = () => {
     if (!current) return;
     router.post(
-      route("admin.infographics.update", current.id),
+      route("admin.infographics.update", current.slug),
       { _method: "PUT", ...data },
       { forceFormData: true, onSuccess: () => { reset(); setOpen(false); } }
     );
@@ -166,7 +169,7 @@ export default function AdminInfographicsIndex() {
 
   const deleteItem = (id: number) => {
     if (confirm("Delete this infographic?")) {
-      router.delete(route("admin.infographics.destroy", id));
+      router.delete(route("admin.infographics.destroy", current?.slug));
     }
   };
 
@@ -262,6 +265,7 @@ export default function AdminInfographicsIndex() {
                 />
               </div>
 
+
               {/* <div className="space-y-1">
                 <label className="font-medium">Category</label>
                 <Input
@@ -269,6 +273,15 @@ export default function AdminInfographicsIndex() {
                   onChange={(e) => activeLang === "en" ? setData("category", e.target.value) : setData("category_ja", e.target.value)}
                 />
               </div> */}
+
+              <div className="space-y-1">
+                <label className="font-medium">Slug</label>
+                <Input
+                  placeholder="Slug"
+                  value={data.slug}
+                  onChange={(e) => setData("slug", e.target.value)}
+                />
+              </div>
 
               <div className="space-y-1">
                 <label className="font-medium">Short Description</label>

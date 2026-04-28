@@ -37,6 +37,7 @@ class BlogController extends Controller
 
             'title' => 'nullable|string',
             'title_ja' => 'nullable|string',
+            'slug' => 'required|string|unique:blogs,slug',
             'short_description' => 'nullable|string',
             'short_description_ja' => 'nullable|string',
             'content' => 'nullable',
@@ -86,6 +87,7 @@ class BlogController extends Controller
             'language' => 'nullable|in:en,ja',
             'title' => 'nullable|string',
             'title_ja' => 'nullable|string',
+            'slug' => 'required|string|unique:blogs,slug,' . $blog->id,
             'short_description' => 'nullable|string',
             'short_description_ja' => 'nullable|string',
             'content' => 'nullable',

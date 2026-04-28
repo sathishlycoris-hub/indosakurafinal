@@ -11,8 +11,8 @@
   <h2>Thank you, {{ $contact->name_en }}!</h2>
   <p>We have received your message and will get back to you within <strong>24 hours</strong>.</p>
   <p><strong>Your message:</strong><br>{{ $contact->product_service }}</p>
-  <p>Best regards,<br><strong>Indo Sakura Team</strong></p>
-  <div class="footer">info.japan@indosakura.com | 03-5633-7776</div>
+  <p>Best regards,<br><strong>Indo-Sakura Team</strong></p>
+  <div class="footer">info.india@indosakura.com | 03-5633-7776</div>
 </div>
 </body>
 </html>

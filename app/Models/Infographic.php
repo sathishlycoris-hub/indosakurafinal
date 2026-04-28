@@ -12,6 +12,7 @@ class Infographic extends Model
     protected $fillable = [
         'title',
         'title_ja',
+        'slug',
         'short_description',
         'short_description_ja',
         'content',
@@ -33,4 +34,8 @@ class Infographic extends Model
         'table_of_contents'    => 'array',
         'table_of_contents_ja' => 'array',
     ];
+    public function getRouteKeyName()
+    {
+        return 'slug';
+    }
 }

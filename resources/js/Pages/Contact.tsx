@@ -15,7 +15,9 @@ interface SiteSettings {
   contact_tagline_en: string; contact_tagline_ja: string;
   contact_heading_en: string; contact_heading_ja: string;
   contact_subtext_en: string; contact_subtext_ja: string;
+
 }
+
 
 const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 
@@ -51,6 +53,10 @@ const Contact = () => {
     script.src = "https://www.google.com/recaptcha/api.js";
     script.async = true;
     document.body.appendChild(script);
+
+    (window as any).onContactRecaptchaVerify = (token: string) => {
+      setFormData(prev => ({ ...prev, recaptcha: token }));
+    };
   }, []);
 
   const [formData, setFormData] = useState(initialFormState);
@@ -72,6 +78,9 @@ const Contact = () => {
     if (!formData.address.trim()) errs.address = "Location is required";
     if (!formData.productService.trim()) errs.productService = "Project requirement is required";
     setErrors(errs);
+    if (!formData.recaptcha) {
+      errs.recaptcha = "Please complete the reCAPTCHA";
+    }
     return Object.keys(errs).length === 0;
   };
 
@@ -192,9 +201,9 @@ const Contact = () => {
 
                   {/* reCAPTCHA */}
                   <div
-                    className="g-recaptcha mb-4"
+                    className="g-recaptcha"
                     data-sitekey={recaptchaSiteKey}
-                    data-callback={(token: string) => setFormData(prev => ({ ...prev, recaptcha: token }))}
+                    data-callback="onContactRecaptchaVerify"
                   />
                   {errors.recaptcha && <p className="text-red-500 text-xs">{errors.recaptcha}</p>}
 

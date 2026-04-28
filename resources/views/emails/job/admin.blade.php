@@ -6,7 +6,7 @@
   h2 { color: #e63946; }
   table { width: 100%; border-collapse: collapse; }
   td { padding: 10px; border-bottom: 1px solid #f0f0f0; }
-  td:first-child { font-weight: bold; width: 160px; color: #555; }
+  td:first-child { font-weight: bold; width: 220px; color: #555; }
 </style></head>
 <body>
 <div class="box">

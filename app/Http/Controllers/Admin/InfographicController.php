@@ -22,6 +22,7 @@ class InfographicController extends Controller
         $data = $request->validate([
             'title'                  => 'nullable|string',
             'title_ja'               => 'nullable|string',
+            'slug'                   => 'required|string|unique:infographics,slug',
             'short_description'      => 'nullable|string',
             'short_description_ja'   => 'nullable|string',
             'content'                => 'nullable|string',
@@ -64,6 +65,7 @@ class InfographicController extends Controller
         $data = $request->validate([
             'title'                  => 'nullable|string',
             'title_ja'               => 'nullable|string',
+            'slug' => 'required|string|unique:infographics,slug,' . $infographic->id,
             'short_description'      => 'nullable|string',
             'short_description_ja'   => 'nullable|string',
             'content'                => 'nullable|string',

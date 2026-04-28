@@ -65,8 +65,8 @@ const config: Config = {
         "body-lg": ["1.125rem", { lineHeight: "1.85rem" }],
 
         /* Headings */
-        h1: ["2rem", { lineHeight: "2.5rem", letterSpacing: "-0.02em" }],
-        h2: ["1.75rem", { lineHeight: "2.25rem" }],
+        h1: ["clamp(2rem, 3vw, 2.5rem)", { lineHeight: "1.2" }],
+        h2: ["clamp(1.5rem, 2.5vw, 2rem)", { lineHeight: "1.3" }],
         h3: ["1.5rem", { lineHeight: "2rem" }],
 
         /* Fluid (optional, advanced) */

@@ -33,8 +33,9 @@ export default function Pressrelease({ news = [], filters = [], filters_ja = [] 
     ? news
     : news.filter((item) => item.eventtype === activeFilter);
 
-  const formatDate = (date: string) =>
-    new Date(date).toLocaleDateString(lang === "ja" ? "ja-JP" : "en-GB");
+const formatDate = (date: string) => {
+  return new Date(date).toISOString().split("T")[0];
+};
 
   // Get the display label for a filter button
   // filters[i] = EN name, filters_ja[i] = JA name

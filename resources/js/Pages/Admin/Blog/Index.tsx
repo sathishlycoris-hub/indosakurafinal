@@ -32,7 +32,7 @@ import "react-quill/dist/quill.snow.css";
 
 interface Blog {
   id: number;
-
+  slug: string;
   title: string;
   title_ja?: string;
 
@@ -64,6 +64,7 @@ export default function AdminBlogIndex() {
   const { data, setData, post, reset, processing } = useForm({
     title: "",
     title_ja: "",
+    slug: "",
 
     category: "",
     category_ja: "",
@@ -115,6 +116,7 @@ export default function AdminBlogIndex() {
     setData({
       title: blog.title || "",
       title_ja: blog.title_ja || "",
+      slug: blog.slug || "",
 
       category: blog.category || "",
       category_ja: blog.category_ja || "",
@@ -306,7 +308,16 @@ export default function AdminBlogIndex() {
                   }
                 />
               </div>
-
+               {/* Title */}
+              <div className="space-y-1">
+                 <label className="font-medium">Slug</label>
+              <Input
+                  placeholder="Slug"
+                  value={data.slug}
+                  onChange={(e) => setData("slug", e.target.value)}
+                />
+              </div>
+              
               {/* Category */}
               <div className="space-y-1">
                 <label className="font-medium">Category</label>
@@ -349,7 +360,7 @@ export default function AdminBlogIndex() {
                 <ReactQuill
                   key={activeLang}
                   theme="snow"
-                   style={{ height: "200px", marginBottom: "50px" }}
+                  style={{ height: "200px", marginBottom: "50px" }}
                   value={
                     activeLang === "en"
                       ? data.content

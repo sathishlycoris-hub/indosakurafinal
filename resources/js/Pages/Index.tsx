@@ -40,7 +40,7 @@ interface HomepageSettings {
 }
 
 interface Seo { meta_title?: string; meta_description?: string; meta_keywords?: string; }
-interface NewsEvent { id: number; date: string; eventtype: string; short: string; short_ja?: string | null; }
+interface NewsEvent { id: number; date: string; eventtype: string; eventtype_ja?: string | null; short: string; short_ja?: string | null; }
 interface Service { id: number; title: string; title_ja?: string | null; slug: string; hero_description?: string | null; hero_description_ja?: string | null; }
 interface Solution { id: number; title: string; title_ja?: string | null; slug: string; hero_description?: string | null; hero_description_ja?: string | null; }
 interface CaseStudy { subtitle: string; subtitle_ja?: string; slug: string; hero_image?: string | null; tags?: string; }
@@ -194,7 +194,7 @@ const Index = ({
                 <div data-aos="fade-up" data-aos-delay={index * 80}
                   className="grid grid-cols-[120px_160px_1fr_30px] items-center py-4 border-b border-border hover:bg-muted/50 transition-colors">
                   <span className="text-md text-muted-foreground">{update.date}</span>
-                  <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium w-fit">{update.eventtype}</span>
+                  <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium w-fit">{lang === "en" ? update.eventtype : update.eventtype_ja || update.eventtype}</span>
                   <p className="text-foreground overflow-hidden line-clamp-1">
                     {lang === "en" ? update.short : update.short_ja || update.short}
                   </p>

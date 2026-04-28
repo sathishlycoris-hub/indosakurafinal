@@ -7,6 +7,7 @@ import "aos/dist/aos.css";
 import Insightshead from "@/components/layout/InsightsHead";
 interface Blog {
   id: number;
+   slug: string; 
   title: string;
   title_ja?: string;
   short_description: string;
@@ -67,7 +68,7 @@ export default function Blogs() {
           {blogs.map((b) => (
             <Link
               key={b.id}
-              href={`/blogs/${b.id}`}
+              href={`/blogs/${b.slug}`}
               className="border rounded-lg overflow-hidden hover:shadow-lg group"
             >
               <img

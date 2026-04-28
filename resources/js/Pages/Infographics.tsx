@@ -9,6 +9,7 @@ interface Infographic {
   id: number;
   title: string;
   title_ja?: string;
+  slug: string;
   short_description?: string;
   short_description_ja?: string;
   category?: string;
@@ -71,7 +72,7 @@ export default function Infographics() {
           {featured && (
             <Link
 
-              href={`/blogs/infographics/${featured.id}`}
+              href={`/blogs/infographics/${featured.slug}`}
               className="group flex flex-col md:flex-row border border-border rounded-xl overflow-hidden hover:shadow-lg transition-shadow mb-10 bg-white"
               data-aos="fade-up"
             >
@@ -125,7 +126,7 @@ export default function Infographics() {
               {rest.map((item, i) => (
                 <Link
                   key={item.id}
-                  href={`/blogs/infographics/${item.id}`}
+                  href={`/blogs/infographics/${item.slug}`}
                   className="group border border-border rounded-xl overflow-hidden hover:shadow-lg transition-shadow bg-white"
                   data-aos="fade-up"
                   data-aos-delay={i * 60}

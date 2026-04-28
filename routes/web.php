@@ -208,7 +208,7 @@ Route::post('/contact/save', [ContactController::class, 'store'])
     ->name('contact.store');
 
 Route::get('/blogs', [BlogPageController::class, 'index']);
-Route::get('/blogs/{blog}', [BlogPageController::class, 'show']);
+Route::get('/blogs/{slug}', [BlogPageController::class, 'show']);
 
 Route::get('/recruitment', [JobController::class, 'recruitment'])
     ->name('recruitment');
@@ -291,6 +291,7 @@ Route::prefix('admin')
 
         Route::resource('/infographics', \App\Http\Controllers\Admin\InfographicController::class)
             ->names('infographics');
+            
 
         Route::get('/corporate-info', [CorporateInfoController::class, 'index'])
             ->name('corporate.index');

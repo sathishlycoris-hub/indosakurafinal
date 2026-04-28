@@ -10,10 +10,10 @@
 <div class="box">
   <h2>Application Received!</h2>
   <p>Dear {{ $application->full_name }},</p>
-  <p>Thank you for applying to <strong>{{ $application->job->title ?? 'the position' }}</strong> at Indo Sakura.</p>
+  <p>Thank you for applying to <strong>{{ $application->job->title ?? 'the position' }}</strong> at Indo-Sakura.</p>
   <p>We have received your application and our team will review it shortly. We will contact you if your profile matches our requirements.</p>
-  <p>Best regards,<br><strong>Indo Sakura HR Team</strong></p>
-  <div class="footer">info.japan@indosakura.com | 03-5633-7776</div>
+  <p>Best regards,<br><strong>Indo-Sakura HR Team</strong></p>
+  <div class="footer">info.india@indosakura.com | 03-5633-7776</div>
 </div>
 </body>
 </html>

@@ -46,7 +46,7 @@ class JobApplicationController extends Controller
         $application->load('job');
 
         // Step 5: Send emails
-        Mail::to('sathish.lycoris@gmail.com')->send(new JobApplicationAdminMail($application));
+        Mail::to('info.india@indosakura.com')->send(new JobApplicationAdminMail($application));
         Mail::to($application->email)->send(new JobApplicationUserMail($application));
 
         return back()->with('success', 'Application submitted successfully.');

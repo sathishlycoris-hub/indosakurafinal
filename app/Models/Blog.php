@@ -13,6 +13,7 @@ class Blog extends Model
         'language',
         'title',
         'title_ja',
+        'slug',
         'short_description',
         'short_description_ja',
         'content',
