@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Models\Seo;
 
 use App\Http\Controllers\Admin\SolutionController;
 use App\Http\Controllers\Admin\SolutionMasterController;
@@ -130,7 +131,9 @@ Route::post('/set-language', function (\Illuminate\Http\Request $request) {
 })->name('set.language');
 
 /* Contact & Utility */
-Route::get('/contact', fn() => Inertia::render('Contact'));
+Route::get('/contact', fn() => Inertia::render('Contact', [
+    'seo' => Seo::where('page', 'contact')->first(),
+]));
 Route::get('/sitemap', fn() => Inertia::render('Sitemap'));
 Route::get('/usage', fn() => Inertia::render('Usage'));
 
@@ -291,7 +294,7 @@ Route::prefix('admin')
 
         Route::resource('/infographics', \App\Http\Controllers\Admin\InfographicController::class)
             ->names('infographics');
-            
+
 
         Route::get('/corporate-info', [CorporateInfoController::class, 'index'])
             ->name('corporate.index');
@@ -434,6 +437,13 @@ Route::prefix('admin')
         Route::delete('/case-studies/{caseStudy}', [AdminCaseStudyController::class, 'destroy'])
             ->name('casestudies.destroy');
     });
+
+Route::get('/storage/{path}', function (string $path) {
+    $fullPath = storage_path('app/public/' . $path);
+    if (!file_exists($fullPath)) abort(404);
+    $mime = mime_content_type($fullPath);
+    return response()->file($fullPath, ['Content-Type' => $mime]);
+})->where('path', '.*')->name('storage.serve')->withoutMiddleware(['web']);
 
 /* =======================
 | 404 Fallback

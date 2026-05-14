@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { router, usePage } from "@inertiajs/react";
+import { router, usePage, Head } from "@inertiajs/react";
 import { Mail, Phone, MapPin, Send, User, MessageSquare } from "lucide-react";
 
 interface SiteSettings {
@@ -15,9 +15,13 @@ interface SiteSettings {
   contact_tagline_en: string; contact_tagline_ja: string;
   contact_heading_en: string; contact_heading_ja: string;
   contact_subtext_en: string; contact_subtext_ja: string;
-
 }
 
+interface Seo {
+  meta_title?: string | null;
+  meta_description?: string | null;
+  meta_keywords?: string | null;
+}
 
 const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 
@@ -36,9 +40,10 @@ const CONTACT_DEFAULTS: SiteSettings = {
 
 const Contact = () => {
   const { toast } = useToast();
-  const { props } = usePage<{ lang: "en" | "ja"; siteSettings?: SiteSettings }>();
+  const { props } = usePage<{ lang: "en" | "ja"; siteSettings?: SiteSettings; seo?: Seo | null }>();
   const lang = props.lang;
   const cs: SiteSettings = { ...CONTACT_DEFAULTS, ...(props.siteSettings ?? {}) };
+  const seo = props.seo;
 
   const t = (en: string, ja: string) => lang === "ja" ? ja || en : en;
 
@@ -105,7 +110,6 @@ const Contact = () => {
   const inputClass = (key: string) =>
     `rounded-xl focus-visible:ring-primary focus-visible:border-primary ${errors[key] ? "border-red-500" : "border-border"}`;
 
-  // Form field labels — bilingual
   const ui = {
     fullName: t("Full Name", "お名前"),
     email: t("Email Address", "メールアドレス"),
@@ -123,11 +127,19 @@ const Contact = () => {
 
   return (
     <Layout>
+      {/* ── SEO Head ── */}
+      <Head>
+        <title>
+          {seo?.meta_title ?? (lang === "en" ? "Contact Us | Indo Sakura" : "お問い合わせ | インドサクラ")}
+        </title>
+        {seo?.meta_description && <meta name="description" content={seo.meta_description} />}
+        {seo?.meta_keywords    && <meta name="keywords"    content={seo.meta_keywords}    />}
+      </Head>
+
       <div className="min-h-screen bg-slate-50/50 dark:bg-zinc-950">
         <section className="py-20">
           <div className="container mx-auto px-4">
 
-            {/* Page Hero — CMS-driven */}
             <div className="max-w-2xl mx-auto text-center mb-16">
               <h1 className="text-4xl font-bold tracking-tight mb-4 sm:text-5xl">
                 {lang === "ja" ? cs.contact_heading_ja || cs.contact_heading_en : cs.contact_heading_en}
@@ -139,7 +151,7 @@ const Contact = () => {
 
             <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-12 items-stretch">
 
-              {/* Sidebar — CMS-driven */}
+              {/* Sidebar */}
               <div className="lg:col-span-2 space-y-8 bg-primary p-8 rounded-3xl text-primary-foreground shadow-xl">
                 <div>
                   <h3 className="text-2xl font-semibold mb-6">{t("Contact Information", "お問い合わせ先")}</h3>
