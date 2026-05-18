@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class ServiceController extends Controller
 {
@@ -26,13 +27,18 @@ class ServiceController extends Controller
 
     private function validated(Request $request, ?int $ignoreId = null): array
     {
+        /*
+         * Slug is REQUIRED — never allow null to reach the DB.
+         * If somehow empty, fall back to a slugified title so the
+         * DB constraint is never violated.
+         */
         $slugRule = $ignoreId
-            ? 'nullable|string|unique:services,slug,' . $ignoreId
-            : 'nullable|string|unique:services';
+            ? 'required|string|max:255|unique:services,slug,' . $ignoreId
+            : 'required|string|max:255|unique:services,slug';
 
         $request->validate([
-            'title'               => 'nullable|string',
-            'title_ja'            => 'nullable|string',
+            'title'               => 'required|string|max:255',
+            'title_ja'            => 'nullable|string|max:255',
             'slug'                => $slugRule,
             'subtitle'            => 'nullable|string',
             'subtitle_ja'         => 'nullable|string',
@@ -46,6 +52,7 @@ class ServiceController extends Controller
             'cta_label_ja'        => 'nullable|string|max:255',
             'cta_url'             => 'nullable|string|max:255',
             'hero_image'          => 'nullable|image|max:4096',
+            /* JSON arrays sent as strings via FormData */
             'highlights'          => 'nullable',
             'benefits'            => 'nullable',
             'service_items'       => 'nullable',
@@ -53,16 +60,20 @@ class ServiceController extends Controller
             'approach_steps'      => 'nullable',
             'testimonials'        => 'nullable',
             'tech_stack'          => 'nullable',
-            'page_faqs'           => 'nullable',        // NEW key
-            'page_industries'     => 'nullable',        // NEW key
+            'page_faqs'           => 'nullable',
+            'page_industries'     => 'nullable',
+        ], [
+            'title.required' => 'The service title is required.',
+            'slug.required'  => 'The slug is required. It is used in the URL.',
+            'slug.unique'    => 'This slug is already taken by another service.',
         ]);
 
         $jsonKeys = [
             'highlights', 'benefits',
             'service_items', 'why_choose', 'approach_steps',
             'testimonials', 'tech_stack',
-            'page_faqs',        // NEW
-            'page_industries',  // NEW
+            'page_faqs',
+            'page_industries',
         ];
 
         $decoded = [];
@@ -104,7 +115,7 @@ class ServiceController extends Controller
             ]);
         }
 
-        // Per-service Page FAQs → service_page_faqs
+        // Per-service FAQs → service_page_faqs
         $service->pageFaqs()->delete();
         foreach ($decoded['page_faqs'] as $i => $item) {
             $service->pageFaqs()->create([
@@ -116,7 +127,7 @@ class ServiceController extends Controller
             ]);
         }
 
-        // Per-service Page Industries → service_page_industries
+        // Per-service Industries → service_page_industries
         $service->pageIndustries()->delete();
         foreach ($decoded['page_industries'] as $i => $item) {
             $service->pageIndustries()->create([
@@ -128,7 +139,7 @@ class ServiceController extends Controller
             ]);
         }
 
-        // JSON columns on the service row
+        // JSON columns stored on the service row
         $service->update([
             'service_items'  => $decoded['service_items'],
             'why_choose'     => $decoded['why_choose'],
@@ -136,6 +147,38 @@ class ServiceController extends Controller
             'testimonials'   => $decoded['testimonials'],
             'tech_stack'     => $decoded['tech_stack'],
         ]);
+    }
+
+    /* ─────────── BUILD MAIN PAYLOAD ─────────── */
+
+    private function buildPayload(Request $request, ?string $existingImage = null): array
+    {
+        /*
+         * Safety net: if slug is somehow still empty after validation,
+         * generate one from the title rather than let a null hit the DB.
+         */
+        $slug = trim($request->input('slug', ''));
+        if ($slug === '') {
+            $slug = Str::slug($request->input('title', 'service-' . time()));
+        }
+
+        return [
+            'title'               => $request->title,
+            'title_ja'            => $request->title_ja,
+            'slug'                => $slug,
+            'subtitle'            => $request->subtitle,
+            'subtitle_ja'         => $request->subtitle_ja,
+            'hero_description'    => $request->hero_description,
+            'hero_description_ja' => $request->hero_description_ja,
+            'how_it_works'        => $request->how_it_works,
+            'how_it_works_ja'     => $request->how_it_works_ja,
+            'overview'            => $request->overview,
+            'overview_ja'         => $request->overview_ja,
+            'cta_label'           => $request->cta_label,
+            'cta_label_ja'        => $request->cta_label_ja,
+            'cta_url'             => $request->cta_url ?? '/contact',
+            'hero_image'          => $existingImage,
+        ];
     }
 
     /* ─────────── STORE ─────────── */
@@ -149,29 +192,13 @@ class ServiceController extends Controller
                 ? $request->file('hero_image')->store('services', 'public')
                 : null;
 
-            $service = Service::create([
-                'title'               => $request->title,
-                'title_ja'            => $request->title_ja,
-                'slug'                => $request->slug,
-                'subtitle'            => $request->subtitle,
-                'subtitle_ja'         => $request->subtitle_ja,
-                'hero_description'    => $request->hero_description,
-                'hero_description_ja' => $request->hero_description_ja,
-                'how_it_works'        => $request->how_it_works,
-                'how_it_works_ja'     => $request->how_it_works_ja,
-                'overview'            => $request->overview,
-                'overview_ja'         => $request->overview_ja,
-                'cta_label'           => $request->cta_label,
-                'cta_label_ja'        => $request->cta_label_ja,
-                'cta_url'             => $request->cta_url ?? '/contact',
-                'hero_image'          => $heroImage,
-            ]);
-
+            $payload = $this->buildPayload($request, $heroImage);
+            $service = Service::create($payload);
             $this->syncRelations($service, $decoded);
         });
 
         return redirect()->route('admin.services.index')
-            ->with('success', 'Service saved successfully');
+            ->with('success', 'Service saved successfully.');
     }
 
     /* ─────────── UPDATE ─────────── */
@@ -189,29 +216,13 @@ class ServiceController extends Controller
                 $heroImage = $request->file('hero_image')->store('services', 'public');
             }
 
-            $service->update([
-                'title'               => $request->title,
-                'title_ja'            => $request->title_ja,
-                'slug'                => $request->slug,
-                'subtitle'            => $request->subtitle,
-                'subtitle_ja'         => $request->subtitle_ja,
-                'hero_description'    => $request->hero_description,
-                'hero_description_ja' => $request->hero_description_ja,
-                'how_it_works'        => $request->how_it_works,
-                'how_it_works_ja'     => $request->how_it_works_ja,
-                'overview'            => $request->overview,
-                'overview_ja'         => $request->overview_ja,
-                'cta_label'           => $request->cta_label,
-                'cta_label_ja'        => $request->cta_label_ja,
-                'cta_url'             => $request->cta_url ?? '/contact',
-                'hero_image'          => $heroImage,
-            ]);
-
+            $payload = $this->buildPayload($request, $heroImage);
+            $service->update($payload);
             $this->syncRelations($service, $decoded);
         });
 
         return redirect()->route('admin.services.index')
-            ->with('success', 'Service updated successfully');
+            ->with('success', 'Service updated successfully.');
     }
 
     /* ─────────── SHOW (admin panel view) ─────────── */
@@ -240,6 +251,6 @@ class ServiceController extends Controller
         });
 
         return redirect()->route('admin.services.index')
-            ->with('success', 'Service deleted successfully');
+            ->with('success', 'Service deleted successfully.');
     }
 }
