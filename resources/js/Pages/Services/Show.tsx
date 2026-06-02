@@ -228,18 +228,18 @@ export default function Show({ service, faqs = [], industries = [] }: Props) {
                                 group`}
                   >
                     {/* Icon block */}
-                    <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center
-                                    group-hover:bg-primary transition-colors duration-300">
-                      <Icon className="w-7 h-7 text-primary group-hover:text-white transition-colors duration-300" />
+                    <div className="flex-shrink-0 w-14 h-14 bg-primary text-white rounded-xl flex items-center justify-center
+                                    ">
+                      <Icon className="w-7 h-7" />
                     </div>
 
-                    {/* Content */}
+                  
                     <div className="flex-1 min-w-0">
                       {/* step badge + title inline */}
                       <div className="flex items-center gap-3 mb-2">
-                        <span className="text-xs font-bold text-primary/40 tracking-widest">
+                        {/* <span className="text-xs font-bold text-primary/40 tracking-widest">
                           {String(i + 1).padStart(2, "0")}
-                        </span>
+                        </span> */}
                         <h3 className="text-lg font-bold text-primary leading-snug">
                           {v(item.title, item.title_ja)}
                         </h3>
@@ -291,10 +291,12 @@ export default function Show({ service, faqs = [], industries = [] }: Props) {
                                shadow-sm hover:shadow-md hover:border-primary/30 transition-all duration-300 group"
                   >
                     {/* colored icon pill */}
-                    <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center
-                                    group-hover:bg-primary transition-colors duration-300">
-                      <Icon className="w-6 h-6 text-primary group-hover:text-white transition-colors duration-300" />
+                    <div className="flex-shrink-0 w-12 h-12 bg-primary text-white rounded-xl flex items-center justify-center
+                                    ">
+                      <Icon className="w-6 h-6" />
                     </div>
+
+                     
                     <div>
                       <h3 className="font-bold text-foreground mb-1 text-base">{v(b.title, b.title_ja)}</h3>
                       {b.description && (
@@ -349,7 +351,7 @@ export default function Show({ service, faqs = [], industries = [] }: Props) {
           <div className="container mx-auto px-6 max-w-7xl">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
               {/* left: heading + intro */}
-              <div data-aos="fade-right" className="lg:sticky lg:top-32">
+              <div data-aos="fade-right" className="lg:sticky lg:top-32"  >
                 <SectionHeading
                   align="left"
                   title={
@@ -384,10 +386,11 @@ export default function Show({ service, faqs = [], industries = [] }: Props) {
                       className="flex gap-4 p-5 bg-card border border-border rounded-xl
                                  hover:border-primary/40 hover:shadow-md transition-all duration-300 group"
                     >
-                      <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center
-                                      group-hover:bg-primary transition-colors duration-300">
-                        <Icon className="w-5 h-5 text-primary group-hover:text-white transition-colors duration-300" />
+                      <div className="flex-shrink-0 w-10 h-10 bg-primary text-white rounded-xl flex items-center justify-center
+                                     ">
+                        <Icon className="w-5 h-5" />
                       </div>
+                      
                       <div>
                         <h3 className="font-bold text-foreground mb-1 text-base">{v(item.title, item.title_ja)}</h3>
                         {item.description && (
@@ -530,13 +533,30 @@ export default function Show({ service, faqs = [], industries = [] }: Props) {
               {safeIndustries.map((ind, i) => {
                 const Icon = icon(INDUSTRY_ICONS, i);
                 return (
-                  <div key={ind.id} data-aos="fade-up" data-aos-delay={i * 80}
-                    className="bg-card p-6 rounded-xl border border-border hover:shadow-md transition-shadow">
-                    <Icon className="w-10 h-10 text-primary mb-4" />
-                    <h3 className="text-lg font-semibold text-foreground mb-2">{v(ind.title, ind.title_ja)}</h3>
-                    <div className="text-sm text-muted-foreground prose prose-sm max-w-none"
-                      dangerouslySetInnerHTML={{ __html: v(ind.description, ind.description_ja) }} />
-                  </div>
+                 <div 
+  key={ind.id} 
+  data-aos="fade-up" 
+  data-aos-delay={i * 80}
+  className="bg-card p-6 rounded-xl border border-border hover:shadow-md transition-all duration-300 group"
+>
+  <div className="flex items-start gap-4">
+    {/* Icon */}
+    <div className="flex-shrink-0">
+      <Icon className="w-10 h-10 text-primary" />
+    </div>
+
+    {/* Title + Description */}
+    <div className="flex-1 min-w-0">
+      <h3 className="text-lg font-semibold text-foreground mb-2">
+        {v(ind.title, ind.title_ja)}
+      </h3>
+      <div 
+        className="text-sm text-muted-foreground prose prose-sm max-w-none"
+        dangerouslySetInnerHTML={{ __html: v(ind.description, ind.description_ja) }} 
+      />
+    </div>
+  </div>
+</div>
                 );
               })}
             </div>
