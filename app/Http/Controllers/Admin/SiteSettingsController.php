@@ -20,6 +20,7 @@ class SiteSettingsController extends Controller
             'nav3_en' => 'Insights',       'nav3_ja' => '導入事例',       'nav3_href' => '/blogs',
             'nav4_en' => 'Corporate Info', 'nav4_ja' => '企業情報',       'nav4_href' => '/corporate-info',
             'nav5_en' => 'Careers',        'nav5_ja' => '採用情報',       'nav5_href' => '/recruitment',
+            'nav6_en' => 'India Desks',    'nav6_ja' => 'インドデスク',   'nav6_href' => '/india-desks',
             'contact_label_en' => 'Contact us', 'contact_label_ja' => 'お問い合わせ',
 
             // Footer headings
@@ -133,6 +134,7 @@ class SiteSettingsController extends Controller
             'nav3_en' => 'nullable|string', 'nav3_ja' => 'nullable|string', 'nav3_href' => 'nullable|string',
             'nav4_en' => 'nullable|string', 'nav4_ja' => 'nullable|string', 'nav4_href' => 'nullable|string',
             'nav5_en' => 'nullable|string', 'nav5_ja' => 'nullable|string', 'nav5_href' => 'nullable|string',
+            'nav6_en' => 'nullable|string', 'nav6_ja' => 'nullable|string', 'nav6_href' => 'nullable|string',
             'contact_label_en' => 'nullable|string', 'contact_label_ja' => 'nullable|string',
 
             'footer_company_heading_en'   => 'nullable|string', 'footer_company_heading_ja'   => 'nullable|string',

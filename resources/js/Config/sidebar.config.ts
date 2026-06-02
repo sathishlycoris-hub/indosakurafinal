@@ -101,6 +101,31 @@ export const sidebarItems: SidebarItem[] = [
       },
     ],
   },
+  {
+    label: "India Desks",
+    icon: Handshake, 
+    role: ["admin"],
+    children: [
+      {
+        label: "India Desks",
+        icon: Settings,
+        href: route("admin.india_desks.index"),
+        role: ["admin"],
+      },
+      {
+        label: "India Desk Industry",
+        icon: Factory,
+        href: route("admin.india-desk-industries.index"),
+        role: ["admin"],
+      },
+      {
+        label: "FAQs",
+        icon: HelpCircle,
+        href: route("admin.india_desk_faqs.index"),
+        role: ["admin"],
+      },
+    ],
+  },
 
   {
     label: "Insights",

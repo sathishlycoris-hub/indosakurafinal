@@ -80,20 +80,20 @@ export default function SiteSettingsIndex() {
   });
 
   const save = () => post(route("admin.site-settings.update"), { forceFormData: true });
-  const set  = (k: string, v: string) => setData(k as any, v);
-  const l    = activeLang;
+  const set = (k: string, v: string) => setData(k as any, v);
+  const l = activeLang;
 
   const tabs: { key: Tab; label: string }[] = [
-    { key: "header",       label: "Header & Nav" },
-    { key: "footer_text",  label: "Footer Text" },
+    { key: "header", label: "Header & Nav" },
+    { key: "footer_text", label: "Footer Text" },
     { key: "footer_links", label: "Footer Links" },
-    { key: "social",       label: "Social Media" },
-    { key: "floating",     label: "Floating Buttons" },
-    { key: "contact",      label: "Contact Page" },
-    { key: "cta",          label: "Contact CTA" },
-    { key: "insights",     label: "Insights Nav" },
+    { key: "social", label: "Social Media" },
+    { key: "floating", label: "Floating Buttons" },
+    { key: "contact", label: "Contact Page" },
+    { key: "cta", label: "Contact CTA" },
+    { key: "insights", label: "Insights Nav" },
     // { key: "sitemap",      label: "Sitemap Links" },
-    { key: "corpnav",      label: "Corporate Nav" },
+    { key: "corpnav", label: "Corporate Nav" },
   ];
 
   return (
@@ -124,9 +124,8 @@ export default function SiteSettingsIndex() {
       <div className="flex gap-1 border-b mb-6 overflow-x-auto">
         {tabs.map((t) => (
           <button key={t.key} onClick={() => setActiveTab(t.key)}
-            className={`px-4 py-2 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
-              activeTab === t.key ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}>
+            className={`px-4 py-2 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${activeTab === t.key ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}>
             {t.label}
           </button>
         ))}
@@ -153,7 +152,7 @@ export default function SiteSettingsIndex() {
           </div>
           <div className="space-y-3">
             <h3 className="font-semibold text-base border-b pb-2">Navigation Links</h3>
-            {[1, 2, 3, 4, 5].map((n) => (
+            {[1, 2, 3, 4, 5, 6].map((n) => (
               <div key={n}>
                 <p className="text-xs text-muted-foreground mb-1">Nav Item {n}</p>
                 <LinkRow prefix="nav" num={n} label={`Nav ${n}`} data={data} set={set} />
@@ -179,16 +178,16 @@ export default function SiteSettingsIndex() {
           </div>
           <div className="space-y-3">
             <h3 className="font-semibold text-base border-b pb-2">Column Headings</h3>
-            <Field label="Company Column" value={data[l==="en"?"footer_company_heading_en":"footer_company_heading_ja"] ?? ""} onChange={(v)=>set(l==="en"?"footer_company_heading_en":"footer_company_heading_ja",v)} lang={l} />
-            <Field label="Resources Column" value={data[l==="en"?"footer_resources_heading_en":"footer_resources_heading_ja"] ?? ""} onChange={(v)=>set(l==="en"?"footer_resources_heading_en":"footer_resources_heading_ja",v)} lang={l} />
-            <Field label="Solutions Column" value={data[l==="en"?"footer_solutions_heading_en":"footer_solutions_heading_ja"] ?? ""} onChange={(v)=>set(l==="en"?"footer_solutions_heading_en":"footer_solutions_heading_ja",v)} lang={l} />
-            <Field label="Services Column" value={data[l==="en"?"footer_services_heading_en":"footer_services_heading_ja"] ?? ""} onChange={(v)=>set(l==="en"?"footer_services_heading_en":"footer_services_heading_ja",v)} lang={l} />
+            <Field label="Company Column" value={data[l === "en" ? "footer_company_heading_en" : "footer_company_heading_ja"] ?? ""} onChange={(v) => set(l === "en" ? "footer_company_heading_en" : "footer_company_heading_ja", v)} lang={l} />
+            <Field label="Resources Column" value={data[l === "en" ? "footer_resources_heading_en" : "footer_resources_heading_ja"] ?? ""} onChange={(v) => set(l === "en" ? "footer_resources_heading_en" : "footer_resources_heading_ja", v)} lang={l} />
+            <Field label="Solutions Column" value={data[l === "en" ? "footer_solutions_heading_en" : "footer_solutions_heading_ja"] ?? ""} onChange={(v) => set(l === "en" ? "footer_solutions_heading_en" : "footer_solutions_heading_ja", v)} lang={l} />
+            <Field label="Services Column" value={data[l === "en" ? "footer_services_heading_en" : "footer_services_heading_ja"] ?? ""} onChange={(v) => set(l === "en" ? "footer_services_heading_en" : "footer_services_heading_ja", v)} lang={l} />
           </div>
           <div className="space-y-3">
             <h3 className="font-semibold text-base border-b pb-2">Bottom Bar</h3>
-            <Field label="Copyright" value={data[l==="en"?"footer_copyright_en":"footer_copyright_ja"] ?? ""} onChange={(v)=>set(l==="en"?"footer_copyright_en":"footer_copyright_ja",v)} lang={l} />
-            <Field label="Offices Line" value={data[l==="en"?"footer_offices_en":"footer_offices_ja"] ?? ""} onChange={(v)=>set(l==="en"?"footer_offices_en":"footer_offices_ja",v)} lang={l} />
-            <Field label="Sitemap Label" value={data[l==="en"?"footer_sitemap_en":"footer_sitemap_ja"] ?? ""} onChange={(v)=>set(l==="en"?"footer_sitemap_en":"footer_sitemap_ja",v)} lang={l} />
+            <Field label="Copyright" value={data[l === "en" ? "footer_copyright_en" : "footer_copyright_ja"] ?? ""} onChange={(v) => set(l === "en" ? "footer_copyright_en" : "footer_copyright_ja", v)} lang={l} />
+            <Field label="Offices Line" value={data[l === "en" ? "footer_offices_en" : "footer_offices_ja"] ?? ""} onChange={(v) => set(l === "en" ? "footer_offices_en" : "footer_offices_ja", v)} lang={l} />
+            <Field label="Sitemap Label" value={data[l === "en" ? "footer_sitemap_en" : "footer_sitemap_ja"] ?? ""} onChange={(v) => set(l === "en" ? "footer_sitemap_en" : "footer_sitemap_ja", v)} lang={l} />
           </div>
         </div>
       )}
@@ -198,11 +197,11 @@ export default function SiteSettingsIndex() {
         <div className="space-y-8 max-w-3xl">
           <div className="space-y-3">
             <h3 className="font-semibold text-base border-b pb-2">Company Column Links</h3>
-            {[1,2,3,4,5].map((n) => <LinkRow key={n} prefix="fc" num={n} label={`Link ${n}`} data={data} set={set} />)}
+            {[1, 2, 3, 4, 5].map((n) => <LinkRow key={n} prefix="fc" num={n} label={`Link ${n}`} data={data} set={set} />)}
           </div>
           <div className="space-y-3">
             <h3 className="font-semibold text-base border-b pb-2">Resources Column Links</h3>
-            {[1,2,3,4].map((n) => <LinkRow key={n} prefix="fr" num={n} label={`Link ${n}`} data={data} set={set} />)}
+            {[1, 2, 3, 4].map((n) => <LinkRow key={n} prefix="fr" num={n} label={`Link ${n}`} data={data} set={set} />)}
           </div>
         </div>
       )}
@@ -211,10 +210,10 @@ export default function SiteSettingsIndex() {
       {activeTab === "social" && (
         <div className="space-y-4 max-w-lg">
           <p className="text-sm text-muted-foreground">Full URLs. Leave blank to hide the icon.</p>
-          <Field label="Facebook URL"  value={data.social_facebook  ?? ""} onChange={(v) => set("social_facebook",  v)} placeholder="https://www.facebook.com/..." />
-          <Field label="X (Twitter) URL" value={data.social_x      ?? ""} onChange={(v) => set("social_x",         v)} placeholder="https://x.com/..." />
-          <Field label="LinkedIn URL"  value={data.social_linkedin  ?? ""} onChange={(v) => set("social_linkedin",  v)} placeholder="https://www.linkedin.com/company/..." />
-          <Field label="YouTube URL"   value={data.social_youtube   ?? ""} onChange={(v) => set("social_youtube",   v)} placeholder="https://www.youtube.com/@..." />
+          <Field label="Facebook URL" value={data.social_facebook ?? ""} onChange={(v) => set("social_facebook", v)} placeholder="https://www.facebook.com/..." />
+          <Field label="X (Twitter) URL" value={data.social_x ?? ""} onChange={(v) => set("social_x", v)} placeholder="https://x.com/..." />
+          <Field label="LinkedIn URL" value={data.social_linkedin ?? ""} onChange={(v) => set("social_linkedin", v)} placeholder="https://www.linkedin.com/company/..." />
+          <Field label="YouTube URL" value={data.social_youtube ?? ""} onChange={(v) => set("social_youtube", v)} placeholder="https://www.youtube.com/@..." />
           <Field label="Instagram URL" value={data.social_instagram ?? ""} onChange={(v) => set("social_instagram", v)} placeholder="https://www.instagram.com/..." />
         </div>
       )}
@@ -223,9 +222,9 @@ export default function SiteSettingsIndex() {
       {activeTab === "floating" && (
         <div className="space-y-4 max-w-lg">
           <Field label="Phone (with country code)" value={data.float_phone ?? ""} onChange={(v) => set("float_phone", v)} placeholder="+819044078453" />
-          <Field label="Email Address"              value={data.float_email ?? ""} onChange={(v) => set("float_email", v)} type="email" />
-          <Field label="WhatsApp Number (no +)"     value={data.float_whatsapp ?? ""} onChange={(v) => set("float_whatsapp", v)} />
-          <Field label="WhatsApp Default Message"   value={data.float_whatsapp_message ?? ""} onChange={(v) => set("float_whatsapp_message", v)} />
+          <Field label="Email Address" value={data.float_email ?? ""} onChange={(v) => set("float_email", v)} type="email" />
+          <Field label="WhatsApp Number (no +)" value={data.float_whatsapp ?? ""} onChange={(v) => set("float_whatsapp", v)} />
+          <Field label="WhatsApp Default Message" value={data.float_whatsapp_message ?? ""} onChange={(v) => set("float_whatsapp_message", v)} />
         </div>
       )}
 
@@ -234,15 +233,15 @@ export default function SiteSettingsIndex() {
         <div className="space-y-8 max-w-2xl">
           <div className="space-y-3">
             <h3 className="font-semibold text-base border-b pb-2">Page Hero</h3>
-            <Field label="Heading"  value={data[l==="en"?"contact_heading_en":"contact_heading_ja"] ?? ""} onChange={(v)=>set(l==="en"?"contact_heading_en":"contact_heading_ja",v)} lang={l} />
-            <Field label="Sub-text" value={data[l==="en"?"contact_subtext_en":"contact_subtext_ja"] ?? ""} onChange={(v)=>set(l==="en"?"contact_subtext_en":"contact_subtext_ja",v)} lang={l} textarea />
+            <Field label="Heading" value={data[l === "en" ? "contact_heading_en" : "contact_heading_ja"] ?? ""} onChange={(v) => set(l === "en" ? "contact_heading_en" : "contact_heading_ja", v)} lang={l} />
+            <Field label="Sub-text" value={data[l === "en" ? "contact_subtext_en" : "contact_subtext_ja"] ?? ""} onChange={(v) => set(l === "en" ? "contact_subtext_en" : "contact_subtext_ja", v)} lang={l} textarea />
           </div>
           <div className="space-y-3">
             <h3 className="font-semibold text-base border-b pb-2">Sidebar Info</h3>
-            <Field label="Phone"   value={data.contact_phone ?? ""} onChange={(v) => set("contact_phone", v)} />
-            <Field label="Email"   value={data.contact_email ?? ""} onChange={(v) => set("contact_email", v)} type="email" />
-            <Field label="Address" value={data[l==="en"?"contact_address":"contact_address_ja"] ?? ""} onChange={(v)=>set(l==="en"?"contact_address":"contact_address_ja",v)} lang={l} />
-            <Field label="Tagline" value={data[l==="en"?"contact_tagline_en":"contact_tagline_ja"] ?? ""} onChange={(v)=>set(l==="en"?"contact_tagline_en":"contact_tagline_ja",v)} lang={l} />
+            <Field label="Phone" value={data.contact_phone ?? ""} onChange={(v) => set("contact_phone", v)} />
+            <Field label="Email" value={data.contact_email ?? ""} onChange={(v) => set("contact_email", v)} type="email" />
+            <Field label="Address" value={data[l === "en" ? "contact_address" : "contact_address_ja"] ?? ""} onChange={(v) => set(l === "en" ? "contact_address" : "contact_address_ja", v)} lang={l} />
+            <Field label="Tagline" value={data[l === "en" ? "contact_tagline_en" : "contact_tagline_ja"] ?? ""} onChange={(v) => set(l === "en" ? "contact_tagline_en" : "contact_tagline_ja", v)} lang={l} />
           </div>
         </div>
       )}
@@ -253,10 +252,10 @@ export default function SiteSettingsIndex() {
           <p className="text-sm text-muted-foreground">
             This section appears at the bottom of most pages as the "Contact Form" call-to-action banner.
           </p>
-          <Field label="Title"       value={data[l==="en"?"cta_title_en":"cta_title_ja"] ?? ""}       onChange={(v)=>set(l==="en"?"cta_title_en":"cta_title_ja",v)}             lang={l} placeholder="Contact Form" />
-          <Field label="Description" value={data[l==="en"?"cta_description_en":"cta_description_ja"] ?? ""} onChange={(v)=>set(l==="en"?"cta_description_en":"cta_description_ja",v)} lang={l} textarea placeholder="Have questions..." />
-          <Field label="Button Text" value={data[l==="en"?"cta_button_en":"cta_button_ja"] ?? ""}     onChange={(v)=>set(l==="en"?"cta_button_en":"cta_button_ja",v)}             lang={l} placeholder="Contact Us" />
-          <Field label="Button URL"  value={data.cta_button_href ?? ""}                               onChange={(v)=>set("cta_button_href",v)}                                   placeholder="/contact" />
+          <Field label="Title" value={data[l === "en" ? "cta_title_en" : "cta_title_ja"] ?? ""} onChange={(v) => set(l === "en" ? "cta_title_en" : "cta_title_ja", v)} lang={l} placeholder="Contact Form" />
+          <Field label="Description" value={data[l === "en" ? "cta_description_en" : "cta_description_ja"] ?? ""} onChange={(v) => set(l === "en" ? "cta_description_en" : "cta_description_ja", v)} lang={l} textarea placeholder="Have questions..." />
+          <Field label="Button Text" value={data[l === "en" ? "cta_button_en" : "cta_button_ja"] ?? ""} onChange={(v) => set(l === "en" ? "cta_button_en" : "cta_button_ja", v)} lang={l} placeholder="Contact Us" />
+          <Field label="Button URL" value={data.cta_button_href ?? ""} onChange={(v) => set("cta_button_href", v)} placeholder="/contact" />
         </div>
       )}
 
@@ -295,7 +294,7 @@ export default function SiteSettingsIndex() {
           <p className="text-sm text-muted-foreground mb-4">
             Tabs shown in the Corporate Info sub-header on all /corporate/* pages.
           </p>
-          {[1,2,3,4,5,6,7,8,9].map((n) => (
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
             <div key={n}>
               <p className="text-xs text-muted-foreground mb-1">Tab {n}</p>
               <LinkRow prefix="corp" num={n} label={`Tab ${n}`} data={data} set={set} />

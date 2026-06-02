@@ -14,6 +14,8 @@ class SiteSetting extends Model
         'nav3_en', 'nav3_ja', 'nav3_href',
         'nav4_en', 'nav4_ja', 'nav4_href',
         'nav5_en', 'nav5_ja', 'nav5_href',
+        // newly added nav item for "India-Desk" section
+        'nav6_en', 'nav6_ja', 'nav6_href',
         'contact_label_en', 'contact_label_ja',
 
         // ── Footer headings & bottom bar ──────────────────

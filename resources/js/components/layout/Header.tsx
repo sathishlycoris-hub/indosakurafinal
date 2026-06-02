@@ -10,6 +10,7 @@ interface SiteSettings {
   nav3_en: string; nav3_ja: string; nav3_href: string;
   nav4_en: string; nav4_ja: string; nav4_href: string;
   nav5_en: string; nav5_ja: string; nav5_href: string;
+  nav6_en: string; nav6_ja: string; nav6_href: string;
   contact_label_en: string;
   contact_label_ja: string;
 }
@@ -22,6 +23,7 @@ const NAV_DEFAULTS: SiteSettings = {
   nav3_en: "Insights",       nav3_ja: "導入事例",       nav3_href: "/blogs",
   nav4_en: "Corporate Info", nav4_ja: "企業情報",       nav4_href: "/corporate-info",
   nav5_en: "Careers",        nav5_ja: "採用情報",       nav5_href: "/recruitment",
+  nav6_en: "India Desks",    nav6_ja: "インドデスク",   nav6_href: "/india-desks",
   contact_label_en: "Contact us",
   contact_label_ja: "お問い合わせ",
 };
@@ -30,7 +32,7 @@ const Header = () => {
   const { url, props } = usePage<{ lang: "en" | "ja"; siteSettings?: SiteSettings }>();
   const lang = props.lang;
   const s: SiteSettings = props.siteSettings ?? NAV_DEFAULTS;
-
+console.warn({s})
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Build nav array from CMS
@@ -40,6 +42,7 @@ const Header = () => {
     { label_en: s.nav3_en, label_ja: s.nav3_ja, href: s.nav3_href },
     { label_en: s.nav4_en, label_ja: s.nav4_ja, href: s.nav4_href },
     { label_en: s.nav5_en, label_ja: s.nav5_ja, href: s.nav5_href },
+    { label_en: s.nav6_en, label_ja: s.nav6_ja, href: s.nav6_href },
   ].filter((item) => item.href); // skip empty rows
 
   const logoSrc = s.logo_image ? `/storage/${s.logo_image}` : "/image/logo.png";

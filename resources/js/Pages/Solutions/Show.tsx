@@ -128,7 +128,7 @@ export default function Show({ solution }: { solution: Solution }) {
                     {solution.hero_image && (
                         <img
                             src={`/storage/${solution.hero_image}`}
-                            className="w-full max-w-lg rounded-2xl shadow border"
+                            className="w-full max-w-2xl rounded-2xl shadow border"
                         />
                     )}
 

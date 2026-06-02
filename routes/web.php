@@ -52,7 +52,9 @@ use App\Http\Controllers\Admin\CorpProfileSettingsController;
 use App\Http\Controllers\Admin\TeamCategoryController;
 use App\Http\Controllers\Admin\SiteSettingsController;
 use App\Http\Controllers\Admin\EventTypeController;
-
+use App\Http\Controllers\Admin\IndiaDeskController;
+use App\Http\Controllers\IndiaDeskPageController;
+use App\Http\Controllers\Admin\IndiaDeskFaqController;
 
 /*
 |--------------------------------------------------------------------------
@@ -260,8 +262,11 @@ Route::get('/services/{slug}', [ServicePageController::class, 'show'])
 Route::get('/corporate-info', [CorporateInfoPageController::class, 'index'])
     ->name('corporate.index');
 
+Route::get('/india-desks', [IndiaDeskPageController::class, 'index'])
+    ->name('india-desks.index');
 
-
+    Route::get('/india-desks/{slug}', [IndiaDeskPageController::class, 'show'])
+    ->name('india-desks.show');
 
 
 /* =======================
@@ -401,7 +406,6 @@ Route::prefix('admin')
         Route::resource('services', ServiceController::class)
             ->names('services');
 
-
         Route::get('service-industries', [
             \App\Http\Controllers\Admin\ServiceIndustryController::class,
             'index'
@@ -421,6 +425,32 @@ Route::prefix('admin')
             \App\Http\Controllers\Admin\ServiceIndustryController::class,
             'destroy'
         ])->name('service-industries.destroy');
+
+        // india desk industries
+        Route::resource('india-desks', IndiaDeskController::class)
+            ->names('india_desks');
+
+        Route::get('india-desk-industries', [
+            \App\Http\Controllers\Admin\IndiaDeskIndustryController::class,
+            'index'
+        ])->name('india-desk-industries.index');
+        
+        Route::post('india-desk-industries', [
+            \App\Http\Controllers\Admin\IndiaDeskIndustryController::class,
+            'store'
+        ])->name('india-desk-industries.store');
+
+        Route::put('india-desk-industries/{indiaDeskIndustry}', [
+            \App\Http\Controllers\Admin\IndiaDeskIndustryController::class,
+            'update'
+        ])->name('india-desk-industries.update');
+
+        Route::delete('india-desk-industries/{indiaDeskIndustry}', [
+            \App\Http\Controllers\Admin\IndiaDeskIndustryController::class,
+            'destroy'
+        ])->name('india-desk-industries.destroy');
+
+        Route::resource('india-desk-faqs', IndiaDeskFaqController::class)->names('india_desk_faqs');
 
         Route::get('seo', [SeoController::class, 'index'])->name('seo.index');
         Route::post('seo', [SeoController::class, 'store'])->name('seo.store');
