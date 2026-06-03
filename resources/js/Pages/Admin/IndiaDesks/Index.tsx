@@ -28,6 +28,10 @@ interface Testimonial { quote: string; quote_ja?: string; author?: string; }
 interface TechStack { category: string; category_ja?: string; items: string; }
 interface PageFaq { question: string; question_ja?: string; answer: string; answer_ja?: string; }
 interface PageIndustry { title: string; title_ja?: string; description?: string; description_ja?: string; }
+interface CaseStudy {
+  id: number; title: string; title_ja?: string; challenge_title?: string; challenge_title_ja?: string; challenge_description?: string; challenge_description_ja?: string;
+  solution_title?: string; solution_title_ja?: string; solution_description?: string; solution_description_ja?: string; results?: string; results_ja?: string;
+}
 
 /*
  * KEY EXPLANATION — two different key formats exist:
@@ -68,9 +72,10 @@ interface IndiaDesk {
   /* JSON columns on the row (snake_case column names) */
   service_items: IndiaDeskItem[];
   why_choose: WhyChooseItem[];
-  /* approach_steps: ApproachStep[];
+  approach_steps: ApproachStep[];
   testimonials: Testimonial[];
-  tech_stack: TechStack[]; */
+  tech_stack: TechStack[];
+  case_studies: CaseStudy[];
 }
 
 /* ═══════════════════════════════════════
@@ -114,6 +119,7 @@ const toWhyChooseItem = (r: any): WhyChooseItem => ({ title: r.title ?? "", titl
 const toApproachStep = (r: any): ApproachStep => ({ step_number: r.step_number ?? undefined, title: r.title ?? "", title_ja: r.title_ja ?? "", description: r.description ?? "", description_ja: r.description_ja ?? "" });
 const toTestimonial = (r: any): Testimonial => ({ quote: r.quote ?? "", quote_ja: r.quote_ja ?? "", author: r.author ?? "" });
 const toTechStack = (r: any): TechStack => ({ category: r.category ?? "", category_ja: r.category_ja ?? "", items: r.items ?? "" });
+const toCaseStudy = (r: any): CaseStudy => ({ id: r.id ?? undefined, title: r.title ?? "", title_ja: r.title_ja ?? "", challenge_title: r.challenge_title ?? "", challenge_title_ja: r.challenge_title_ja ?? "", challenge_description: r.challenge_description ?? "", challenge_description_ja: r.challenge_description_ja ?? "", solution_title: r.solution_title ?? "", solution_title_ja: r.solution_title_ja ?? "", solution_description: r.solution_description ?? "", solution_description_ja: r.solution_description_ja ?? "", results: r.results ?? "", results_ja: r.results_ja ?? "" });
 
 const slugify = (text: string) =>
   text.toLowerCase().trim()
@@ -148,11 +154,12 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
     benefits: [] as Benefit[],
     service_items: [] as IndiaDeskItem[],
     why_choose: [] as WhyChooseItem[],
-    /* approach_steps: [] as ApproachStep[],
+    approach_steps: [] as ApproachStep[],
     testimonials: [] as Testimonial[],
-    tech_stack: [] as TechStack[], */
+    tech_stack: [] as TechStack[],
     page_faqs: [] as PageFaq[],
     page_industries: [] as PageIndustry[],
+    case_studies: [] as CaseStudy[],
   });
 
   /* ── open helpers ── */
@@ -207,9 +214,10 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
        */
       service_items: Array.isArray(s.service_items) ? s.service_items.map(toServiceItem) : [],
       why_choose: Array.isArray(s.why_choose) ? s.why_choose.map(toWhyChooseItem) : [],
-      /* approach_steps: Array.isArray(s.approach_steps) ? s.approach_steps.map(toApproachStep) : [],
+      approach_steps: Array.isArray(s.approach_steps) ? s.approach_steps.map(toApproachStep) : [],
       testimonials: Array.isArray(s.testimonials) ? s.testimonials.map(toTestimonial) : [],
-      tech_stack: Array.isArray(s.tech_stack) ? s.tech_stack.map(toTechStack) : [], */
+      tech_stack: Array.isArray(s.tech_stack) ? s.tech_stack.map(toTechStack) : [],
+      case_studies: Array.isArray(s.case_studies) ? s.case_studies.map(toCaseStudy) : [],
     });
 
     setOpen(true);
@@ -266,11 +274,11 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
     if (data.hero_image) form.append("hero_image", data.hero_image);
 
     // Arrays — the controller receives these as JSON strings
-    /*  (["highlights", "benefits", "service_items", "why_choose", "approach_steps",
-       "testimonials", "tech_stack", "page_faqs", "page_industries"] as const)
-       .forEach(k => form.append(k, JSON.stringify(data[k]))); */
-    (["highlights", "benefits", "service_items", "why_choose", "page_faqs", "page_industries"] as const)
+    (["highlights", "benefits", "service_items", "why_choose", "approach_steps",
+      "testimonials", "tech_stack", "page_faqs", "page_industries", "case_studies"] as const)
       .forEach(k => form.append(k, JSON.stringify(data[k])));
+    /* (["highlights", "benefits", "service_items", "why_choose", "page_faqs", "page_industries"] as const)
+      .forEach(k => form.append(k, JSON.stringify(data[k]))); */
 
     const opts = { onSuccess: () => { reset(); setFormErrors({}); setOpen(false); } };
 
@@ -340,9 +348,10 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
               <ViewList label="Highlights" items={current.highlights} showValue />
               <ViewList label="Benefits" items={current.benefits} />
               <ViewList label="Why Choose Us" items={current.why_choose} />
-              {/* <ViewList label="Approach Steps" items={current.approach_steps} showStep />
+              <ViewList label="Approach Steps" items={current.approach_steps} showStep />
               <ViewList label="Testimonials" items={current.testimonials} isQuote />
-              <ViewList label="Tech Stack" items={current.tech_stack} isTech /> */}
+              <ViewList label="Tech Stack" items={current.tech_stack} isTech />
+              <ViewList label="Case Studies" items={current.case_studies} />
               {/* relations come as snake_case in JSON */}
               <ViewList label="Page FAQs" items={current.page_faqs} isFaq />
               <ViewList label="Page Industries" items={current.page_industries} />
@@ -402,7 +411,7 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
                   <Field label="Overview (EN)">
                     <ReactQuill value={data.overview} onChange={v => setData("overview", v)} />
                   </Field>
-                  <Field label="Supporting Japanese Business Growth in India (EN)">
+                  {/* <Field label="Supporting Japanese Business Growth in India (EN)">
                     <ReactQuill value={data.supporting_growth} onChange={v => setData("supporting_growth", v)} />
                   </Field>
                   <Field label="About Indosakura (EN)">
@@ -410,7 +419,7 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
                   </Field>
                   <Field label="India Desk (EN)">
                     <ReactQuill value={data.about} onChange={v => setData("about", v)} />
-                  </Field>
+                  </Field> */}
                 </TabsContent>
 
                 <TabsContent value="ja" className="space-y-4">
@@ -423,7 +432,7 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
                   <Field label="Overview (JA)">
                     <ReactQuill value={data.overview_ja} onChange={v => setData("overview_ja", v)} />
                   </Field>
-                  <Field label="Supporting Japanese Business Growth (JA)">
+                  {/* <Field label="Supporting Japanese Business Growth (JA)">
                     <ReactQuill value={data.supporting_growth_ja} onChange={v => setData("supporting_growth_ja", v)} />
                   </Field>
                   <Field label="About Indosakura (JA)">
@@ -431,7 +440,7 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
                   </Field>
                   <Field label="India Desk (JA)">
                     <ReactQuill value={data.about_ja} onChange={v => setData("about_ja", v)} />
-                  </Field>
+                  </Field> */}
                 </TabsContent>
               </Tabs>
 
@@ -507,7 +516,7 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
               />
 
               {/* Why Choose Us */}
-              <SectionBlock title="Why Choose Indo-Sakura" hint="e.g. Proven AI Expertise, Custom AI Solutions…"
+              <SectionBlock title="Why Choose Us" hint="e.g. Proven AI Expertise, Custom AI Solutions…"
                 items={data.why_choose}
                 onAdd={() => addItem("why_choose", { title: "", title_ja: "", description: "", description_ja: "" })}
                 onRemove={i => removeItem("why_choose", i)}
@@ -515,7 +524,7 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
               />
 
               {/* Approach Steps */}
-              {/*  <SectionBlock title="Development Approach Steps" hint="1. AI Strategy & Consulting…"
+              <SectionBlock title="Development Approach Steps" hint="1. AI Strategy & Consulting…"
                 items={data.approach_steps}
                 onAdd={() => addItem("approach_steps", { step_number: data.approach_steps.length + 1, title: "", title_ja: "", description: "", description_ja: "" })}
                 onRemove={i => removeItem("approach_steps", i)}
@@ -542,55 +551,65 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
                     </Field>
                   </div>
                 )}
-              /> */}
+              />
 
-              {/* Tech Stack */}
-              {/* <SectionBlock title="Technology Stack" hint="e.g. AI/ML Frameworks: TensorFlow, PyTorch"
-                items={data.tech_stack}
-                onAdd={() => addItem("tech_stack", { category: "", category_ja: "", items: "" })}
-                onRemove={i => removeItem("tech_stack", i)}
+              <SectionBlock title="Case Studies" hint="Client success stories"
+                items={data.case_studies}
+                onAdd={() => addItem("case_studies", { title: "", title_ja: "", challenge_title: "", challenge_title_ja: "", challenge_description: "", challenge_description_ja: "", solution_title: "", solution_title_ja: "", solution_description: "", solution_description_ja: "", results: "", results_ja: "" })}
+                onRemove={i => removeItem("case_studies", i)}
                 render={(item, i) => (
                   <div className="space-y-2">
                     <div className="grid grid-cols-2 gap-2">
-                      <Field label="Category (EN)">
-                        <Input value={item.category} placeholder="AI/ML Frameworks" onChange={e => updateItem("tech_stack", i, "category", e.target.value)} />
+                      <Field label="Title (EN)">
+                        <Input value={item.title} placeholder="Case Study Title" onChange={e => updateItem("case_studies", i, "title", e.target.value)} />
                       </Field>
-                      <Field label="Category (JA)">
-                        <Input value={item.category_ja || ""} onChange={e => updateItem("tech_stack", i, "category_ja", e.target.value)} />
+                      <Field label="Title (JA)">
+                        <Input value={item.title_ja || ""} onChange={e => updateItem("case_studies", i, "title_ja", e.target.value)} />
                       </Field>
                     </div>
-                    <Field label="Items (comma-separated)">
-                      <Input value={item.items} placeholder="TensorFlow, PyTorch, Scikit-learn" onChange={e => updateItem("tech_stack", i, "items", e.target.value)} />
-                    </Field>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Field label="Challenge Title (EN)">
+                        <Input value={item.challenge_title} placeholder="Challenge Title" onChange={e => updateItem("case_studies", i, "challenge_title", e.target.value)} />
+                      </Field>
+                      <Field label="Challenge Title (JA)">
+                        <Input value={item.challenge_title_ja || ""} onChange={e => updateItem("case_studies", i, "challenge_title_ja", e.target.value)} />
+                      </Field>
+                      <Field label="Challenge Description (EN)">
+                        <ReactQuill theme="snow" value={item.challenge_description || ""} onChange={v => updateItem("case_studies", i, "challenge_description", v)} />
+                      </Field>
+                      <Field label="Challenge Description (JA)">
+                        <ReactQuill theme="snow" value={item.challenge_description_ja || ""} onChange={v => updateItem("case_studies", i, "challenge_description_ja", v)} />
+                      </Field>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Field label="Solution Title (EN)">
+                        <Input value={item.solution_title} placeholder="Solution Title" onChange={e => updateItem("case_studies", i, "solution_title", e.target.value)} />
+                      </Field>
+                      <Field label="Solution Title (JA)">
+                        <Input value={item.solution_title_ja || ""} onChange={e => updateItem("case_studies", i, "solution_title_ja", e.target.value)} />
+                      </Field>
+                      <Field label="Solution Description (EN)">
+                        <ReactQuill theme="snow" value={item.solution_description || ""} onChange={v => updateItem("case_studies", i, "solution_description", v)} />
+                      </Field>
+                      <Field label="Solution Description (JA)">
+                        <ReactQuill theme="snow" value={item.solution_description_ja || ""} onChange={v => updateItem("case_studies", i, "solution_description_ja", v)} />
+                      </Field>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Field label="Results (EN) (comma-separated)">
+                        <Input value={item.results || ""} placeholder="TensorFlow, PyTorch, Scikit-learn" onChange={e => updateItem("case_studies", i, "results", e.target.value)} />
+                      </Field>
+                      <Field label="Results (JA) (comma-separated)">
+                        <Input value={item.results_ja || ""} placeholder="TensorFlow, PyTorch, Scikit-learn" onChange={e => updateItem("case_studies", i, "results_ja", e.target.value)} />
+                      </Field>
+                    </div>
                   </div>
                 )}
-              /> */}
-
-              {/* Testimonials */}
-              {/* <SectionBlock title="Testimonials" hint="Client quotes"
-                items={data.testimonials}
-                onAdd={() => addItem("testimonials", { quote: "", quote_ja: "", author: "" })}
-                onRemove={i => removeItem("testimonials", i)}
-                render={(item, i) => (
-                  <div className="space-y-2">
-                    <Field label="Author / Company">
-                      <Input value={item.author || ""} placeholder="Jane Doe, Acme Corp" onChange={e => updateItem("testimonials", i, "author", e.target.value)} />
-                    </Field>
-                    <Field label="Quote (EN)">
-                      <textarea rows={3} value={item.quote} onChange={e => updateItem("testimonials", i, "quote", e.target.value)}
-                        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
-                    </Field>
-                    <Field label="Quote (JA)">
-                      <textarea rows={3} value={item.quote_ja || ""} onChange={e => updateItem("testimonials", i, "quote_ja", e.target.value)}
-                        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
-                    </Field>
-                  </div>
-                )}
-              /> */}
+              />
 
               {/* Per-service Industries */}
               <SectionBlock
-                title="Industries We Serve (per-service)"
+                title="Industries We Serve (per-india-desk)"
                 hint="Leave empty → falls back to global Industries panel"
                 items={data.page_industries}
                 onAdd={() => addItem("page_industries", { title: "", title_ja: "", description: "", description_ja: "" })}
@@ -617,7 +636,7 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
 
               {/* Per-service FAQs */}
               <SectionBlock
-                title="FAQs (per-service)"
+                title="FAQs (per-india-desk)"
                 hint="Leave empty → falls back to global FAQ panel"
                 items={data.page_faqs}
                 onAdd={() => addItem("page_faqs", { question: "", question_ja: "", answer: "", answer_ja: "" })}

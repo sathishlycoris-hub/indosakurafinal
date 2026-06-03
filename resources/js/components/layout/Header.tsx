@@ -32,7 +32,7 @@ const Header = () => {
   const { url, props } = usePage<{ lang: "en" | "ja"; siteSettings?: SiteSettings }>();
   const lang = props.lang;
   const s: SiteSettings = props.siteSettings ?? NAV_DEFAULTS;
-console.warn({s})
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Build nav array from CMS

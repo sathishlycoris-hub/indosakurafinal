@@ -54,7 +54,7 @@ export const sidebarItems: SidebarItem[] = [
     href: route("admin.homepage.index"),
     role: ["admin"],
   },
-{
+  {
     label: "Site settings",
     icon: ShieldCheck,
     href: route("admin.site-settings.index"),
@@ -103,9 +103,15 @@ export const sidebarItems: SidebarItem[] = [
   },
   {
     label: "India Desks",
-    icon: Handshake, 
+    icon: Handshake,
     role: ["admin"],
     children: [
+      {
+        label: "India Desk TOP",
+        icon: Settings,
+        href: route("admin.india_desks_page.index"),
+        role: ["admin"],
+      },
       {
         label: "India Desks",
         icon: Settings,

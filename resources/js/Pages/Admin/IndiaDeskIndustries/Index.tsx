@@ -176,7 +176,7 @@ export default function Index({ industries }: { industries: Industry[] }) {
 
               {/* English Title */}
               <div className="space-y-1">
-                <label className="font-medium">Title</label>
+                <label className="font-medium">Title</label>*
                 <Input
                   value={activeLang === "en" ? data.title : data.title_ja}
                   onChange={(e) =>
@@ -208,7 +208,7 @@ export default function Index({ industries }: { industries: Industry[] }) {
 
               {/* Japanese Description */}
               <div className="space-y-1">
-                <label className="font-medium">Description</label>
+                <label className="font-medium">Description</label>*
                 <ReactQuill
                   key={activeLang}
                   theme="snow"

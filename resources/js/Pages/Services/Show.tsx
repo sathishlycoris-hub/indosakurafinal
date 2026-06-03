@@ -18,15 +18,15 @@ import { usePage } from "@inertiajs/react";
    TYPES
 ═══════════════════════════════════════ */
 
-interface Highlight    { id: number; title: string; title_ja?: string; value?: string; description?: string; description_ja?: string; }
-interface Benefit      { id: number; title: string; title_ja?: string; description?: string; description_ja?: string; }
-interface ServiceItem  { id: number; title: string; title_ja?: string; description?: string; description_ja?: string; }
-interface WhyChooseItem{ id: number; title: string; title_ja?: string; description?: string; description_ja?: string; }
+interface Highlight { id: number; title: string; title_ja?: string; value?: string; description?: string; description_ja?: string; }
+interface Benefit { id: number; title: string; title_ja?: string; description?: string; description_ja?: string; }
+interface ServiceItem { id: number; title: string; title_ja?: string; description?: string; description_ja?: string; }
+interface WhyChooseItem { id: number; title: string; title_ja?: string; description?: string; description_ja?: string; }
 interface ApproachStep { id: number; step_number?: number; title: string; title_ja?: string; description?: string; description_ja?: string; }
-interface Testimonial  { quote: string; quote_ja?: string; author?: string; }
-interface TechStack    { category: string; category_ja?: string; items: string; }
-interface Faq          { id: number; question: string; question_ja?: string; answer: string; answer_ja?: string; }
-interface Industry     { id: number; title: string; title_ja?: string; description: string; description_ja?: string; }
+interface Testimonial { quote: string; quote_ja?: string; author?: string; }
+interface TechStack { category: string; category_ja?: string; items: string; }
+interface Faq { id: number; question: string; question_ja?: string; answer: string; answer_ja?: string; }
+interface Industry { id: number; title: string; title_ja?: string; description: string; description_ja?: string; }
 
 interface Service {
   id: number;
@@ -44,7 +44,7 @@ interface Service {
   approach_steps?: ApproachStep[];
   testimonials?: Testimonial[];
   tech_stack?: TechStack[];
-  highlights: Highlight[]; 
+  highlights: Highlight[];
   benefits: Benefit[];
 }
 
@@ -60,10 +60,10 @@ interface Props {
    ICON POOLS
 ═══════════════════════════════════════ */
 
-const BENEFIT_ICONS      = [CheckCircle, TrendingUp, Award, Users, Clock, Zap, ShieldCheck, BarChart3];
+const BENEFIT_ICONS = [CheckCircle, TrendingUp, Award, Users, Clock, Zap, ShieldCheck, BarChart3];
 const SERVICE_ITEM_ICONS = [Bot, Sparkles, Network, BrainCircuit, Database, MessageCircle, Workflow, Layers];
-const WHY_ICONS          = [CheckCircle2, Star, Layers, Lock, Target, BadgeCheck, Lightbulb, TrendingUp];
-const INDUSTRY_ICONS     = [Heart, Wallet, GraduationCap, Factory, ShoppingCart, Building2, Cpu, Shield, Globe, Cloud];
+const WHY_ICONS = [CheckCircle2, Star, Layers, Lock, Target, BadgeCheck, Lightbulb, TrendingUp];
+const INDUSTRY_ICONS = [Heart, Wallet, GraduationCap, Factory, ShoppingCart, Building2, Cpu, Shield, Globe, Cloud];
 
 const icon = (pool: any[], i: number) => pool[i % pool.length];
 
@@ -98,8 +98,8 @@ function SectionHeading({
 ═══════════════════════════════════════ */
 
 export default function Show({ service, faqs = [], industries = [] }: Props) {
-  const { lang }      = usePage<{ lang: "en" | "ja" }>().props;
-  const [popup, setPopup]     = useState(false);
+  const { lang } = usePage<{ lang: "en" | "ja" }>().props;
+  const [popup, setPopup] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   useEffect(() => {
@@ -110,17 +110,17 @@ export default function Show({ service, faqs = [], industries = [] }: Props) {
   const v = (en?: string | null, ja?: string | null) =>
     ((lang === "ja" ? ja || en : en) || "").trim();
 
-  const highlights    = Array.isArray(service.highlights)     ? service.highlights    : [];
-  const benefits      = Array.isArray(service.benefits)       ? service.benefits      : [];
-  const serviceItems  = Array.isArray(service.service_items)  ? service.service_items : [];
-  const whyChoose     = Array.isArray(service.why_choose)     ? service.why_choose    : [];
-  const approachSteps = Array.isArray(service.approach_steps) ? service.approach_steps: [];
-  const testimonials  = Array.isArray(service.testimonials)   ? service.testimonials  : [];
-  const techStack     = Array.isArray(service.tech_stack)     ? service.tech_stack    : [];
-  const safeFaqs       = Array.isArray(faqs)       ? faqs       : [];
+  const highlights = Array.isArray(service.highlights) ? service.highlights : [];
+  const benefits = Array.isArray(service.benefits) ? service.benefits : [];
+  const serviceItems = Array.isArray(service.service_items) ? service.service_items : [];
+  const whyChoose = Array.isArray(service.why_choose) ? service.why_choose : [];
+  const approachSteps = Array.isArray(service.approach_steps) ? service.approach_steps : [];
+  const testimonials = Array.isArray(service.testimonials) ? service.testimonials : [];
+  const techStack = Array.isArray(service.tech_stack) ? service.tech_stack : [];
+  const safeFaqs = Array.isArray(faqs) ? faqs : [];
   const safeIndustries = Array.isArray(industries) ? industries : [];
 
-  const ctaUrl   = service.cta_url || "/contact";
+  const ctaUrl = service.cta_url || "/contact";
   const ctaLabel = v(service.cta_label, service.cta_label_ja) ||
     (lang === "ja" ? "無料相談を予約する" : "Book a Free Consultation");
   const svcTitle = v(service.title, service.title_ja);
@@ -152,19 +152,23 @@ export default function Show({ service, faqs = [], industries = [] }: Props) {
                   {v(service.subtitle, service.subtitle_ja)}
                 </p>
               )}
-              {v(service.overview, service.overview_ja) && (
-                <div
-                  className="prose max-w-xl mb-8 text-base leading-relaxed [&_*]:!text-white [&_p]:!text-white [&_li]:!text-white"
-                  dangerouslySetInnerHTML={{ __html: v(service.overview, service.overview_ja) }}
-                />
-              )}
-              <a
-                href={ctaUrl}
-                className="inline-flex items-center gap-2 bg-white text-primary font-semibold
+              <div className="flex flex-col justify-center text-justify">
+                {v(service.overview, service.overview_ja) && (
+                  <div
+                    className="prose max-w-xl mb-8 text-base leading-relaxed [&_*]:!text-white [&_p]:!text-white [&_li]:!text-white"
+                    dangerouslySetInnerHTML={{ __html: v(service.overview, service.overview_ja) }}
+                  />
+                )}
+              </div>
+              <div>
+                <a
+                  href={ctaUrl}
+                  className="inline-flex items-center gap-2 bg-white text-primary font-semibold
                            px-8 py-3.5 rounded-xl hover:opacity-90 transition-colors shadow-lg text-sm"
-              >
-                {ctaLabel} <ArrowRight className="w-4 h-4" />
-              </a>
+                >
+                  {ctaLabel} <ArrowRight className="w-4 h-4" />
+                </a>
+              </div>
             </div>
 
             {/* right: hero image or stat highlights */}
@@ -233,7 +237,7 @@ export default function Show({ service, faqs = [], industries = [] }: Props) {
                       <Icon className="w-7 h-7" />
                     </div>
 
-                  
+
                     <div className="flex-1 min-w-0">
                       {/* step badge + title inline */}
                       <div className="flex items-center gap-3 mb-2">
@@ -296,7 +300,7 @@ export default function Show({ service, faqs = [], industries = [] }: Props) {
                       <Icon className="w-6 h-6" />
                     </div>
 
-                     
+
                     <div>
                       <h3 className="font-bold text-foreground mb-1 text-base">{v(b.title, b.title_ja)}</h3>
                       {b.description && (
@@ -390,7 +394,7 @@ export default function Show({ service, faqs = [], industries = [] }: Props) {
                                      ">
                         <Icon className="w-5 h-5" />
                       </div>
-                      
+
                       <div>
                         <h3 className="font-bold text-foreground mb-1 text-base">{v(item.title, item.title_ja)}</h3>
                         {item.description && (
@@ -514,7 +518,7 @@ export default function Show({ service, faqs = [], industries = [] }: Props) {
         </section>
       )}
 
-    {/* ══════════════════════════════════════
+      {/* ══════════════════════════════════════
           9. INDUSTRIES WE SERVE
           (per-service if set, else global)
       ══════════════════════════════════════ */}
@@ -533,30 +537,30 @@ export default function Show({ service, faqs = [], industries = [] }: Props) {
               {safeIndustries.map((ind, i) => {
                 const Icon = icon(INDUSTRY_ICONS, i);
                 return (
-                 <div 
-  key={ind.id} 
-  data-aos="fade-up" 
-  data-aos-delay={i * 80}
-  className="bg-card p-6 rounded-xl border border-border hover:shadow-md transition-all duration-300 group"
->
-  <div className="flex items-start gap-4">
-    {/* Icon */}
-    <div className="flex-shrink-0">
-      <Icon className="w-10 h-10 text-primary" />
-    </div>
+                  <div
+                    key={ind.id}
+                    data-aos="fade-up"
+                    data-aos-delay={i * 80}
+                    className="bg-card p-6 rounded-xl border border-border hover:shadow-md transition-all duration-300 group"
+                  >
+                    <div className="flex items-start gap-4">
+                      {/* Icon */}
+                      <div className="flex-shrink-0">
+                        <Icon className="w-10 h-10 text-primary" />
+                      </div>
 
-    {/* Title + Description */}
-    <div className="flex-1 min-w-0">
-      <h3 className="text-lg font-semibold text-foreground mb-2">
-        {v(ind.title, ind.title_ja)}
-      </h3>
-      <div 
-        className="text-sm text-muted-foreground prose prose-sm max-w-none"
-        dangerouslySetInnerHTML={{ __html: v(ind.description, ind.description_ja) }} 
-      />
-    </div>
-  </div>
-</div>
+                      {/* Title + Description */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-lg font-semibold text-foreground mb-2">
+                          {v(ind.title, ind.title_ja)}
+                        </h3>
+                        <div
+                          className="text-sm text-muted-foreground prose prose-sm max-w-none"
+                          dangerouslySetInnerHTML={{ __html: v(ind.description, ind.description_ja) }}
+                        />
+                      </div>
+                    </div>
+                  </div>
                 );
               })}
             </div>

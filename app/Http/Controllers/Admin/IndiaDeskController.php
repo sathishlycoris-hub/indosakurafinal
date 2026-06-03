@@ -64,6 +64,7 @@ class IndiaDeskController extends Controller
             'approach_steps'      => 'nullable',
             'testimonials'        => 'nullable',
             'tech_stack'          => 'nullable',
+            'case_studies'          => 'nullable',
             'page_faqs'           => 'nullable',
             'page_industries'     => 'nullable',
         ], [
@@ -80,6 +81,7 @@ class IndiaDeskController extends Controller
             'approach_steps',
             'testimonials',
             'tech_stack',
+            'case_studies',
             'page_faqs',
             'page_industries',
         ];
@@ -154,6 +156,7 @@ class IndiaDeskController extends Controller
             'approach_steps' => $decoded['approach_steps'],
             'testimonials'   => $decoded['testimonials'],
             'tech_stack'     => $decoded['tech_stack'],
+            'case_studies'   => $decoded['case_studies'],
         ]);
     }
 

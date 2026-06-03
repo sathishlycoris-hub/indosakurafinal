@@ -265,7 +265,7 @@ Route::get('/corporate-info', [CorporateInfoPageController::class, 'index'])
 Route::get('/india-desks', [IndiaDeskPageController::class, 'index'])
     ->name('india-desks.index');
 
-    Route::get('/india-desks/{slug}', [IndiaDeskPageController::class, 'show'])
+Route::get('/india-desks/{slug}', [IndiaDeskPageController::class, 'show'])
     ->name('india-desks.show');
 
 
@@ -434,7 +434,7 @@ Route::prefix('admin')
             \App\Http\Controllers\Admin\IndiaDeskIndustryController::class,
             'index'
         ])->name('india-desk-industries.index');
-        
+
         Route::post('india-desk-industries', [
             \App\Http\Controllers\Admin\IndiaDeskIndustryController::class,
             'store'
@@ -466,6 +466,12 @@ Route::prefix('admin')
 
         Route::delete('/case-studies/{caseStudy}', [AdminCaseStudyController::class, 'destroy'])
             ->name('casestudies.destroy');
+
+        Route::get('/india-desk-page', [IndiaDeskPageController::class, 'indexTop'])
+            ->name('india_desks_page.index');
+
+        Route::put('/india-desk-page', [IndiaDeskPageController::class, 'update'])
+            ->name('india_desks_page.update');
     });
 
 Route::get('/storage/{path}', function (string $path) {

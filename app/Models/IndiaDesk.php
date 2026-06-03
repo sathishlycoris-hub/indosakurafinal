@@ -10,6 +10,7 @@ class IndiaDesk extends Model
     use HasFactory;
 
     protected $fillable = [
+        'india_desk_page_id',
         'title',
         'title_ja',
         'slug',
@@ -34,6 +35,7 @@ class IndiaDesk extends Model
         'approach_steps',
         'testimonials',
         'tech_stack',
+        'case_studies',
     ];
 
     protected $casts = [
@@ -42,7 +44,16 @@ class IndiaDesk extends Model
         'approach_steps' => 'array',
         'testimonials'   => 'array',
         'tech_stack'     => 'array',
+        'case_studies'   => 'array',
     ];
+
+    /**
+     * Get the parent Page container asset.
+     */
+    public function parentPage()
+    {
+        return $this->belongsTo(IndiaDeskPage::class, 'india_desk_page_id');
+    }
 
     public function highlights()
     {
@@ -63,5 +74,4 @@ class IndiaDesk extends Model
     {
         return $this->hasMany(IndiaDeskPageIndustry::class)->orderBy('sort_order');
     }
-
 }
