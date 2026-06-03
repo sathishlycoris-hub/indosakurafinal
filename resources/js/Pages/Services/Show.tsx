@@ -372,7 +372,7 @@ export default function Show({ service, faqs = [], industries = [] }: Props) {
                 <a
                   href={ctaUrl}
                   className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold
-                             px-7 py-3 rounded-xl hover:bg-primary/90 transition-colors text-sm"
+                             px-7 py-3 rounded-xl hover:opacity-90 transition-colors text-sm"
                 >
                   {ctaLabel} <ArrowRight className="w-4 h-4" />
                 </a>
@@ -633,7 +633,7 @@ export default function Show({ service, faqs = [], industries = [] }: Props) {
                 <a
                   href={ctaUrl}
                   className="inline-flex items-center gap-2 bg-primary text-primary-foreground
-                             font-semibold px-6 py-3 rounded-xl hover:bg-primary/90 transition-colors text-sm"
+                             font-semibold px-6 py-3 rounded-xl hover:opacity-90 transition-colors text-sm"
                 >
                   {lang === "ja" ? "お問い合わせ" : "Still have questions?"} <ArrowRight className="w-4 h-4" />
                 </a>

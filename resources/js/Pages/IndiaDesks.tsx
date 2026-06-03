@@ -133,7 +133,7 @@ function IndiaDesks({
   const safeIndiaDesks = Array.isArray(indiaDesks) ? indiaDesks : [];
   const safeHighlights = Array.isArray(pageData?.highlights) ? pageData.highlights : [];
   const safeServiceItems = Array.isArray(pageData?.service_items) ? pageData.service_items : [];
-console.warn({ pageData });
+
   return (
     <Layout>
       <Head>
@@ -167,7 +167,7 @@ console.warn({ pageData });
 
       {pageData?.about_indosakura && (
         <section className="py-20 bg-[#F6F6F6]">
-          <div className="container mx-auto px-6 max-w-4xl">
+          <div className="container mx-auto px-6 max-w-7xl">
             <SectionHeading
               title={lang === "ja" ? "インドデスクについて" : "About Indosakura"}
             />
@@ -183,7 +183,7 @@ console.warn({ pageData });
 
       {pageData?.about && (
         <section className="py-20 bg-[#F6F6F6]">
-          <div className="container mx-auto px-6 max-w-4xl">
+          <div className="container mx-auto px-6 max-w-7xl">
             <SectionHeading
               title={lang === "ja" ? "インドデスク" : "India Desk"}
             />
@@ -235,7 +235,7 @@ console.warn({ pageData });
       {/* Supporting Growth Section */}
       {pageData && (pageData.supporting_growth || pageData.supporting_growth_ja) && (
         <section className="py-20 bg-[#F6F6F6]">
-          <div className="container mx-auto px-6 max-w-4xl" data-aos="fade-up">
+          <div className="container mx-auto px-6 max-w-7xl" data-aos="fade-up">
             <SectionHeading
               title={lang === "ja"
                 ? "日本企業のインド成長を支援"
@@ -288,126 +288,131 @@ console.warn({ pageData });
         </section>
       )} */}
 
-      {/* Child Sub-desks Navigation Grid */}
-      <section className="py-16 bg-background">
-        <div className="container mx-auto px-4">
-          <SectionHeading
-            title={lang === "ja" ? "専任サポートデスクの一覧" : "Our Dedicated Support Desks"}
-            align="center"
-          />
-          <div
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto"
-            data-aos="fade-up"
-          >
-            {safeIndiaDesks.map((indiaDesk) => (
-              <Link
-                key={indiaDesk.id}
-                href={route("india-desks.show", indiaDesk.slug)}
-                className="group bg-card rounded-xl overflow-hidden border border-border shadow-sm hover:shadow-md transition-all flex flex-col h-full hover:-translate-y-0.5"
-              >
-                <div className="p-6 flex flex-col flex-1 justify-between gap-4">
-                  <div>
-                    <h3 className="text-lg font-bold text-primary group-hover:text-primary/80 flex items-center justify-between gap-2 transition-colors">
-                      {v(indiaDesk.title, indiaDesk.title_ja)}
-                      <ArrowRight className="w-4 h-4 shrink-0 transition-transform group-hover:translate-x-1" />
-                    </h3>
-                    {v(indiaDesk.overview, indiaDesk.overview_ja) && (
-                      <p className="text-sm text-muted-foreground mt-2 line-clamp-3 leading-relaxed">
-                        {v(indiaDesk.overview, indiaDesk.overview_ja).replace(/<[^>]*>/g, "")}
-                      </p>
-                    )}
-                  </div>
-                  <span className="text-xs font-semibold text-primary/70 group-hover:text-primary transition-colors underline underline-offset-4">
-                    {lang === "ja" ? "詳細を見る" : "Explore Desk"}
-                  </span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Industry Section */}
-      <section className="py-16 bg-[#F6F6F6]">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center text-primary mb-4" data-aos="fade-up">
-            {lang === "en" ? "Industries We Serve" : "対象業界"}
-          </h2>
-          <p className="text-center text-muted-foreground mb-12" data-aos="fade-up">
-            {lang === "en"
-              ? "Tailored IT Infrastructure Services for Every Industry"
-              : "あらゆる業界向けにカスタマイズされたITインフラサービス"}
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {safeIndustries.map((industry, i) => {
-              const Icon = getIndustryIcon(industry.id);
-              return (
-                <div
-                  key={industry.id}
-                  data-aos="fade-up"
-                  data-aos-delay={i * 80}
-                  className="bg-card p-6 rounded-xl border border-border/80 hover:shadow-md transition-all"
+      {safeIndiaDesks.length > 0 && (
+        < section className="py-16 bg-background">
+          <div className="container mx-auto px-4">
+            <SectionHeading
+              title={lang === "ja" ? "専任サポートデスクの一覧" : "Our Dedicated Support Desks"}
+              align="center"
+            />
+            <div
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto"
+              data-aos="fade-up"
+            >
+              {safeIndiaDesks.map((indiaDesk) => (
+                <Link
+                  key={indiaDesk.id}
+                  href={route("india-desks.show", indiaDesk.slug)}
+                  className="group bg-card rounded-xl overflow-hidden border border-border shadow-sm hover:shadow-md transition-all flex flex-col h-full hover:-translate-y-0.5"
                 >
-                  <Icon className="w-10 h-10 text-primary mb-4" />
-                  <h3 className="text-lg font-bold text-foreground mb-2">
-                    {v(industry.title, industry.title_ja)}
-                  </h3>
-                  <div
-                    className="text-sm text-muted-foreground leading-relaxed prose prose-sm max-w-none"
-                    dangerouslySetInnerHTML={{
-                      __html: v(industry.description, industry.description_ja),
-                    }}
-                  />
-                </div>
-              );
-            })}
+                  <div className="p-6 flex flex-col flex-1 justify-between gap-4">
+                    <div>
+                      <h3 className="text-lg font-bold text-primary group-hover:text-primary/80 flex items-center justify-between gap-2 transition-colors">
+                        {v(indiaDesk.title, indiaDesk.title_ja)}
+                        <ArrowRight className="w-4 h-4 shrink-0 transition-transform group-hover:translate-x-1" />
+                      </h3>
+                      {v(indiaDesk.overview, indiaDesk.overview_ja) && (
+                        <p className="text-sm text-muted-foreground mt-2 line-clamp-3 leading-relaxed">
+                          {v(indiaDesk.overview, indiaDesk.overview_ja).replace(/<[^>]*>/g, "")}
+                        </p>
+                      )}
+                    </div>
+                    <span className="text-xs font-semibold text-primary/70 group-hover:text-primary transition-colors underline underline-offset-4">
+                      {lang === "ja" ? "詳細を見る" : "Explore Desk"}
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )
+      }
 
-      {/* FAQ Section */}
-      <section className="py-16 bg-background">
-        <div className="container mx-auto px-4 max-w-4xl">
-          <h2 className="text-3xl font-bold text-center text-primary mb-4" data-aos="fade-up">
-            {lang === "en" ? "Frequently Asked Questions" : "よくある質問"}
-          </h2>
-          <p className="text-center text-muted-foreground mb-12" data-aos="fade-up">
-            {lang === "en"
-              ? "Here are some frequently asked questions from applicants in a Q&A format."
-              : "応募者からよくいただく質問をQ&A形式でご紹介します。"}
-          </p>
-          <Accordion type="single" collapsible className="space-y-4">
-            {faqs.map((faq, index) => (
-              <AccordionItem
-                data-aos="fade-up"
-                data-aos-delay={index * 90}
-                key={faq.id}
-                value={`item-${faq.id}`}
-                className="border border-border rounded-xl px-6 bg-card"
-              >
-                <AccordionTrigger className="hover:no-underline py-5 text-left">
-                  <div className="flex items-start gap-4">
-                    <p className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold text-sm">
-                      Q
-                    </p>
-                    <p className="text-foreground font-medium pt-1">
-                      {v(faq.question, faq.question_ja)}
-                    </p>
+      {safeIndustries.length > 0 && (
+        < section className="py-16 bg-[#F6F6F6]">
+          <div className="container mx-auto px-4">
+            <h2 className="text-3xl font-bold text-center text-primary mb-4" data-aos="fade-up">
+              {lang === "en" ? "Industries We Serve" : "対象業界"}
+            </h2>
+            <p className="text-center text-muted-foreground mb-12" data-aos="fade-up">
+              {lang === "en"
+                ? "Tailored IT Infrastructure Services for Every Industry"
+                : "あらゆる業界向けにカスタマイズされたITインフラサービス"}
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+              {safeIndustries.map((industry, i) => {
+                const Icon = getIndustryIcon(industry.id);
+                return (
+                  <div
+                    key={industry.id}
+                    data-aos="fade-up"
+                    data-aos-delay={i * 80}
+                    className="bg-card p-6 rounded-xl border border-border/80 hover:shadow-md transition-all"
+                  >
+                    <Icon className="w-10 h-10 text-primary mb-4" />
+                    <h3 className="text-lg font-bold text-foreground mb-2">
+                      {v(industry.title, industry.title_ja)}
+                    </h3>
+                    <div
+                      className="text-sm text-muted-foreground leading-relaxed prose prose-sm max-w-none"
+                      dangerouslySetInnerHTML={{
+                        __html: v(industry.description, industry.description_ja),
+                      }}
+                    />
                   </div>
-                </AccordionTrigger>
-                <AccordionContent className="pb-5">
-                  <div className="flex items-start gap-4 pl-12">
-                    <p className="text-muted-foreground leading-relaxed text-sm">
-                      {v(faq.answer, faq.answer_ja)}
-                    </p>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </div>
-      </section>
-    </Layout>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )
+      }
+
+      {faqs.length > 0 && (
+        <section className="py-16 bg-background">
+          <div className="container mx-auto px-4 max-w-4xl">
+            <h2 className="text-3xl font-bold text-center text-primary mb-4" data-aos="fade-up">
+              {lang === "en" ? "Frequently Asked Questions" : "よくある質問"}
+            </h2>
+            <p className="text-center text-muted-foreground mb-12" data-aos="fade-up">
+              {lang === "en"
+                ? "Here are some frequently asked questions from applicants in a Q&A format."
+                : "応募者からよくいただく質問をQ&A形式でご紹介します。"}
+            </p>
+            <Accordion type="single" collapsible className="space-y-4">
+              {faqs.map((faq, index) => (
+                <AccordionItem
+                  data-aos="fade-up"
+                  data-aos-delay={index * 90}
+                  key={faq.id}
+                  value={`item-${faq.id}`}
+                  className="border border-border rounded-xl px-6 bg-card"
+                >
+                  <AccordionTrigger className="hover:no-underline py-5 text-left">
+                    <div className="flex items-start gap-4">
+                      <p className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold text-sm">
+                        Q
+                      </p>
+                      <p className="text-foreground font-medium pt-1">
+                        {v(faq.question, faq.question_ja)}
+                      </p>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-5">
+                    <div className="flex items-start gap-4 pl-12">
+                      <p className="text-muted-foreground leading-relaxed text-sm">
+                        {v(faq.answer, faq.answer_ja)}
+                      </p>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </div>
+        </section>
+      )}
+    </Layout >
   );
 }
 
