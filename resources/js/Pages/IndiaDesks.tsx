@@ -149,7 +149,8 @@ function IndiaDesks({
       {/* Hero Section */}
       <section className="hero-gradient text-primary-foreground py-16 lg:py-24 relative overflow-hidden">
         <div className="container mx-auto px-4 relative z-10" data-aos="fade-right">
-          <span className="inline-block text-xs font-bold uppercase tracking-widest bg-white/20 text-white px-3 py-1 rounded-full mb-4">
+          <span className="inline-flex items-center gap-2 text-white/60 text-sm font-medium mb-5 tracking-wide uppercase">
+            <span className="w-5 h-px bg-white/60" />
             {v(pageData?.hero_subtitle, pageData?.hero_subtitle_ja) ||
               (lang === "en" ? "India Desk" : "インドデスク")}
           </span>
