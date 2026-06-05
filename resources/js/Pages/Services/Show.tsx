@@ -134,7 +134,7 @@ export default function Show({ service, faqs = [], industries = [] }: Props) {
       {/* ══════════════════════════════════════
           1. HERO — two-column split
       ══════════════════════════════════════ */}
-      <section className="hero-gradient text-primary-foreground py-20 relative overflow-hidden">
+      <section className="hero-gradient text-primary-foreground py-16 lg:py-16 relative overflow-hidden">
         <div className="container mx-auto px-6 max-w-7xl relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* left: text */}
@@ -250,7 +250,7 @@ export default function Show({ service, faqs = [], industries = [] }: Props) {
                       </div>
                       {item.description && (
                         <div
-                          className="text-sm text-muted-foreground leading-relaxed prose prose-sm max-w-none"
+                          className="text-sm text-muted-foreground leading-relaxed prose prose-sm max-w-none prose:text-justify"
                           dangerouslySetInnerHTML={{ __html: v(item.description, item.description_ja) }}
                         />
                       )}
@@ -305,7 +305,7 @@ export default function Show({ service, faqs = [], industries = [] }: Props) {
                       <h3 className="font-bold text-foreground mb-1 text-base">{v(b.title, b.title_ja)}</h3>
                       {b.description && (
                         <div
-                          className="text-sm text-muted-foreground leading-relaxed prose prose-sm max-w-none"
+                          className="text-sm text-muted-foreground leading-relaxed prose prose-sm max-w-none prose:text-justify"
                           dangerouslySetInnerHTML={{ __html: v(b.description, b.description_ja) }}
                         />
                       )}
@@ -457,7 +457,7 @@ export default function Show({ service, faqs = [], industries = [] }: Props) {
                         </h3>
                         {step.description && (
                           <div
-                            className="text-sm text-muted-foreground leading-relaxed prose prose-sm max-w-none"
+                            className="text-sm text-muted-foreground leading-relaxed prose prose-sm max-w-none prose:text-justify"
                             dangerouslySetInnerHTML={{ __html: v(step.description, step.description_ja) }}
                           />
                         )}
@@ -555,7 +555,7 @@ export default function Show({ service, faqs = [], industries = [] }: Props) {
                           {v(ind.title, ind.title_ja)}
                         </h3>
                         <div
-                          className="text-sm text-muted-foreground prose prose-sm max-w-none"
+                          className="text-sm text-muted-foreground prose prose-sm max-w-none prose:text-justify"
                           dangerouslySetInnerHTML={{ __html: v(ind.description, ind.description_ja) }}
                         />
                       </div>

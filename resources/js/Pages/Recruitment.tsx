@@ -42,7 +42,7 @@ export default function Recruitment({ jobs, seo }: { jobs: Job[]; seo?: Seo | nu
                 <Recruitmenthead jobs={jobs.map(({ id, title, title_ja, slug }) => ({ id, title: getValue(title, title_ja), slug }))} />
             </div>
 
-            <section className="hero-gradient text-primary-foreground py-16 lg:py-24">
+            <section className="hero-gradient text-primary-foreground py-16 lg:py-16">
                 <div className="container mx-auto px-4 lg:px-8 text-center">
                     <h1 className="text-4xl lg:text-5xl font-bold mb-4">
                         {lang === "en" ? "Join Our Team" : "私たちと一緒に働きませんか？"}

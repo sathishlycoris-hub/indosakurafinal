@@ -142,7 +142,7 @@ export default function Show({ indiaDesk, faqs = [], industries = [] }: Props) {
       {/* ══════════════════════════════════════
           1. HERO — two-column split
       ══════════════════════════════════════ */}
-      <section className="hero-gradient text-primary-foreground py-20 relative overflow-hidden">
+      <section className="hero-gradient text-primary-foreground py-16 lg:py-16 relative overflow-hidden">
         <div className="container mx-auto px-6 max-w-7xl relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* left: text */}
@@ -232,9 +232,6 @@ export default function Show({ indiaDesk, faqs = [], industries = [] }: Props) {
                     >
                       {/* Number & Icon Block */}
                       <div className="flex items-center gap-4 shrink-0">
-                        <span className="font-mono text-sm font-semibold text-primary group-hover:text-muted-foreground transition-colors">
-                          {String(i + 1).padStart(2, "0")}
-                        </span>
                         <div className="w-10 h-10 flex items-center justify-center text-primary group-hover:text-muted-foreground transition-colors">
                           <Icon className="w-6 h-6 stroke-[1.5]" />
                         </div>
@@ -352,7 +349,7 @@ export default function Show({ indiaDesk, faqs = [], industries = [] }: Props) {
                           <h3 className="font-bold text-foreground mb-1 text-base">{v(item.title, item.title_ja)}</h3>
                           {item.description && (
                             <div
-                              className="text-sm text-muted-foreground leading-relaxed prose prose-sm max-w-none"
+                              className="text-sm text-muted-foreground leading-relaxed prose prose-sm max-w-none prose:text-justify"
                               dangerouslySetInnerHTML={{ __html: v(item.description, item.description_ja) }}
                             />
                           )}
@@ -380,7 +377,7 @@ export default function Show({ indiaDesk, faqs = [], industries = [] }: Props) {
                 }
               />
 
-              <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {serviceItems.map((item, i) => {
                   const Icon = icon(SERVICE_ITEM_ICONS, i);
                   const isEven = i % 2 === 0;
@@ -389,39 +386,27 @@ export default function Show({ indiaDesk, faqs = [], industries = [] }: Props) {
                       key={item.id}
                       data-aos={isEven ? "fade-right" : "fade-left"}
                       data-aos-delay={i * 50}
-                      className={`flex flex-col md:flex-row items-start gap-6 p-6 rounded-2xl
-                                border border-border bg-card hover:shadow-lg transition-all duration-300
-                                group`}
+                      className={`flex gap-5 bg-white p-6 rounded-xl border border-border
+                               shadow-sm hover:shadow-md hover:border-primary/30 transition-all duration-300 group`}
                     >
                       {/* Icon block */}
                       <div className="flex-shrink-0 w-14 h-14 bg-primary text-white rounded-xl flex items-center justify-center
                                     ">
-                        <Icon className="w-7 h-7" />
+                        <Icon className="w-6 h-6" />
                       </div>
 
 
-                      <div className="flex-1 min-w-0">
-                        {/* step badge + title inline */}
-                        <div className="flex items-center gap-3 mb-2">
-                          {/* <span className="text-xs font-bold text-primary/40 tracking-widest">
-                          {String(i + 1).padStart(2, "0")}
-                        </span> */}
-                          <h3 className="text-lg font-bold text-primary leading-snug">
-                            {v(item.title, item.title_ja)}
-                          </h3>
-                        </div>
+                      <div>
+                        <h3 className="font-bold text-foreground mb-1 text-base">
+                          {v(item.title, item.title_ja)}
+                        </h3>
                         {item.description && (
                           <div
-                            className="text-sm text-muted-foreground leading-relaxed prose prose-sm max-w-none"
+                            className="text-sm text-muted-foreground leading-relaxed prose prose-sm max-w-none prose:text-justify"
                             dangerouslySetInnerHTML={{ __html: v(item.description, item.description_ja) }}
                           />
                         )}
                       </div>
-
-                      {/* Arrow */}
-                      <ArrowRight className="hidden md:block flex-shrink-0 w-5 h-5 text-primary/30
-                                           group-hover:text-primary group-hover:translate-x-1
-                                           transition-all duration-300 mt-1" />
                     </div>
                   );
                 })}
@@ -474,7 +459,7 @@ export default function Show({ indiaDesk, faqs = [], industries = [] }: Props) {
                           </h3>
                           {step.description && (
                             <div
-                              className="text-sm text-muted-foreground leading-relaxed prose prose-sm max-w-none"
+                              className="text-sm text-muted-foreground leading-relaxed prose prose-sm max-w-none prose:text-justify"
                               dangerouslySetInnerHTML={{ __html: v(step.description, step.description_ja) }}
                             />
                           )}
@@ -487,7 +472,7 @@ export default function Show({ indiaDesk, faqs = [], industries = [] }: Props) {
               ) : (
                 <div
                   data-aos="fade-up"
-                  className="prose prose-lg max-w-none text-muted-foreground"
+                  className="prose prose-lg max-w-none text-muted-foreground prose:text-justify"
                   dangerouslySetInnerHTML={{ __html: v(indiaDesk.supporting_growth, indiaDesk.supporting_growth_ja) }}
                 />
               )}
@@ -533,7 +518,7 @@ export default function Show({ indiaDesk, faqs = [], industries = [] }: Props) {
                         <h3 className="font-bold text-foreground mb-1 text-base">{v(b.title, b.title_ja)}</h3>
                         {b.description && (
                           <div
-                            className="text-sm text-muted-foreground leading-relaxed prose prose-sm max-w-none"
+                            className="text-sm text-muted-foreground leading-relaxed prose prose-sm max-w-none prose:text-justify"
                             dangerouslySetInnerHTML={{ __html: v(b.description, b.description_ja) }}
                           />
                         )}
@@ -585,7 +570,7 @@ export default function Show({ indiaDesk, faqs = [], industries = [] }: Props) {
                             {v(ind.title, ind.title_ja)}
                           </h3>
                           <div
-                            className="text-sm text-muted-foreground prose prose-sm max-w-none"
+                            className="text-sm text-muted-foreground prose prose-sm max-w-none prose:text-justify"
                             dangerouslySetInnerHTML={{ __html: v(ind.description, ind.description_ja) }}
                           />
                         </div>
@@ -635,7 +620,7 @@ export default function Show({ indiaDesk, faqs = [], industries = [] }: Props) {
                           </div>
                           <div className="flex-1">
                             <div
-                              className="text-sm text-muted-foreground leading-relaxed prose prose-sm max-w-none"
+                              className="text-sm text-muted-foreground leading-relaxed prose prose-sm max-w-none prose:text-justify"
                               dangerouslySetInnerHTML={{ __html: v(cs.challenge_description, cs.challenge_description_ja) }}
                             />
                           </div>
@@ -651,7 +636,7 @@ export default function Show({ indiaDesk, faqs = [], industries = [] }: Props) {
                           </div>
                           <div className="flex-1">
                             <div
-                              className="text-sm text-muted-foreground leading-relaxed prose prose-sm max-w-none"
+                              className="text-sm text-muted-foreground leading-relaxed prose prose-sm max-w-none prose:text-justify"
                               dangerouslySetInnerHTML={{ __html: v(cs.solution_description, cs.solution_description_ja) }}
                             />
                           </div>
@@ -667,7 +652,7 @@ export default function Show({ indiaDesk, faqs = [], industries = [] }: Props) {
                           </div>
                           <div className="flex-1">
                             <div
-                              className="text-sm text-muted-foreground leading-relaxed prose prose-sm max-w-none font-medium text-foreground/90"
+                              className="text-sm text-muted-foreground leading-relaxed prose prose-sm max-w-none font-medium text-foreground/90 prose:text-justify"
                               dangerouslySetInnerHTML={{ __html: v(cs.results, cs.results_ja) }}
                             />
                           </div>

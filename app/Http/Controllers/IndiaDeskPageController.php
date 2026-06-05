@@ -90,7 +90,10 @@ class IndiaDeskPageController extends Controller
                 'about_indosakura',
                 'about_indosakura_ja',
                 'overview',
-                'overview_ja'
+                'overview_ja',
+                'subtitle',
+                'subtitle_ja',
+                'hero_image',
             )->orderBy('id')->get(),
 
             'faqs' => IndiaDeskFaq::select('id', 'question', 'question_ja', 'answer', 'answer_ja')

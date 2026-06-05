@@ -58,9 +58,9 @@ export default function Blogs() {
             </div>
 
             {/* Hero */}
-            <section className="bg-primary py-20 text-white">
+            <section className="bg-primary py-16 lg:py-16 text-white">
                 <div className="container mx-auto px-4" data-aos="fade-right">
-                    <h1 className="text-4xl font-bold mb-4">{getValue("Blogs", "ブログ")}</h1>
+                    <h1 className="text-4xl lg:text-5xl font-bold mb-4">{getValue("Blogs", "ブログ")}</h1>
                     <p className="opacity-90">
                         {getValue(
                             "Insights, updates, and thought leadership from our experts",

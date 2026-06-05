@@ -72,7 +72,7 @@ export default function JobDetail({ job }: { job: Job }) {
         />
       </div>
       {/* Job Header */}
-      <section className="hero-gradient text-primary-foreground py-12">
+      <section className="hero-gradient text-primary-foreground py-16 lg:py-16">
         <div className="container mx-auto px-4 lg:px-8" data-aos="fade-right">
           <p className="text-sm mb-2">
             {getLangValue(lang, job.department, job.department_ja)}

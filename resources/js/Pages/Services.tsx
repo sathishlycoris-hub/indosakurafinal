@@ -241,7 +241,7 @@ function Services({
       </div>
 
       {/* Hero Section */}
-      <section className="hero-gradient text-primary-foreground py-16 lg:py-24">
+      <section className="hero-gradient text-primary-foreground py-16 lg:py-16">
 
         <div className="container mx-auto px-4 relative z-10" data-aos="fade-right">
           <h1 className="text-4xl lg:text-5xl font-bold mb-4">

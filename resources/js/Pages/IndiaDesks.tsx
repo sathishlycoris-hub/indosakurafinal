@@ -83,6 +83,9 @@ interface IndiaDesk {
   about_indosakura_ja?: string;
   overview?: string;
   overview_ja?: string;
+  hero_image?: string | null;
+  subtitle: string;
+  subtitle_ja?: string;
 }
 
 interface IndiaDeskFaq {
@@ -147,35 +150,54 @@ function IndiaDesks({
       </div>
 
       {/* Hero Section */}
-      <section className="hero-gradient text-primary-foreground py-16 lg:py-24 relative overflow-hidden">
+      <section className="hero-gradient text-primary-foreground py-12 lg:py-12 relative overflow-hidden">
         <div className="container mx-auto px-4 relative z-10" data-aos="fade-right">
           <span className="inline-flex items-center gap-2 text-white/60 text-sm font-medium mb-5 tracking-wide uppercase">
             <span className="w-5 h-px bg-white/60" />
             {v(pageData?.hero_subtitle, pageData?.hero_subtitle_ja) ||
               (lang === "en" ? "India Desk" : "インドデスク")}
           </span>
-          <h1 className="text-4xl lg:text-5xl font-bold mb-4 max-w-4xl leading-tight">
+          <h1 className="text-4xl lg:text-5xl font-bold mb-4 max-w-7xl leading-tight text-justify">
             {v(pageData?.hero_title, pageData?.hero_title_ja) ||
               (lang === "en" ? "India Desk Services" : "インドデスク サービス")}
           </h1>
           {pageData?.hero_description && (
-            <p className="text-lg text-primary-foreground/90 max-w-2xl leading-relaxed mt-4">
+            <p className="text-lg text-primary-foreground/90 max-w-7xl leading-relaxed mt-4">
               {v(pageData.hero_description, pageData.hero_description_ja)}
             </p>
           )}
         </div>
       </section>
 
-      {pageData?.about_indosakura && (
+      {/* {pageData?.about_indosakura && (
         <section className="py-20 bg-[#F6F6F6]">
           <div className="container mx-auto px-6 max-w-7xl">
             <SectionHeading
               title={lang === "ja" ? "インドデスクについて" : "About Indosakura"}
             />
             <div
-              className="prose prose-lg max-w-none text-muted-foreground leading-relaxed"
+              className="prose prose-lg max-w-none text-muted-foreground leading-relaxed prose:text-justify"
               dangerouslySetInnerHTML={{
                 __html: v(pageData.about_indosakura, pageData.about_indosakura_ja)
+              }}
+            />
+          </div>
+        </section>
+      )} */}
+
+      {/* Supporting Growth Section */}
+      {pageData && (pageData.supporting_growth || pageData.supporting_growth_ja) && (
+        <section className="py-20 bg-[#F6F6F6]">
+          <div className="container mx-auto px-6 max-w-7xl" data-aos="fade-up">
+            <SectionHeading
+              title={lang === "ja"
+                ? "日本企業のインド成長を支援"
+                : "Supporting Japanese Business Growth in India"}
+            />
+            <div
+              className="prose prose-lg max-w-none text-muted-foreground leading-relaxed bg-white p-8 md:p-10 rounded-2xl border border-border/60 shadow-sm"
+              dangerouslySetInnerHTML={{
+                __html: v(pageData.supporting_growth, pageData.supporting_growth_ja),
               }}
             />
           </div>
@@ -183,7 +205,7 @@ function IndiaDesks({
       )}
 
       {pageData?.about && (
-        <section className="py-20 bg-[#F6F6F6]">
+        <section className="py-20 ">
           <div className="container mx-auto px-6 max-w-7xl">
             <SectionHeading
               title={lang === "ja" ? "インドデスク" : "India Desk"}
@@ -200,7 +222,7 @@ function IndiaDesks({
 
       {/* Highlights Section */}
       {safeHighlights.length > 0 && (
-        <section className="py-12 bg-card border-b border-border/60">
+        <section className="py-12 bg-card border-b border-border/60 bg-[#F6F6F6]">
           <div className="container mx-auto px-4">
             <SectionHeading
               title={lang === "ja" ? "主なハイライト" : "Key Highlights"}
@@ -210,7 +232,7 @@ function IndiaDesks({
               {safeHighlights.map((highlight, index) => (
                 <div
                   key={index}
-                  className="flex items-start gap-3 p-4 rounded-xl bg-muted/40 border border-border/30 hover:shadow-sm transition-all"
+                  className="flex items-start gap-3 p-4 rounded-xl bg-white border border-border/30 hover:shadow-sm transition-all"
                   data-aos="fade-up"
                   data-aos-delay={index * 50}
                 >
@@ -229,25 +251,6 @@ function IndiaDesks({
                 </div>
               ))}
             </div>
-          </div>
-        </section>
-      )}
-
-      {/* Supporting Growth Section */}
-      {pageData && (pageData.supporting_growth || pageData.supporting_growth_ja) && (
-        <section className="py-20 bg-[#F6F6F6]">
-          <div className="container mx-auto px-6 max-w-7xl" data-aos="fade-up">
-            <SectionHeading
-              title={lang === "ja"
-                ? "日本企業のインド成長を支援"
-                : "Supporting Japanese Business Growth in India"}
-            />
-            <div
-              className="prose prose-lg max-w-none text-muted-foreground leading-relaxed bg-white p-8 md:p-10 rounded-2xl border border-border/60 shadow-sm"
-              dangerouslySetInnerHTML={{
-                __html: v(pageData.supporting_growth, pageData.supporting_growth_ja),
-              }}
-            />
           </div>
         </section>
       )}
@@ -296,41 +299,55 @@ function IndiaDesks({
               title={lang === "ja" ? "専任サポートデスクの一覧" : "Our Dedicated Support Desks"}
               align="center"
             />
-            <div
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto"
-              data-aos="fade-up"
-            >
-              {safeIndiaDesks.map((indiaDesk) => (
-                <Link
-                  key={indiaDesk.id}
-                  href={route("india-desks.show", indiaDesk.slug)}
-                  className="group bg-card rounded-xl overflow-hidden border border-border shadow-sm hover:shadow-md transition-all flex flex-col h-full hover:-translate-y-0.5"
-                >
-                  <div className="p-6 flex flex-col flex-1 justify-between gap-4">
-                    <div>
-                      <h3 className="text-lg font-bold text-primary group-hover:text-primary/80 flex items-center justify-between gap-2 transition-colors">
-                        {v(indiaDesk.title, indiaDesk.title_ja)}
-                        <ArrowRight className="w-4 h-4 shrink-0 transition-transform group-hover:translate-x-1" />
-                      </h3>
-                      {v(indiaDesk.overview, indiaDesk.overview_ja) && (
-                        <p className="text-sm text-muted-foreground mt-2 line-clamp-3 leading-relaxed">
-                          {v(indiaDesk.overview, indiaDesk.overview_ja).replace(/<[^>]*>/g, "")}
+            <section className="py-16 bg-background">
+              <div className="container mx-auto px-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6" data-aos="fade-up">
+                  {safeIndiaDesks.map((indiaDesk) => (
+                    <Link
+                      key={indiaDesk.id}
+                      href={route("india-desks.show", indiaDesk.slug)}
+                      className="
+                  group bg-card rounded-lg overflow-hidden
+                  border border-border shadow-md hover:shadow-xl
+                  transition-all flex flex-col h-full
+                "
+                    >
+                      {/* IMAGE */}
+                      <div className="aspect-video overflow-hidden bg-muted">
+                        {indiaDesk.hero_image ? (
+                          <img
+                            src={`/storage/${indiaDesk.hero_image}`}
+                            alt={indiaDesk.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                            No Image
+                          </div>
+                        )}
+                      </div>
+
+                      {/* CONTENT */}
+                      <div className="p-4 flex flex-col flex-1">
+                        <h3 className="text-lg font-semibold text-primary flex items-center gap-2 min-h-[56px]">
+                          {v(indiaDesk.title, indiaDesk.title_ja)}
+                          <ArrowRight className="w-4 h-4 shrink-0" />
+                        </h3>
+
+                        <p className="text-muted-foreground mt-2 min-h-[80px] line-clamp-4">
+                          {v(indiaDesk.subtitle, indiaDesk.subtitle_ja)}
                         </p>
-                      )}
-                    </div>
-                    <span className="text-xs font-semibold text-primary/70 group-hover:text-primary transition-colors underline underline-offset-4">
-                      {lang === "ja" ? "詳細を見る" : "Explore Desk"}
-                    </span>
-                  </div>
-                </Link>
-              ))}
-            </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </section>
           </div>
         </section>
-      )
-      }
+      )}
 
-      {safeIndustries.length > 0 && (
+      {/* {safeIndustries.length > 0 && (
         < section className="py-16 bg-[#F6F6F6]">
           <div className="container mx-auto px-4">
             <h2 className="text-3xl font-bold text-center text-primary mb-4" data-aos="fade-up">
@@ -367,8 +384,7 @@ function IndiaDesks({
             </div>
           </div>
         </section>
-      )
-      }
+      )} */}
 
       {faqs.length > 0 && (
         <section className="py-16 bg-background">

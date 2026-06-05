@@ -27,7 +27,7 @@ export default function CorporateInfo() {
 
             <div className="sticky top-16 lg:top-[101px] z-40 bg-white"><Subheader /></div>
 
-            <section className="hero-gradient text-primary-foreground py-16 lg:py-24">
+            <section className="hero-gradient text-primary-foreground py-16 lg:py-16">
                 <div className="container mx-auto px-4 lg:px-8">
                     <h1 className="text-4xl lg:text-5xl font-bold mb-4">
                         {lang === "en" ? "Company Information" : "企業情報"}

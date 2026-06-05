@@ -30,4 +30,9 @@ class Blog extends Model
     protected $casts = [
         'published_date' => 'date',
     ];
+
+    public function pageFaqs()
+    {
+        return $this->hasMany(BlogPageFaq::class)->orderBy('sort_order');
+    }
 }

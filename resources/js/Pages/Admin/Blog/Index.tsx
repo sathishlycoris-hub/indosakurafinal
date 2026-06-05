@@ -26,9 +26,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Eye, Pencil, Trash2, Search } from "lucide-react";
+import { Plus, Eye, Pencil, Trash2, Search, AlertCircle, ChevronUp, ChevronDown } from "lucide-react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+import { Label } from "@/components/ui/label";
+
+interface PageFaq { question: string; question_ja?: string; answer: string; answer_ja?: string; }
 
 interface Blog {
   id: number;
@@ -52,7 +55,9 @@ interface Blog {
   author_ja?: string;
 
   image?: string | null;
+  page_faqs: PageFaq[];
 }
+
 export default function AdminBlogIndex() {
   const { blogs } = usePage<{ blogs: Blog[] }>().props;
   const [activeLang, setActiveLang] = useState<"en" | "ja">("en");
@@ -81,6 +86,7 @@ export default function AdminBlogIndex() {
     status: "draft",
 
     image: null as File | null,
+    page_faqs: [] as PageFaq[],
   });
 
   /* ================= SEARCH FILTER ================= */
@@ -98,7 +104,12 @@ export default function AdminBlogIndex() {
     );
   });
 
-  console.warn({ filteredBlogs })
+  const toPageFaq = (r: any): PageFaq => ({
+    question: r.question ?? "",
+    question_ja: r.question_ja ?? "",
+    answer: r.answer ?? "",
+    answer_ja: r.answer_ja ?? "",
+  });
   /* ================= OPEN ADD ================= */
   const openAdd = () => {
     reset();
@@ -133,6 +144,7 @@ export default function AdminBlogIndex() {
       status: blog.status || "",
 
       image: null,
+      page_faqs: Array.isArray(blog.page_faqs) ? blog.page_faqs.map(toPageFaq) : [],
     });
   };
 
@@ -143,10 +155,35 @@ export default function AdminBlogIndex() {
     setOpen(true);
   };
 
+  /* ================= ARRAY HELPERS ================= */
+  const addItem = (k: keyof typeof data, item: any) => setData(k, [...(data[k] as any[]), item]);
+  const removeItem = (k: keyof typeof data, i: number) => {
+    const a = [...(data[k] as any[])]; a.splice(i, 1); setData(k, a);
+  };
+  const updateItem = (k: keyof typeof data, i: number, field: string, val: string) => {
+    const a = [...(data[k] as any[])]; a[i][field] = val; setData(k, a);
+  };
+
   /* ================= SAVE ================= */
   const submitAdd = () => {
-    post(route("admin.blogs.store"), {
-      forceFormData: true,
+    const formData = new FormData();
+
+    // Append all text fields
+    Object.keys(data).forEach((key) => {
+      if (key !== "image" && key !== "page_faqs") {
+        formData.append(key, (data as any)[key] ?? "");
+      }
+    });
+
+    // Append file if it exists
+    if (data.image) {
+      formData.append("image", data.image);
+    }
+
+    // Stringify arrays so Laravel's controller can receive it properly
+    formData.append("page_faqs", JSON.stringify(data.page_faqs));
+
+    router.post(route("admin.blogs.store"), formData, {
       onSuccess: () => {
         reset();
         setOpen(false);
@@ -157,20 +194,27 @@ export default function AdminBlogIndex() {
   const submitUpdate = () => {
     if (!current) return;
 
-    router.post(
-      route("admin.blogs.update", current.id),
-      {
-        _method: "PUT",
-        ...data,
-      },
-      {
-        forceFormData: true,
-        onSuccess: () => {
-          reset();
-          setOpen(false);
-        },
+    const formData = new FormData();
+    formData.append("_method", "PUT");
+
+    // Append all text fields
+    Object.keys(data).forEach((key) => {
+      if (key !== "image" && key !== "page_faqs") {
+        formData.append(key, (data as any)[key] ?? "");
       }
-    );
+    });
+
+    if (data.image) {
+      formData.append("image", data.image);
+    }
+
+    formData.append("page_faqs", JSON.stringify(data.page_faqs));
+    router.post(route("admin.blogs.update", current.id), formData, {
+      onSuccess: () => {
+        reset();
+        setOpen(false);
+      },
+    });
   };
 
   /* ================= DELETE ================= */
@@ -266,6 +310,22 @@ export default function AdminBlogIndex() {
                   />
                 </div>
               )}
+              {current.page_faqs && current.page_faqs.length > 0 && (
+                <div className="pt-2 border-t">
+                  <p className="font-semibold mb-2">FAQs ({current.page_faqs.length})</p>
+                  <div className="space-y-2">
+                    {current.page_faqs.map((faq, i) => (
+                      <div key={i} className="bg-gray-50 dark:bg-zinc-900 p-3 rounded text-xs border">
+                        <p className="font-bold">Q: {faq.question} {faq.question_ja && `| ${faq.question_ja}`}</p>
+                        <div className="mt-1 text-muted-foreground prose prose-xs" dangerouslySetInnerHTML={{ __html: faq.answer }} />
+                        {faq.answer_ja && (
+                          <div className="mt-1 text-muted-foreground border-t pt-1 border-dashed prose prose-xs" dangerouslySetInnerHTML={{ __html: faq.answer_ja }} />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -308,16 +368,16 @@ export default function AdminBlogIndex() {
                   }
                 />
               </div>
-               {/* Title */}
+              {/* Title */}
               <div className="space-y-1">
-                 <label className="font-medium">Slug</label>
-              <Input
+                <label className="font-medium">Slug</label>
+                <Input
                   placeholder="Slug"
                   value={data.slug}
                   onChange={(e) => setData("slug", e.target.value)}
                 />
               </div>
-              
+
               {/* Category */}
               <div className="space-y-1">
                 <label className="font-medium">Category</label>
@@ -448,6 +508,33 @@ export default function AdminBlogIndex() {
                 />
               </div>
 
+              {/* ================= FAQs SECTION ================= */}
+              <SectionBlock
+                title="FAQs (per-blog)"
+                hint="Leave empty → falls back to global FAQ panel"
+                items={data.page_faqs}
+                onAdd={() => addItem("page_faqs", { question: "", question_ja: "", answer: "", answer_ja: "" })}
+                onRemove={i => removeItem("page_faqs", i)}
+                render={(item, i) => (
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-2 gap-2">
+                      <Field label="Question (EN)">
+                        <Input value={item.question} placeholder="What is a Mini GCC?" onChange={e => updateItem("page_faqs", i, "question", e.target.value)} />
+                      </Field>
+                      <Field label="Question (JA)">
+                        <Input value={item.question_ja || ""} placeholder="ミニGCCとは何ですか？" onChange={e => updateItem("page_faqs", i, "question_ja", e.target.value)} />
+                      </Field>
+                    </div>
+                    <Field label="Answer (EN)">
+                      <ReactQuill theme="snow" value={item.answer || ""} onChange={v => updateItem("page_faqs", i, "answer", v)} />
+                    </Field>
+                    <Field label="Answer (JA)">
+                      <ReactQuill theme="snow" value={item.answer_ja || ""} onChange={v => updateItem("page_faqs", i, "answer_ja", v)} />
+                    </Field>
+                  </div>
+                )}
+              />
+
               {/* Submit */}
               <Button
                 className="w-full"
@@ -514,5 +601,70 @@ export default function AdminBlogIndex() {
         </TableBody>
       </Table>
     </AuthenticatedLayout>
+  );
+}
+
+
+
+function Field({ label, children, error, hint }: {
+  label: string; children: React.ReactNode; error?: string; hint?: string;
+}) {
+  return (
+    <div className="space-y-1">
+      <Label className={`text-xs ${error ? "text-destructive" : "text-muted-foreground"}`}>{label}</Label>
+      {hint && <p className="text-xs text-muted-foreground/70 -mt-0.5">{hint}</p>}
+      {children}
+      {error && (
+        <p className="text-xs text-destructive flex items-center gap-1 mt-1">
+          <AlertCircle className="w-3 h-3" /> {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function SectionBox({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="border rounded-xl p-4 space-y-3 bg-muted/20">
+      <p className="font-semibold text-sm">{title}</p>
+      {children}
+    </div>
+  );
+}
+
+function SectionBlock({ title, hint, items, onAdd, onRemove, render }: {
+  title: string; hint?: string; items: any[];
+  onAdd: () => void; onRemove: (i: number) => void;
+  render: (item: any, i: number) => JSX.Element;
+}) {
+  const [collapsed, setCollapsed] = useState(false);
+  return (
+    <div className="border rounded-xl bg-muted/20 overflow-hidden">
+      <button type="button" onClick={() => setCollapsed(c => !c)}
+        className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-muted/40 transition-colors">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="font-semibold text-sm">{title}</span>
+          {hint && <span className="text-xs text-muted-foreground">{hint}</span>}
+          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">{items.length}</span>
+        </div>
+        {collapsed ? <ChevronDown className="w-4 h-4 flex-shrink-0" /> : <ChevronUp className="w-4 h-4 flex-shrink-0" />}
+      </button>
+      {!collapsed && (
+        <div className="px-4 pb-4 space-y-4">
+          {items.map((item, i) => (
+            <div key={i} className="border border-dashed rounded-lg p-4 space-y-3 bg-background">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-medium text-muted-foreground">#{i + 1}</span>
+                <Button variant="destructive" size="sm" onClick={() => onRemove(i)}>Remove</Button>
+              </div>
+              {render(item, i)}
+            </div>
+          ))}
+          <Button variant="outline" size="sm" onClick={onAdd}>
+            <Plus className="w-3 h-3 mr-1" /> Add {title.split(" ")[0]}
+          </Button>
+        </div>
+      )}
+    </div>
   );
 }
