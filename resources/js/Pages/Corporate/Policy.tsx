@@ -2,7 +2,7 @@ import Layout from "@/components/layout/Layout";
 import Subheader from "@/components/layout/Subheader";
 import ContactCTA from "@/components/layout/Contact";
 import { ChevronRight } from "lucide-react";
-import { router, usePage } from "@inertiajs/react";
+import { router, usePage, Head } from "@inertiajs/react";
 import { getLangValue } from "@/utils/lang";
 
 interface PolicySection {
@@ -21,6 +21,11 @@ interface Policy {
   intro_ja?: string;
   sections: PolicySection[];
 }
+interface Seo {
+  meta_title?: string | null;
+  meta_description?: string | null;
+  meta_keywords?: string | null;
+}
 
 export default function PolicyPage({
   policies = [],
@@ -30,12 +35,37 @@ export default function PolicyPage({
   activePolicy?: Policy | null;
 }) {
 
-  const { lang } = usePage<{ lang: "en" | "ja" }>().props;
+  const { lang, seo } = usePage<{
+  lang: "en" | "ja";
+  seo?: Seo | null;
+}>().props;
 
   // 🚨 SAFETY GUARD
   if (!policies.length || !activePolicy) {
     return (
       <Layout>
+  <Head>
+    <title>
+      {seo?.meta_title ??
+        (lang === "ja"
+          ? "ポリシー声明 | Indo Sakura"
+          : "Policy Statements | Indo Sakura")}
+    </title>
+
+    {seo?.meta_description && (
+      <meta
+        name="description"
+        content={seo.meta_description}
+      />
+    )}
+
+    {seo?.meta_keywords && (
+      <meta
+        name="keywords"
+        content={seo.meta_keywords}
+      />
+    )}
+  </Head>
         <Subheader currentPage="Policy Statements" />
         <div className="container mx-auto px-4 py-12">
           <p className="text-muted-foreground">
@@ -48,6 +78,28 @@ export default function PolicyPage({
 
   return (
     <Layout>
+  <Head>
+    <title>
+      {seo?.meta_title ??
+        (lang === "ja"
+          ? "ポリシー声明 | Indo Sakura"
+          : "Policy Statements | Indo Sakura")}
+    </title>
+
+    {seo?.meta_description && (
+      <meta
+        name="description"
+        content={seo.meta_description}
+      />
+    )}
+
+    {seo?.meta_keywords && (
+      <meta
+        name="keywords"
+        content={seo.meta_keywords}
+      />
+    )}
+  </Head>
       <div className="sticky top-16 lg:top-[101px] z-40 bg-white">
         <Subheader currentPage="Policy Statements" />
       </div>

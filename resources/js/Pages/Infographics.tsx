@@ -1,5 +1,5 @@
 import Layout from "@/components/layout/Layout";
-import { Link, usePage } from "@inertiajs/react";
+import { Link, usePage, Head } from "@inertiajs/react";
 import { Calendar, Tag, User } from "lucide-react";
 import AOS from "aos";
 import "aos/dist/aos.css";
@@ -20,11 +20,18 @@ interface Infographic {
   image?: string | null;
 }
 
+interface Seo {
+  meta_title?: string | null;
+  meta_description?: string | null;
+  meta_keywords?: string | null;
+}
+
 export default function Infographics() {
-  const { infographics, lang } = usePage<{
-    infographics: Infographic[];
-    lang: "en" | "ja";
-  }>().props;
+ const { infographics, lang, seo } = usePage<{
+  infographics: Infographic[];
+  lang: "en" | "ja";
+  seo?: Seo | null;
+}>().props;
 
   AOS.init({ duration: 800, easing: "ease-out-cubic", once: true, offset: 80 });
 
@@ -40,6 +47,28 @@ export default function Infographics() {
 
   return (
     <Layout>
+  <Head>
+    <title>
+      {seo?.meta_title ??
+        (lang === "ja"
+          ? "インフォグラフィックス | Indo Sakura"
+          : "Infographics | Indo Sakura")}
+    </title>
+
+    {seo?.meta_description && (
+      <meta
+        name="description"
+        content={seo.meta_description}
+      />
+    )}
+
+    {seo?.meta_keywords && (
+      <meta
+        name="keywords"
+        content={seo.meta_keywords}
+      />
+    )}
+  </Head>
       <div className="sticky top-16 lg:top-[101px] z-40 bg-white">
         <Insightshead />
       </div>

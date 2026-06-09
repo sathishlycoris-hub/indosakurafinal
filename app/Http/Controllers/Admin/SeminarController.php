@@ -6,85 +6,64 @@ use App\Http\Controllers\Controller;
 use Inertia\Inertia;
 use App\Models\Seminar;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class SeminarController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
         return Inertia::render('Admin/Seminar/Index', [
             'seminars' => Seminar::select(
                 'id',
-                'title',
-                'title_ja',
-
-                'description',
-                'description_ja',
-
-                'location',
-                'location_ja',
-
-                'organizer',
-                'organizer_ja',
-
-                'participation_fee',
-                'participation_fee_ja',
-                'sponsorship',
-                'sponsorship_ja',
-                'cooperation',
-                'cooperation_ja',
-
-                'date',
-                'time',
-                'status',
-                'tags',
-                'image'
-
-            )
-                ->orderBy('date', 'desc')
-                ->get(),
+                'title', 'title_ja',
+                'description', 'description_ja',
+                'location', 'location_ja',
+                'organizer', 'organizer_ja',
+                'participation_fee', 'participation_fee_ja',
+                'sponsorship', 'sponsorship_ja',
+                'cooperation', 'cooperation_ja',
+                'date', 'time', 'status', 'tags', 'image',
+                // SEO
+                'meta_title', 'meta_title_ja',
+                'meta_description', 'meta_description_ja',
+                'meta_keywords', 'meta_keywords_ja',
+                'og_image'
+            )->orderBy('date', 'desc')->get(),
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
+    public function create() {}
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $data = $request->validate([
-            'title' => 'nullable|string',
-            'description' => 'nullable|string',
-            'location' => 'nullable|string',
-            'date' => 'nullable|date',
-            'time' => 'nullable|string',
-            'status' => 'nullable|in:upcoming,archived',
-
-            'title_ja' => 'nullable|string',
-            'description_ja' => 'nullable|string',
-            'location_ja' => 'nullable|string',
-
-            'participation_fee' => 'nullable|string',
+            'title'                => 'nullable|string',
+            'description'          => 'nullable|string',
+            'location'             => 'nullable|string',
+            'date'                 => 'nullable|date',
+            'time'                 => 'nullable|string',
+            'status'               => 'nullable|in:upcoming,archived',
+            'title_ja'             => 'nullable|string',
+            'description_ja'       => 'nullable|string',
+            'location_ja'          => 'nullable|string',
+            'participation_fee'    => 'nullable|string',
             'participation_fee_ja' => 'nullable|string',
-            'organizer' => 'nullable|string',
-            'organizer_ja' => 'nullable|string',
-            'sponsorship' => 'nullable|string',
-            'sponsorship_ja' => 'nullable|string',
-            'cooperation' => 'nullable|string',
-            'cooperation_ja' => 'nullable|string',
-
-            'tags' => 'nullable|string',
-            'image' => 'nullable|image|max:4096',
+            'organizer'            => 'nullable|string',
+            'organizer_ja'         => 'nullable|string',
+            'sponsorship'          => 'nullable|string',
+            'sponsorship_ja'       => 'nullable|string',
+            'cooperation'          => 'nullable|string',
+            'cooperation_ja'       => 'nullable|string',
+            'tags'                 => 'nullable|string',
+            'image'                => 'nullable|image|max:4096',
+            // SEO
+            'meta_title'           => 'nullable|string|max:255',
+            'meta_title_ja'        => 'nullable|string|max:255',
+            'meta_description'     => 'nullable|string|max:500',
+            'meta_description_ja'  => 'nullable|string|max:500',
+            'meta_keywords'        => 'nullable|string|max:255',
+            'meta_keywords_ja'     => 'nullable|string|max:255',
+            'og_image'             => 'nullable|image|max:4096',
         ]);
 
         if ($request->tags) {
@@ -94,69 +73,68 @@ class SeminarController extends Controller
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('seminars', 'public');
         }
+        if ($request->hasFile('og_image')) {
+            $data['og_image'] = $request->file('og_image')->store('seminars/og', 'public');
+        }
 
         Seminar::create($data);
 
         return back()->with('success', 'Seminar added successfully');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Seminar $seminar)
-    {
-        //
-    }
+    public function show(Seminar $seminar) {}
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Seminar $seminar) {}
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Seminar $seminar)
     {
         $data = $request->validate([
-            'title' => 'nullable|string',
-            'description' => 'nullable|string',
-            'location' => 'nullable|string',
-            'date' => 'nullable|date',
-            'time' => 'nullable|string',
-            'status' => 'nullable|in:upcoming,archived',
-
-            'title_ja' => 'nullable|string',
-            'description_ja' => 'nullable|string',
-            'location_ja' => 'nullable|string',
-
-            'participation_fee' => 'nullable|string',
+            'title'                => 'nullable|string',
+            'description'          => 'nullable|string',
+            'location'             => 'nullable|string',
+            'date'                 => 'nullable|date',
+            'time'                 => 'nullable|string',
+            'status'               => 'nullable|in:upcoming,archived',
+            'title_ja'             => 'nullable|string',
+            'description_ja'       => 'nullable|string',
+            'location_ja'          => 'nullable|string',
+            'participation_fee'    => 'nullable|string',
             'participation_fee_ja' => 'nullable|string',
-            'organizer' => 'nullable|string',
-            'organizer_ja' => 'nullable|string',
-            'sponsorship' => 'nullable|string',
-            'sponsorship_ja' => 'nullable|string',
-            'cooperation' => 'nullable|string',
-            'cooperation_ja' => 'nullable|string',
-
-            'tags' => 'nullable|string',
-            'image' => 'nullable|image|max:4096',
+            'organizer'            => 'nullable|string',
+            'organizer_ja'         => 'nullable|string',
+            'sponsorship'          => 'nullable|string',
+            'sponsorship_ja'       => 'nullable|string',
+            'cooperation'          => 'nullable|string',
+            'cooperation_ja'       => 'nullable|string',
+            'tags'                 => 'nullable|string',
+            'image'                => 'nullable|image|max:4096',
+            // SEO
+            'meta_title'           => 'nullable|string|max:255',
+            'meta_title_ja'        => 'nullable|string|max:255',
+            'meta_description'     => 'nullable|string|max:500',
+            'meta_description_ja'  => 'nullable|string|max:500',
+            'meta_keywords'        => 'nullable|string|max:255',
+            'meta_keywords_ja'     => 'nullable|string|max:255',
+            'og_image'             => 'nullable|image|max:4096',
         ]);
 
         if ($request->filled('tags')) {
-            $data['tags'] = array_map(
-                'trim',
-                explode(',', $request->tags)
-            );
+            $data['tags'] = array_map('trim', explode(',', $request->tags));
         } else {
             $data['tags'] = [];
         }
 
-        // ✅ VERY IMPORTANT FIX
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('seminars', 'public');
         } else {
-            unset($data['image']); // ← DO NOT overwrite existing image
+            unset($data['image']);
+        }
+
+        if ($request->hasFile('og_image')) {
+            if ($seminar->og_image) Storage::disk('public')->delete($seminar->og_image);
+            $data['og_image'] = $request->file('og_image')->store('seminars/og', 'public');
+        } else {
+            unset($data['og_image']);
         }
 
         $seminar->update($data);
@@ -164,12 +142,8 @@ class SeminarController extends Controller
         return back()->with('success', 'Seminar updated successfully');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Seminar $seminar)
     {
-        //
         $seminar->delete();
         return back()->with('success', 'Seminar deleted');
     }

@@ -27,7 +27,7 @@ class InfographicController extends Controller
             'short_description_ja'   => 'nullable|string',
             'content'                => 'nullable|string',
             'content_ja'             => 'nullable|string',
-            'table_of_contents'      => 'nullable|string', // JSON string from frontend
+            'table_of_contents'      => 'nullable|string',
             'table_of_contents_ja'   => 'nullable|string',
             'category'               => 'nullable|string',
             'category_ja'            => 'nullable|string',
@@ -37,9 +37,16 @@ class InfographicController extends Controller
             'status'                 => 'nullable|in:published,draft',
             'image'                  => 'nullable|image',
             'infographic_image'      => 'nullable|image',
+            // SEO
+            'meta_title'             => 'nullable|string|max:255',
+            'meta_title_ja'          => 'nullable|string|max:255',
+            'meta_description'       => 'nullable|string|max:500',
+            'meta_description_ja'    => 'nullable|string|max:500',
+            'meta_keywords'          => 'nullable|string|max:255',
+            'meta_keywords_ja'       => 'nullable|string|max:255',
+            'og_image'               => 'nullable|image|max:4096',
         ]);
 
-        // Decode JSON strings to arrays (model casts will re-encode)
         if (!empty($data['table_of_contents'])) {
             $data['table_of_contents'] = json_decode($data['table_of_contents'], true);
         }
@@ -54,6 +61,9 @@ class InfographicController extends Controller
             $data['infographic_image'] = $request->file('infographic_image')
                 ->store('infographics', 'public');
         }
+        if ($request->hasFile('og_image')) {
+            $data['og_image'] = $request->file('og_image')->store('infographics/og', 'public');
+        }
 
         Infographic::create($data);
 
@@ -65,7 +75,7 @@ class InfographicController extends Controller
         $data = $request->validate([
             'title'                  => 'nullable|string',
             'title_ja'               => 'nullable|string',
-            'slug' => 'required|string|unique:infographics,slug,' . $infographic->id,
+            'slug'                   => 'required|string|unique:infographics,slug,' . $infographic->id,
             'short_description'      => 'nullable|string',
             'short_description_ja'   => 'nullable|string',
             'content'                => 'nullable|string',
@@ -80,6 +90,13 @@ class InfographicController extends Controller
             'status'                 => 'nullable|in:published,draft',
             'image'                  => 'nullable|image',
             'infographic_image'      => 'nullable|image',
+            // SEO
+            'meta_title'             => 'nullable|string|max:255',
+            'meta_title_ja'          => 'nullable|string|max:255',
+            'meta_description'       => 'nullable|string|max:500',
+            'meta_description_ja'    => 'nullable|string|max:500',
+            'meta_keywords'          => 'nullable|string|max:255',
+            'meta_keywords_ja'       => 'nullable|string|max:255',
         ]);
 
         if (!empty($data['table_of_contents'])) {
@@ -106,6 +123,13 @@ class InfographicController extends Controller
             unset($data['infographic_image']);
         }
 
+        if ($request->hasFile('og_image')) {
+            if ($infographic->og_image) Storage::disk('public')->delete($infographic->og_image);
+            $data['og_image'] = $request->file('og_image')->store('infographics/og', 'public');
+        } else {
+            unset($data['og_image']);
+        }
+
         $infographic->update($data);
 
         return back()->with('success', 'Infographic updated successfully');
@@ -117,6 +141,8 @@ class InfographicController extends Controller
         if ($infographic->infographic_image) {
             Storage::disk('public')->delete($infographic->infographic_image);
         }
+        if ($infographic->og_image) Storage::disk('public')->delete($infographic->og_image);
+
         $infographic->delete();
 
         return back()->with('success', 'Infographic deleted successfully');

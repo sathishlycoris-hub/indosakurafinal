@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class CaseStudy extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'title',
         'title_ja',
@@ -25,12 +26,43 @@ class CaseStudy extends Model
         'benefit_ja',
         'implementation',
         'implementation_ja',
-        
-        // 'sections'
+        // SEO
+        'meta_title',
+        'meta_title_ja',
+        'meta_description',
+        'meta_description_ja',
+        'meta_keywords',
+        'meta_keywords_ja',
+        'og_image',
     ];
 
     protected $casts = [
-        // 'sections' => 'array',
-        'tags' => 'array'
+        'tags' => 'array',
     ];
+
+    public function getEffectiveMetaTitle(string $lang): string
+    {
+        if ($lang === 'ja') {
+            return $this->meta_title_ja
+                ?: $this->meta_title
+                ?: $this->title_ja
+                ?: $this->title
+                ?: '';
+        }
+
+        return $this->meta_title ?: $this->title ?: '';
+    }
+
+    public function getEffectiveMetaDescription(string $lang): string
+    {
+        if ($lang === 'ja') {
+            return $this->meta_description_ja
+                ?: $this->meta_description
+                ?: $this->hero_description_ja
+                ?: strip_tags($this->hero_description ?? '')
+                ?: '';
+        }
+
+        return $this->meta_description ?: strip_tags($this->hero_description ?? '') ?: '';
+    }
 }

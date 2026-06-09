@@ -8,284 +8,219 @@ use App\Models\Solution;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
-
-
 class SolutionController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
         return Inertia::render('Admin/Solutions/Index', [
             'solutions' => Solution::with(['features', 'useCases', 'caseStudies', 'industries'])
-                ->latest()
-                ->get(),
+                ->latest()->get(),
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
+    public function create() {}
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    /* ─── STORE ─── */
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'title' => 'nullable|string',
-            'title_ja' => 'nullable|string',
-            'slug' => 'nullable|string|unique:solutions',
-            'subtitle' => 'nullable|string',
-            'subtitle_ja' => 'nullable|string',
-            'hero_description' => 'nullable|string',
+        $request->validate([
+            'title'               => 'nullable|string',
+            'title_ja'            => 'nullable|string',
+            'slug'                => 'nullable|string|unique:solutions',
+            'subtitle'            => 'nullable|string',
+            'subtitle_ja'         => 'nullable|string',
+            'hero_description'    => 'nullable|string',
             'hero_description_ja' => 'nullable|string',
-            'hero_image' => 'nullable|image|max:4096',
-            'link' => 'nullable|string',
-            'features' => 'nullable',
-            'features_ja' => 'nullable',
-            'use_cases' => 'nullable',
-            'use_cases_ja' => 'nullable',
-            'case_studies' => 'nullable',
-            'case_studies_ja' => 'nullable',
-            'industries' => 'nullable',
-            'industries_ja' => 'nullable',
+            'hero_image'          => 'nullable|image|max:4096',
+            'link'                => 'nullable|string',
+            'meta_title'          => 'nullable|string|max:255',
+            'meta_title_ja'       => 'nullable|string|max:255',
+            'meta_description'    => 'nullable|string|max:500',
+            'meta_description_ja' => 'nullable|string|max:500',
+            'meta_keywords'       => 'nullable|string|max:500',
+            'meta_keywords_ja'    => 'nullable|string|max:500',
+            'og_image'            => 'nullable|image|max:4096',
+            'features'            => 'nullable',
+            'use_cases'           => 'nullable',
+            'case_studies'        => 'nullable',
+            'industries'          => 'nullable',
         ]);
 
-        // 2Decode JSON arrays (FormData sends strings)
-        foreach (['features', 'use_cases', 'case_studies', 'industries'] as $key) {
-            if ($request->filled($key)) {
-                $data[$key] = json_decode($request->input($key), true) ?? [];
-            } else {
-                $data[$key] = [];
-            }
-        }
+        $decoded = $this->decodeRelations($request);
 
-        //  Handle hero image
-        if ($request->hasFile('hero_image')) {
-            $data['hero_image'] = $request->file('hero_image')
-                ->store('solutions', 'public');
-        }
+        $heroImage = $request->hasFile('hero_image')
+            ? $request->file('hero_image')->store('solutions', 'public')
+            : null;
 
-        //  Create solution
+        $ogImage = $request->hasFile('og_image')
+            ? $request->file('og_image')->store('solutions/og', 'public')
+            : null;
+
         $solution = Solution::create([
-            'title' => $data['title'],
-            'title_ja' => $data['title_ja'] ?? null,
-
-            'subtitle' => $data['subtitle'] ?? null,
-            'subtitle_ja' => $data['subtitle_ja'] ?? null,
-            
-            'hero_description' => $data['hero_description'] ?? null,
-            'hero_description_ja' => $data['hero_description_ja'] ?? null,
-
-            'slug' => $data['slug'],
-            'link' => $data['link'] ?? null,
-
-            'hero_image' => $data['hero_image'] ?? null,
+            'title'               => $request->title,
+            'title_ja'            => $request->title_ja,
+            'subtitle'            => $request->subtitle,
+            'subtitle_ja'         => $request->subtitle_ja,
+            'hero_description'    => $request->hero_description,
+            'hero_description_ja' => $request->hero_description_ja,
+            'slug'                => $request->slug,
+            'link'                => $request->link,
+            'hero_image'          => $heroImage,
+            'meta_title'          => $request->meta_title,
+            'meta_title_ja'       => $request->meta_title_ja,
+            'meta_description'    => $request->meta_description,
+            'meta_description_ja' => $request->meta_description_ja,
+            'meta_keywords'       => $request->meta_keywords,
+            'meta_keywords_ja'    => $request->meta_keywords_ja,
+            'og_image'            => $ogImage,
         ]);
 
-        // Features
-        foreach ($data['features'] as $i => $feature) {
-            $solution->features()->create([
-                'title' => $feature['title'] ?? '',
-                'title_ja' => $feature['title_ja'] ?? null,
-                'description' => $feature['description'] ?? null,
-                'description_ja' => $feature['description_ja'] ?? null,
-                'sort_order' => $i,
-            ]);
-        }
+        $this->syncChildren($solution, $decoded);
 
-        //  Use cases
-        foreach ($data['use_cases'] as $i => $useCase) {
-            $solution->useCases()->create([
-                'title' => $useCase['title'] ?? '',
-                'title_ja' => $useCase['title_ja'] ?? null,
-                'description' => $useCase['description'] ?? null,
-                'description_ja' => $useCase['description_ja'] ?? null,
-                'sort_order' => $i,
-            ]);
-        }
-
-        //  Case studies
-        foreach ($data['case_studies'] as $i => $caseStudy) {
-            $solution->caseStudies()->create([
-                'title' => $caseStudy['title'] ?? '',
-                'title_ja' => $caseStudy['title_ja'] ?? null,
-                'summary' => $caseStudy['summary'] ?? null,
-                'summary_ja' => $caseStudy['summary_ja'] ?? null,
-                'sort_order' => $i,
-            ]);
-        }
-
-        // Industries
-        foreach ($data['industries'] as $i => $industry) {
-            $solution->industries()->create([
-                'title' => $industry['title'] ?? '',
-                'title_ja' => $industry['title_ja'] ?? null,
-                'description' => $industry['description'] ?? null,
-                'description_ja' => $industry['description_ja'] ?? null,
-                'sort_order' => $i,
-            ]);
-        }
-
-        return redirect()
-            ->route('admin.solutions.index')
-            ->with('success', 'Solution created successfully');
+        return redirect()->route('admin.solutions.index')->with('success', 'Solution created successfully');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Solution $solution)
-    {
-        //
-    }
+    public function show(Solution $solution) {}
+    public function edit(Solution $solution) {}
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Solution $solution)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
+    /* ─── UPDATE ─── */
     public function update(Request $request, Solution $solution)
     {
-        //
-        // 1️⃣ Validate
-        $data = $request->validate([
-            'title' => 'nullable|string',
-            'title_ja' => 'nullable|string',
-
-            'subtitle' => 'nullable|string',
-            'subtitle_ja' => 'nullable|string',
-
-            'hero_description' => 'nullable|string',
+        $request->validate([
+            'title'               => 'nullable|string',
+            'title_ja'            => 'nullable|string',
+            'subtitle'            => 'nullable|string',
+            'subtitle_ja'         => 'nullable|string',
+            'hero_description'    => 'nullable|string',
             'hero_description_ja' => 'nullable|string',
-
-            'slug' => 'nullable|string|unique:solutions,slug,' . ($solution->id ?? 'NULL'),
-
-            'hero_image' => 'nullable|image|max:4096',
-            'link' => 'nullable|string',
-            'features' => 'nullable',
-            'use_cases' => 'nullable',
-            'case_studies' => 'nullable',
-            'industries' => 'nullable',
+            'slug'                => 'nullable|string|unique:solutions,slug,' . $solution->id,
+            'hero_image'          => 'nullable|image|max:4096',
+            'link'                => 'nullable|string',
+            'meta_title'          => 'nullable|string|max:255',
+            'meta_title_ja'       => 'nullable|string|max:255',
+            'meta_description'    => 'nullable|string|max:500',
+            'meta_description_ja' => 'nullable|string|max:500',
+            'meta_keywords'       => 'nullable|string|max:500',
+            'meta_keywords_ja'    => 'nullable|string|max:500',
+            'og_image'            => 'nullable|image|max:4096',
+            'features'            => 'nullable',
+            'use_cases'           => 'nullable',
+            'case_studies'        => 'nullable',
+            'industries'          => 'nullable',
         ]);
 
-        // 2️⃣ Decode JSON arrays
-        foreach (['features', 'use_cases', 'case_studies', 'industries'] as $key) {
-            if ($request->filled($key)) {
-                $data[$key] = json_decode($request->input($key), true) ?? [];
-            } else {
-                $data[$key] = [];
-            }
-        }
+        $decoded = $this->decodeRelations($request);
 
-        // 3️⃣ Hero image replace (delete old)
+        $heroImage = $solution->hero_image;
         if ($request->hasFile('hero_image')) {
-            if ($solution->hero_image) {
-                Storage::disk('public')->delete($solution->hero_image);
-            }
-
-            $data['hero_image'] = $request->file('hero_image')
-                ->store('solutions', 'public');
+            if ($solution->hero_image) Storage::disk('public')->delete($solution->hero_image);
+            $heroImage = $request->file('hero_image')->store('solutions', 'public');
         }
 
-        // 4️⃣ Update solution
+        $ogImage = $solution->og_image;
+        if ($request->hasFile('og_image')) {
+            if ($solution->og_image) Storage::disk('public')->delete($solution->og_image);
+            $ogImage = $request->file('og_image')->store('solutions/og', 'public');
+        }
+
         $solution->update([
-            'title' => $data['title'],
-            'title_ja' => $data['title_ja'] ?? null,
-            'slug' => $data['slug'],
-            'subtitle' => $data['subtitle'] ?? null,
-            'subtitle_ja' => $data['subtitle_ja'] ?? null,
-            'hero_description' => $data['hero_description'] ?? null,
-            'hero_description_ja' => $data['hero_description_ja'] ?? null,
-            'hero_image' => $data['hero_image'] ?? $solution->hero_image,
-            'link' => $data['link'] ?? null,
+            'title'               => $request->title,
+            'title_ja'            => $request->title_ja,
+            'slug'                => $request->slug,
+            'subtitle'            => $request->subtitle,
+            'subtitle_ja'         => $request->subtitle_ja,
+            'hero_description'    => $request->hero_description,
+            'hero_description_ja' => $request->hero_description_ja,
+            'hero_image'          => $heroImage,
+            'link'                => $request->link,
+            'meta_title'          => $request->meta_title,
+            'meta_title_ja'       => $request->meta_title_ja,
+            'meta_description'    => $request->meta_description,
+            'meta_description_ja' => $request->meta_description_ja,
+            'meta_keywords'       => $request->meta_keywords,
+            'meta_keywords_ja'    => $request->meta_keywords_ja,
+            'og_image'            => $ogImage,
         ]);
 
-        // 5️⃣ Sync children (delete → recreate)
+        $this->syncChildren($solution, $decoded);
 
-        $solution->features()->delete();
-        foreach ($data['features'] as $i => $feature) {
-            $solution->features()->create([
-                'title' => $feature['title'] ?? '',
-                'title_ja' => $feature['title_ja'] ?? null,
-                'description' => $feature['description'] ?? null,
-                'description_ja' => $feature['description_ja'] ?? null,
-                'sort_order' => $i,
-            ]);
-        }
-
-        $solution->useCases()->delete();
-        foreach ($data['use_cases'] as $i => $useCase) {
-            $solution->useCases()->create([
-                'title' => $useCase['title'] ?? '',
-                'title_ja' => $useCase['title_ja'] ?? null,
-                'description' => $useCase['description'] ?? null,
-                'description_ja' => $useCase['description_ja'] ?? null,
-                'sort_order' => $i,
-            ]);
-        }
-
-        $solution->caseStudies()->delete();
-        foreach ($data['case_studies'] as $i => $caseStudy) {
-            $solution->caseStudies()->create([
-                'title' => $caseStudy['title'] ?? '',
-                'title_ja' => $caseStudy['title_ja'] ?? null,
-                'summary' => $caseStudy['summary'] ?? null,
-                'summary_ja' => $caseStudy['summary_ja'] ?? null,
-                'sort_order' => $i,
-            ]);
-        }
-
-        $solution->industries()->delete();
-        foreach ($data['industries'] as $i => $industry) {
-            $solution->industries()->create([
-                'title' => $industry['title'] ?? '',
-                'title_ja' => $industry['title_ja'] ?? null,
-                'description' => $industry['description'] ?? null,
-                'description_ja' => $industry['description_ja'] ?? null,
-                'sort_order' => $i,
-            ]);
-        }
-
-        return redirect()
-            ->route('admin.solutions.index')
-            ->with('success', 'Solution deleted successfully');
+        return redirect()->route('admin.solutions.index')->with('success', 'Solution updated successfully');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    /* ─── DESTROY ─── */
     public function destroy(Solution $solution)
     {
-
-        if ($solution->hero_image && Storage::disk('public')->exists($solution->hero_image)) {
-            Storage::disk('public')->delete($solution->hero_image);
+        foreach (['hero_image', 'og_image'] as $img) {
+            if ($solution->{$img} && Storage::disk('public')->exists($solution->{$img})) {
+                Storage::disk('public')->delete($solution->{$img});
+            }
         }
-
-
         $solution->features()->delete();
         $solution->useCases()->delete();
         $solution->caseStudies()->delete();
         $solution->industries()->delete();
-
-
         $solution->delete();
 
-        return redirect()
-            ->route('admin.solutions.index')
-            ->with('success', 'Solution deleted successfully');
+        return redirect()->route('admin.solutions.index')->with('success', 'Solution deleted successfully');
+    }
+
+    /* ─── HELPERS ─── */
+
+    private function decodeRelations(Request $request): array
+    {
+        $decoded = [];
+        foreach (['features', 'use_cases', 'case_studies', 'industries'] as $key) {
+            $decoded[$key] = $request->filled($key)
+                ? json_decode($request->input($key), true) ?? []
+                : [];
+        }
+        return $decoded;
+    }
+
+    private function syncChildren(Solution $solution, array $decoded): void
+    {
+        $solution->features()->delete();
+        foreach ($decoded['features'] as $i => $f) {
+            $solution->features()->create([
+                'title'          => $f['title'] ?? '',
+                'title_ja'       => $f['title_ja'] ?? null,
+                'description'    => $f['description'] ?? null,
+                'description_ja' => $f['description_ja'] ?? null,
+                'sort_order'     => $i,
+            ]);
+        }
+
+        $solution->useCases()->delete();
+        foreach ($decoded['use_cases'] as $i => $u) {
+            $solution->useCases()->create([
+                'title'          => $u['title'] ?? '',
+                'title_ja'       => $u['title_ja'] ?? null,
+                'description'    => $u['description'] ?? null,
+                'description_ja' => $u['description_ja'] ?? null,
+                'sort_order'     => $i,
+            ]);
+        }
+
+        $solution->caseStudies()->delete();
+        foreach ($decoded['case_studies'] as $i => $c) {
+            $solution->caseStudies()->create([
+                'title'      => $c['title'] ?? '',
+                'title_ja'   => $c['title_ja'] ?? null,
+                'summary'    => $c['summary'] ?? null,
+                'summary_ja' => $c['summary_ja'] ?? null,
+                'sort_order' => $i,
+            ]);
+        }
+
+        $solution->industries()->delete();
+        foreach ($decoded['industries'] as $i => $ind) {
+            $solution->industries()->create([
+                'title'          => $ind['title'] ?? '',
+                'title_ja'       => $ind['title_ja'] ?? null,
+                'description'    => $ind['description'] ?? null,
+                'description_ja' => $ind['description_ja'] ?? null,
+                'sort_order'     => $i,
+            ]);
+        }
     }
 }

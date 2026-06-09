@@ -1,7 +1,7 @@
 import Layout from "@/components/layout/Layout";
 import Subheader from "@/components/layout/Subheader";
 import ContactCTA from "@/components/layout/Contact";
-import { usePage } from "@inertiajs/react";
+import { usePage, Head } from "@inertiajs/react";
 
 interface ClientSection {
   section_type: "customer" | "alliance" | "contract" | "partner";
@@ -16,9 +16,18 @@ interface Client {
   description_ja?: string | null;
   sections: ClientSection[];
 }
+interface Seo {
+  meta_title?: string | null;
+  meta_description?: string | null;
+  meta_keywords?: string | null;
+}
 
 export default function Clients() {
-  const { lang } = usePage<{ lang: "en" | "ja" }>().props;
+  const { lang, seo } = usePage<{
+  lang: "en" | "ja";
+  seo?: Seo | null;
+}>().props;
+
   const page = usePage();
   const client = page.props.client as Client | null;
 
@@ -61,6 +70,28 @@ export default function Clients() {
 
   return (
     <Layout>
+       <Head>
+    <title>
+      {seo?.meta_title ??
+        (lang === "ja"
+          ? "取引先・ビジネスパートナー | Indo Sakura"
+          : "Clients & Business Partners | Indo Sakura")}
+    </title>
+
+    {seo?.meta_description && (
+      <meta
+        name="description"
+        content={seo.meta_description}
+      />
+    )}
+
+    {seo?.meta_keywords && (
+      <meta
+        name="keywords"
+        content={seo.meta_keywords}
+      />
+    )}
+  </Head>
       <div className="sticky top-16 lg:top-[101px] z-40 bg-white">
         <Subheader
           currentPage={

@@ -8,7 +8,7 @@ use App\Models\Newsevent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
-
+use App\Models\Seo;
 class NewseventController extends Controller
 {
     /**
@@ -128,6 +128,7 @@ class NewseventController extends Controller
 
             // JA filter labels (parallel array, same index)
             'filters_ja' => $types->pluck('name_ja')->toArray(),
+            'seo' => Seo::where('page', 'press-release')->first(),
         ]);
     }
 }

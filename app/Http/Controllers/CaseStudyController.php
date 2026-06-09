@@ -14,12 +14,7 @@ class CaseStudyController extends Controller
     {
         return Inertia::render('Casestudies/Index', [
             'caseStudies' => CaseStudy::select(
-                'id',
-                'subtitle',
-                'subtitle_ja',
-                'slug',
-                'hero_image',
-                'tags'
+                'id', 'subtitle', 'subtitle_ja', 'slug', 'hero_image', 'tags'
             )->latest()->get(),
             'seo' => Seo::where('page', 'case-studies')->first(),
         ]);
@@ -34,9 +29,21 @@ class CaseStudyController extends Controller
             ->take(3)
             ->get(['title', 'title_ja', 'slug', 'hero_image']);
 
+        $lang = app()->getLocale();
+
         return Inertia::render('Casestudies/Show', [
             'caseStudy'    => $caseStudy,
             'relatedCases' => $relatedCases,
+            'pageSeo' => [
+                'meta_title'       => $caseStudy->getEffectiveMetaTitle($lang),
+                'meta_description' => $caseStudy->getEffectiveMetaDescription($lang),
+                'meta_keywords'    => $lang === 'ja'
+                    ? ($caseStudy->meta_keywords_ja ?? $caseStudy->meta_keywords ?? '')
+                    : ($caseStudy->meta_keywords ?? ''),
+                'og_image' => $caseStudy->og_image
+                    ? asset('storage/' . $caseStudy->og_image)
+                    : ($caseStudy->hero_image ? asset('storage/' . $caseStudy->hero_image) : null),
+            ],
         ]);
     }
 }

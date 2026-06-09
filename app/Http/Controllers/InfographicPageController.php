@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Infographic;
 use Inertia\Inertia;
+use App\Models\Seo;
 
 class InfographicPageController extends Controller
 {
@@ -13,6 +14,7 @@ class InfographicPageController extends Controller
             'infographics' => Infographic::where('status', 'published')
                 ->orderBy('published_date', 'desc')
                 ->get(),
+            'seo' => Seo::where('page', 'infographics')->first(),
         ]);
     }
 
@@ -26,9 +28,21 @@ class InfographicPageController extends Controller
             ->limit(3)
             ->get();
 
+        $lang = app()->getLocale();
+
         return Inertia::render('Infographics/InfographicDetails', [
             'infographic' => $infographic,
             'related'     => $related,
+            'pageSeo' => [
+                'meta_title'       => $infographic->getEffectiveMetaTitle($lang),
+                'meta_description' => $infographic->getEffectiveMetaDescription($lang),
+                'meta_keywords'    => $lang === 'ja'
+                    ? ($infographic->meta_keywords_ja ?? $infographic->meta_keywords ?? '')
+                    : ($infographic->meta_keywords ?? ''),
+                'og_image' => $infographic->og_image
+                    ? asset('storage/' . $infographic->og_image)
+                    : ($infographic->image ? asset('storage/' . $infographic->image) : null),
+            ],
         ]);
     }
 }

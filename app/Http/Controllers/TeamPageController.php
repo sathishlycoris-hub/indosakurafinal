@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Team;
 use App\Models\TeamCategory;
 use Inertia\Inertia;
+use App\Models\Seo;
 
 class TeamPageController extends Controller
 {
@@ -28,6 +29,8 @@ class TeamPageController extends Controller
         return Inertia::render('Corporate/Team', [
             'grouped'    => $grouped,   // NEW: used by the updated Team.tsx
             'categories' => $categories, // also pass for easy iteration
+            'seo' => Seo::where('page', 'team')->first(),
         ]);
+        
     }
 }

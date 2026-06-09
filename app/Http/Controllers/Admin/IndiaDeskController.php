@@ -27,11 +27,6 @@ class IndiaDeskController extends Controller
 
     private function validated(Request $request, ?int $ignoreId = null): array
     {
-        /*
-         * Slug is REQUIRED — never allow null to reach the DB.
-         * If somehow empty, fall back to a slugified title so the
-         * DB constraint is never violated.
-         */
         $slugRule = $ignoreId
             ? 'required|string|max:255|unique:india_desks,slug,' . $ignoreId
             : 'required|string|max:255|unique:india_desks,slug';
@@ -44,19 +39,27 @@ class IndiaDeskController extends Controller
             'subtitle_ja'         => 'nullable|string',
             'hero_description'    => 'nullable|string',
             'hero_description_ja' => 'nullable|string',
-            'supporting_growth'        => 'nullable|string',
-            'supporting_growth_ja'     => 'nullable|string',
-            'about'                => 'nullable|string',
-            'about_ja'             => 'nullable|string',
-            'about_indosakura'     => 'nullable|string',
-            'about_indosakura_ja'  => 'nullable|string',
+            'supporting_growth'   => 'nullable|string',
+            'supporting_growth_ja' => 'nullable|string',
+            'about'               => 'nullable|string',
+            'about_ja'            => 'nullable|string',
+            'about_indosakura'    => 'nullable|string',
+            'about_indosakura_ja' => 'nullable|string',
             'overview'            => 'nullable|string',
             'overview_ja'         => 'nullable|string',
             'cta_label'           => 'nullable|string|max:255',
             'cta_label_ja'        => 'nullable|string|max:255',
             'cta_url'             => 'nullable|string|max:255',
             'hero_image'          => 'nullable|image|max:4096',
-            /* JSON arrays sent as strings via FormData */
+            // ★ SEO
+            'meta_title'          => 'nullable|string|max:255',
+            'meta_title_ja'       => 'nullable|string|max:255',
+            'meta_description'    => 'nullable|string|max:500',
+            'meta_description_ja' => 'nullable|string|max:500',
+            'meta_keywords'       => 'nullable|string|max:500',
+            'meta_keywords_ja'    => 'nullable|string|max:500',
+            'og_image'            => 'nullable|image|max:4096',
+            // JSON arrays
             'highlights'          => 'nullable',
             'benefits'            => 'nullable',
             'service_items'       => 'nullable',
@@ -64,7 +67,7 @@ class IndiaDeskController extends Controller
             'approach_steps'      => 'nullable',
             'testimonials'        => 'nullable',
             'tech_stack'          => 'nullable',
-            'case_studies'          => 'nullable',
+            'case_studies'        => 'nullable',
             'page_faqs'           => 'nullable',
             'page_industries'     => 'nullable',
         ], [
@@ -74,16 +77,10 @@ class IndiaDeskController extends Controller
         ]);
 
         $jsonKeys = [
-            'highlights',
-            'benefits',
-            'service_items',
-            'why_choose',
-            'approach_steps',
-            'testimonials',
-            'tech_stack',
-            'case_studies',
-            'page_faqs',
-            'page_industries',
+            'highlights', 'benefits',
+            'service_items', 'why_choose', 'approach_steps',
+            'testimonials', 'tech_stack', 'case_studies',
+            'page_faqs', 'page_industries',
         ];
 
         $decoded = [];
@@ -100,7 +97,6 @@ class IndiaDeskController extends Controller
 
     private function syncRelations(IndiaDesk $indiaDesk, array $decoded): void
     {
-        // Highlights
         $indiaDesk->highlights()->delete();
         foreach ($decoded['highlights'] as $i => $item) {
             $indiaDesk->highlights()->create([
@@ -113,7 +109,6 @@ class IndiaDeskController extends Controller
             ]);
         }
 
-        // Benefits
         $indiaDesk->benefits()->delete();
         foreach ($decoded['benefits'] as $i => $item) {
             $indiaDesk->benefits()->create([
@@ -125,7 +120,6 @@ class IndiaDeskController extends Controller
             ]);
         }
 
-        // Per-IndiaDesk FAQs → india_desk_page_faqs
         $indiaDesk->pageFaqs()->delete();
         foreach ($decoded['page_faqs'] as $i => $item) {
             $indiaDesk->pageFaqs()->create([
@@ -137,7 +131,6 @@ class IndiaDeskController extends Controller
             ]);
         }
 
-        // Per-IndiaDesk Industries → india_desk_page_industries
         $indiaDesk->pageIndustries()->delete();
         foreach ($decoded['page_industries'] as $i => $item) {
             $indiaDesk->pageIndustries()->create([
@@ -149,7 +142,6 @@ class IndiaDeskController extends Controller
             ]);
         }
 
-        // JSON columns stored on the service row
         $indiaDesk->update([
             'service_items'  => $decoded['service_items'],
             'why_choose'     => $decoded['why_choose'],
@@ -162,12 +154,12 @@ class IndiaDeskController extends Controller
 
     /* ─────────── BUILD MAIN PAYLOAD ─────────── */
 
-    private function buildPayload(Request $request, ?string $existingImage = null): array
-    {
-        /*
-         * Safety net: if slug is somehow still empty after validation,
-         * generate one from the title rather than let a null hit the DB.
-         */
+    // ★ Added $existingOgImage parameter for OG image persistence
+    private function buildPayload(
+        Request $request,
+        ?string $existingImage = null,
+        ?string $existingOgImage = null
+    ): array {
         $slug = trim($request->input('slug', ''));
         if ($slug === '') {
             $slug = Str::slug($request->input('title', 'indiadesk-' . time()));
@@ -181,18 +173,26 @@ class IndiaDeskController extends Controller
             'subtitle_ja'         => $request->subtitle_ja,
             'hero_description'    => $request->hero_description,
             'hero_description_ja' => $request->hero_description_ja,
-            'supporting_growth'        => $request->supporting_growth,
-            'supporting_growth_ja'     => $request->supporting_growth_ja,
-            'about'        => $request->about,
-            'about_ja'     => $request->about_ja,
-            'about_indosakura'     => $request->about_indosakura,
-            'about_indosakura_ja'  => $request->about_indosakura_ja,
+            'supporting_growth'   => $request->supporting_growth,
+            'supporting_growth_ja' => $request->supporting_growth_ja,
+            'about'               => $request->about,
+            'about_ja'            => $request->about_ja,
+            'about_indosakura'    => $request->about_indosakura,
+            'about_indosakura_ja' => $request->about_indosakura_ja,
             'overview'            => $request->overview,
             'overview_ja'         => $request->overview_ja,
             'cta_label'           => $request->cta_label,
             'cta_label_ja'        => $request->cta_label_ja,
             'cta_url'             => $request->cta_url ?? '/contact',
             'hero_image'          => $existingImage,
+            // ★ SEO fields
+            'meta_title'          => $request->meta_title,
+            'meta_title_ja'       => $request->meta_title_ja,
+            'meta_description'    => $request->meta_description,
+            'meta_description_ja' => $request->meta_description_ja,
+            'meta_keywords'       => $request->meta_keywords,
+            'meta_keywords_ja'    => $request->meta_keywords_ja,
+            'og_image'            => $existingOgImage,
         ];
     }
 
@@ -207,7 +207,12 @@ class IndiaDeskController extends Controller
                 ? $request->file('hero_image')->store('indiadesks', 'public')
                 : null;
 
-            $payload = $this->buildPayload($request, $heroImage);
+            // ★ Handle OG image upload
+            $ogImage = $request->hasFile('og_image')
+                ? $request->file('og_image')->store('indiadesks/og', 'public')
+                : null;
+
+            $payload   = $this->buildPayload($request, $heroImage, $ogImage);
             $indiaDesk = IndiaDesk::create($payload);
             $this->syncRelations($indiaDesk, $decoded);
         });
@@ -223,6 +228,7 @@ class IndiaDeskController extends Controller
         $decoded = $this->validated($request, $indiaDesk->id);
 
         DB::transaction(function () use ($request, $indiaDesk, $decoded) {
+            // Hero image
             $heroImage = $indiaDesk->hero_image;
             if ($request->hasFile('hero_image')) {
                 if ($indiaDesk->hero_image) {
@@ -231,7 +237,16 @@ class IndiaDeskController extends Controller
                 $heroImage = $request->file('hero_image')->store('indiadesks', 'public');
             }
 
-            $payload = $this->buildPayload($request, $heroImage);
+            // ★ OG image replace
+            $ogImage = $indiaDesk->og_image;
+            if ($request->hasFile('og_image')) {
+                if ($indiaDesk->og_image) {
+                    Storage::disk('public')->delete($indiaDesk->og_image);
+                }
+                $ogImage = $request->file('og_image')->store('indiadesks/og', 'public');
+            }
+
+            $payload = $this->buildPayload($request, $heroImage, $ogImage);
             $indiaDesk->update($payload);
             $this->syncRelations($indiaDesk, $decoded);
         });
@@ -255,8 +270,11 @@ class IndiaDeskController extends Controller
     public function destroy(IndiaDesk $indiaDesk)
     {
         DB::transaction(function () use ($indiaDesk) {
-            if ($indiaDesk->hero_image) {
-                Storage::disk('public')->delete($indiaDesk->hero_image);
+            // ★ Also delete OG image on destroy
+            foreach (['hero_image', 'og_image'] as $img) {
+                if ($indiaDesk->{$img}) {
+                    Storage::disk('public')->delete($indiaDesk->{$img});
+                }
             }
             $indiaDesk->highlights()->delete();
             $indiaDesk->benefits()->delete();

@@ -36,6 +36,14 @@ class IndiaDesk extends Model
         'testimonials',
         'tech_stack',
         'case_studies',
+        // SEO
+        'meta_title',
+        'meta_title_ja',
+        'meta_description',
+        'meta_description_ja',
+        'meta_keywords',
+        'meta_keywords_ja',
+        'og_image',
     ];
 
     protected $casts = [
@@ -47,9 +55,6 @@ class IndiaDesk extends Model
         'case_studies'   => 'array',
     ];
 
-    /**
-     * Get the parent Page container asset.
-     */
     public function parentPage()
     {
         return $this->belongsTo(IndiaDeskPage::class, 'india_desk_page_id');
@@ -73,5 +78,27 @@ class IndiaDesk extends Model
     public function pageIndustries()
     {
         return $this->hasMany(IndiaDeskPageIndustry::class)->orderBy('sort_order');
+    }
+
+    /**
+     * Resolve effective meta title for a given locale.
+     * Falls back to the desk title when not explicitly set.
+     */
+    public function getEffectiveMetaTitle(string $lang = 'en'): string
+    {
+        $field = $lang === 'ja' ? 'meta_title_ja' : 'meta_title';
+        return $this->{$field}
+            ?? ($lang === 'ja' ? $this->title_ja : null)
+            ?? $this->title
+            ?? '';
+    }
+
+    /**
+     * Resolve effective meta description for a given locale.
+     */
+    public function getEffectiveMetaDescription(string $lang = 'en'): string
+    {
+        $field = $lang === 'ja' ? 'meta_description_ja' : 'meta_description';
+        return $this->{$field} ?? '';
     }
 }

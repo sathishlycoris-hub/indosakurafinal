@@ -3,7 +3,7 @@ import Subheader from "@/components/layout/Subheader";
 import { useState } from "react";
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link, usePage } from "@inertiajs/react";
+import { Link, usePage, Head } from "@inertiajs/react";
 import { getLangValue } from "@/utils/lang";
 
 interface NewsEvent {
@@ -17,6 +17,12 @@ interface NewsEvent {
   description_ja?: string | null;
 }
 
+interface Seo {
+  meta_title?: string | null;
+  meta_description?: string | null;
+  meta_keywords?: string | null;
+}
+
 interface PageProps {
   news: NewsEvent[];
   filters: string[];       // EN names — used as match keys
@@ -24,7 +30,10 @@ interface PageProps {
 }
 
 export default function Pressrelease({ news = [], filters = [], filters_ja = [] }: PageProps) {
-  const { lang } = usePage<{ lang: "en" | "ja" }>().props;
+  const { lang, seo } = usePage<{
+  lang: "en" | "ja";
+  seo?: Seo | null;
+}>().props;
 
   const [activeFilter, setActiveFilter] = useState("All");
 
@@ -44,6 +53,28 @@ const formatDate = (date: string) => {
 
   return (
     <Layout>
+        <Head>
+    <title>
+      {seo?.meta_title ??
+        (lang === "ja"
+          ? "プレスリリース | Indo Sakura"
+          : "Press Release | Indo Sakura")}
+    </title>
+
+    {seo?.meta_description && (
+      <meta
+        name="description"
+        content={seo.meta_description}
+      />
+    )}
+
+    {seo?.meta_keywords && (
+      <meta
+        name="keywords"
+        content={seo.meta_keywords}
+      />
+    )}
+  </Head>
       {/* sticky-below-header class defined in app.css — always sits below the main header */}
       <div className="sticky-below-header">
         <Subheader currentPage={getLangValue(lang, "Press Release", "プレスリリース")} />

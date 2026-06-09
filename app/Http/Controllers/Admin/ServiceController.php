@@ -14,8 +14,7 @@ class ServiceController extends Controller
 {
     private const WITH = ['highlights', 'benefits', 'pageFaqs', 'pageIndustries'];
 
-    /* ─────────── INDEX ─────────── */
-
+    /* ─── INDEX ─── */
     public function index()
     {
         return Inertia::render('Admin/Services/Index', [
@@ -23,15 +22,9 @@ class ServiceController extends Controller
         ]);
     }
 
-    /* ─────────── VALIDATION ─────────── */
-
+    /* ─── VALIDATION ─── */
     private function validated(Request $request, ?int $ignoreId = null): array
     {
-        /*
-         * Slug is REQUIRED — never allow null to reach the DB.
-         * If somehow empty, fall back to a slugified title so the
-         * DB constraint is never violated.
-         */
         $slugRule = $ignoreId
             ? 'required|string|max:255|unique:services,slug,' . $ignoreId
             : 'required|string|max:255|unique:services,slug';
@@ -52,7 +45,15 @@ class ServiceController extends Controller
             'cta_label_ja'        => 'nullable|string|max:255',
             'cta_url'             => 'nullable|string|max:255',
             'hero_image'          => 'nullable|image|max:4096',
-            /* JSON arrays sent as strings via FormData */
+            // SEO
+            'meta_title'          => 'nullable|string|max:255',
+            'meta_title_ja'       => 'nullable|string|max:255',
+            'meta_description'    => 'nullable|string|max:500',
+            'meta_description_ja' => 'nullable|string|max:500',
+            'meta_keywords'       => 'nullable|string|max:500',
+            'meta_keywords_ja'    => 'nullable|string|max:500',
+            'og_image'            => 'nullable|image|max:4096',
+            // JSON arrays
             'highlights'          => 'nullable',
             'benefits'            => 'nullable',
             'service_items'       => 'nullable',
@@ -72,8 +73,7 @@ class ServiceController extends Controller
             'highlights', 'benefits',
             'service_items', 'why_choose', 'approach_steps',
             'testimonials', 'tech_stack',
-            'page_faqs',
-            'page_industries',
+            'page_faqs', 'page_industries',
         ];
 
         $decoded = [];
@@ -86,11 +86,9 @@ class ServiceController extends Controller
         return $decoded;
     }
 
-    /* ─────────── SYNC RELATIONS ─────────── */
-
+    /* ─── SYNC RELATIONS ─── */
     private function syncRelations(Service $service, array $decoded): void
     {
-        // Highlights
         $service->highlights()->delete();
         foreach ($decoded['highlights'] as $i => $item) {
             $service->highlights()->create([
@@ -103,7 +101,6 @@ class ServiceController extends Controller
             ]);
         }
 
-        // Benefits
         $service->benefits()->delete();
         foreach ($decoded['benefits'] as $i => $item) {
             $service->benefits()->create([
@@ -115,7 +112,6 @@ class ServiceController extends Controller
             ]);
         }
 
-        // Per-service FAQs → service_page_faqs
         $service->pageFaqs()->delete();
         foreach ($decoded['page_faqs'] as $i => $item) {
             $service->pageFaqs()->create([
@@ -127,7 +123,6 @@ class ServiceController extends Controller
             ]);
         }
 
-        // Per-service Industries → service_page_industries
         $service->pageIndustries()->delete();
         foreach ($decoded['page_industries'] as $i => $item) {
             $service->pageIndustries()->create([
@@ -139,7 +134,6 @@ class ServiceController extends Controller
             ]);
         }
 
-        // JSON columns stored on the service row
         $service->update([
             'service_items'  => $decoded['service_items'],
             'why_choose'     => $decoded['why_choose'],
@@ -149,14 +143,9 @@ class ServiceController extends Controller
         ]);
     }
 
-    /* ─────────── BUILD MAIN PAYLOAD ─────────── */
-
-    private function buildPayload(Request $request, ?string $existingImage = null): array
+    /* ─── BUILD PAYLOAD ─── */
+    private function buildPayload(Request $request, ?string $existingImage = null, ?string $existingOgImage = null): array
     {
-        /*
-         * Safety net: if slug is somehow still empty after validation,
-         * generate one from the title rather than let a null hit the DB.
-         */
         $slug = trim($request->input('slug', ''));
         if ($slug === '') {
             $slug = Str::slug($request->input('title', 'service-' . time()));
@@ -178,11 +167,18 @@ class ServiceController extends Controller
             'cta_label_ja'        => $request->cta_label_ja,
             'cta_url'             => $request->cta_url ?? '/contact',
             'hero_image'          => $existingImage,
+            // SEO
+            'meta_title'          => $request->meta_title,
+            'meta_title_ja'       => $request->meta_title_ja,
+            'meta_description'    => $request->meta_description,
+            'meta_description_ja' => $request->meta_description_ja,
+            'meta_keywords'       => $request->meta_keywords,
+            'meta_keywords_ja'    => $request->meta_keywords_ja,
+            'og_image'            => $existingOgImage,
         ];
     }
 
-    /* ─────────── STORE ─────────── */
-
+    /* ─── STORE ─── */
     public function store(Request $request)
     {
         $decoded = $this->validated($request);
@@ -192,17 +188,19 @@ class ServiceController extends Controller
                 ? $request->file('hero_image')->store('services', 'public')
                 : null;
 
-            $payload = $this->buildPayload($request, $heroImage);
+            $ogImage = $request->hasFile('og_image')
+                ? $request->file('og_image')->store('services/og', 'public')
+                : null;
+
+            $payload = $this->buildPayload($request, $heroImage, $ogImage);
             $service = Service::create($payload);
             $this->syncRelations($service, $decoded);
         });
 
-        return redirect()->route('admin.services.index')
-            ->with('success', 'Service saved successfully.');
+        return redirect()->route('admin.services.index')->with('success', 'Service saved successfully.');
     }
 
-    /* ─────────── UPDATE ─────────── */
-
+    /* ─── UPDATE ─── */
     public function update(Request $request, Service $service)
     {
         $decoded = $this->validated($request, $service->id);
@@ -210,23 +208,25 @@ class ServiceController extends Controller
         DB::transaction(function () use ($request, $service, $decoded) {
             $heroImage = $service->hero_image;
             if ($request->hasFile('hero_image')) {
-                if ($service->hero_image) {
-                    Storage::disk('public')->delete($service->hero_image);
-                }
+                if ($service->hero_image) Storage::disk('public')->delete($service->hero_image);
                 $heroImage = $request->file('hero_image')->store('services', 'public');
             }
 
-            $payload = $this->buildPayload($request, $heroImage);
+            $ogImage = $service->og_image;
+            if ($request->hasFile('og_image')) {
+                if ($service->og_image) Storage::disk('public')->delete($service->og_image);
+                $ogImage = $request->file('og_image')->store('services/og', 'public');
+            }
+
+            $payload = $this->buildPayload($request, $heroImage, $ogImage);
             $service->update($payload);
             $this->syncRelations($service, $decoded);
         });
 
-        return redirect()->route('admin.services.index')
-            ->with('success', 'Service updated successfully.');
+        return redirect()->route('admin.services.index')->with('success', 'Service updated successfully.');
     }
 
-    /* ─────────── SHOW (admin panel view) ─────────── */
-
+    /* ─── SHOW (admin panel view) ─── */
     public function show(Service $service)
     {
         return Inertia::render('Admin/Services/Index', [
@@ -235,13 +235,12 @@ class ServiceController extends Controller
         ]);
     }
 
-    /* ─────────── DESTROY ─────────── */
-
+    /* ─── DESTROY ─── */
     public function destroy(Service $service)
     {
         DB::transaction(function () use ($service) {
-            if ($service->hero_image) {
-                Storage::disk('public')->delete($service->hero_image);
+            foreach (['hero_image', 'og_image'] as $img) {
+                if ($service->{$img}) Storage::disk('public')->delete($service->{$img});
             }
             $service->highlights()->delete();
             $service->benefits()->delete();
@@ -250,7 +249,6 @@ class ServiceController extends Controller
             $service->delete();
         });
 
-        return redirect()->route('admin.services.index')
-            ->with('success', 'Service deleted successfully.');
+        return redirect()->route('admin.services.index')->with('success', 'Service deleted successfully.');
     }
 }

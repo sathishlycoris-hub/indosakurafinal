@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Policy;
 use Inertia\Inertia;
-
+use App\Models\Seo;
 class PolicyPageController extends Controller
 {
     public function index($slug = null)
@@ -28,6 +28,7 @@ class PolicyPageController extends Controller
         return Inertia::render('Corporate/Policy', [
             'policies' => $policies->values(), // force array
             'activePolicy' => $activePolicy,
+            'seo' => Seo::where('page', 'policy')->first(),
         ]);
     }
 }

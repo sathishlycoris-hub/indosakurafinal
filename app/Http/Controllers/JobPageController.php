@@ -8,9 +8,6 @@ use Inertia\Inertia;
 
 class JobPageController extends Controller
 {
-    /**
-     * Public recruitment listing — ordered by sort_order set in admin.
-     */
     public function index()
     {
         $jobs = Job::where('status', 'published')
@@ -29,9 +26,6 @@ class JobPageController extends Controller
         ]);
     }
 
-    /**
-     * Public job detail page.
-     */
     public function show(string $slug)
     {
         $job = Job::where('slug', $slug)
@@ -47,15 +41,32 @@ class JobPageController extends Controller
                 'short_description', 'short_description_ja',
                 'about_role', 'about_role_ja',
                 'slug', 'status',
+                // SEO columns must be selected so the model methods work
+                'meta_title', 'meta_title_ja',
+                'meta_description', 'meta_description_ja',
+                'meta_keywords', 'meta_keywords_ja',
+                'og_image',
             ]);
 
         $jobs = Job::where('status', 'published')
             ->orderBy('sort_order')
             ->get(['id', 'title', 'title_ja', 'slug']);
 
+        $lang = app()->getLocale();
+
         return Inertia::render('Recruitment/JobDetails', [
             'job'  => $job,
             'jobs' => $jobs,
+            'pageSeo' => [
+                'meta_title'       => $job->getEffectiveMetaTitle($lang),
+                'meta_description' => $job->getEffectiveMetaDescription($lang),
+                'meta_keywords'    => $lang === 'ja'
+                    ? ($job->meta_keywords_ja ?? $job->meta_keywords ?? '')
+                    : ($job->meta_keywords ?? ''),
+                'og_image' => $job->og_image
+                    ? asset('storage/' . $job->og_image)
+                    : null,
+            ],
         ]);
     }
 }

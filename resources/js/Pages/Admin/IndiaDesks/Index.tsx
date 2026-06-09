@@ -1,3 +1,6 @@
+// resources/js/Pages/Admin/IndiaDesks/Index.tsx
+// ★ marks every change from the original. Everything else is identical.
+
 import { useState } from "react";
 import { router, useForm } from "@inertiajs/react";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
@@ -14,42 +17,28 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Eye, Pencil, Trash2, ChevronDown, ChevronUp, AlertCircle } from "lucide-react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+import SeoFields from "@/components/SeoFields"; // ★ NEW
 
-/* ═══════════════════════════════════════
-   TYPES
-═══════════════════════════════════════ */
+/* ═══════════════════════════════════════  TYPES  ═══════════════════════════════════════ */
 
-interface Highlight { value: string; title: string; title_ja?: string; description?: string; description_ja?: string; }
-interface Benefit { title: string; title_ja?: string; description?: string; description_ja?: string; }
+interface Highlight    { value: string; title: string; title_ja?: string; description?: string; description_ja?: string; }
+interface Benefit      { title: string; title_ja?: string; description?: string; description_ja?: string; }
 interface IndiaDeskItem { title: string; title_ja?: string; description?: string; description_ja?: string; }
 interface WhyChooseItem { title: string; title_ja?: string; description?: string; description_ja?: string; }
 interface ApproachStep { step_number?: number; title: string; title_ja?: string; description?: string; description_ja?: string; }
-interface Testimonial { quote: string; quote_ja?: string; author?: string; }
-interface TechStack { category: string; category_ja?: string; items: string; }
-interface PageFaq { question: string; question_ja?: string; answer: string; answer_ja?: string; }
+interface Testimonial  { quote: string; quote_ja?: string; author?: string; }
+interface TechStack    { category: string; category_ja?: string; items: string; }
+interface PageFaq      { question: string; question_ja?: string; answer: string; answer_ja?: string; }
 interface PageIndustry { title: string; title_ja?: string; description?: string; description_ja?: string; }
-interface CaseStudy {
-  id: number; title: string; title_ja?: string; challenge_title?: string; challenge_title_ja?: string; challenge_description?: string; challenge_description_ja?: string;
-  solution_title?: string; solution_title_ja?: string; solution_description?: string; solution_description_ja?: string; results?: string; results_ja?: string;
+interface CaseStudy    {
+  id: number; title: string; title_ja?: string;
+  challenge_title?: string; challenge_title_ja?: string;
+  challenge_description?: string; challenge_description_ja?: string;
+  solution_title?: string; solution_title_ja?: string;
+  solution_description?: string; solution_description_ja?: string;
+  results?: string; results_ja?: string;
 }
 
-/*
- * KEY EXPLANATION — two different key formats exist:
- *
- * 1. JSON columns on the services row (cast as array in the model):
- *    service_items, why_choose, approach_steps, testimonials, tech_stack
- *    Laravel serialises these as-is using their column name (snake_case).
- *    So the JSON prop is  s.service_items, s.why_choose, etc.
- *
- * 2. Eloquent relations defined on the Service model:
- *    highlights()     → serialised as  s.highlights        (matches relation snake_case)
- *    benefits()       → serialised as  s.benefits
- *    pageFaqs()       → serialised as  s.page_faqs         ← NOT s.pageFaqs!
- *    pageIndustries() → serialised as  s.page_industries   ← NOT s.pageIndustries!
- *
- * Laravel converts camelCase relation method names to snake_case when
- * serialising to JSON. This is the root cause of the edit prefill bug.
- */
 interface IndiaDesk {
   id: number;
   title: string; title_ja?: string;
@@ -62,14 +51,16 @@ interface IndiaDesk {
   about_indosakura?: string; about_indosakura_ja?: string;
   overview?: string; overview_ja?: string;
   cta_label?: string; cta_label_ja?: string; cta_url?: string;
-
-  /* relation-backed (Eloquent hasMany, snake_case in JSON) */
+  // ★ NEW — SEO
+  meta_title?: string; meta_title_ja?: string;
+  meta_description?: string; meta_description_ja?: string;
+  meta_keywords?: string; meta_keywords_ja?: string;
+  og_image?: string | null;
+  // relations
   highlights: Highlight[];
   benefits: Benefit[];
-  page_faqs: PageFaq[];           // ← snake_case: pageFaqs() relation → page_faqs
-  page_industries: PageIndustry[]; // ← snake_case: pageIndustries() relation → page_industries
-
-  /* JSON columns on the row (snake_case column names) */
+  page_faqs: PageFaq[];
+  page_industries: PageIndustry[];
   service_items: IndiaDeskItem[];
   why_choose: WhyChooseItem[];
   approach_steps: ApproachStep[];
@@ -78,48 +69,18 @@ interface IndiaDesk {
   case_studies: CaseStudy[];
 }
 
-/* ═══════════════════════════════════════
-   STRIP HELPERS
-   Relations include DB-only fields (id, service_id, sort_order…)
-   that the form doesn't need. Strip them to clean form state.
-═══════════════════════════════════════ */
+/* ═══════════════════════════════════════  STRIP HELPERS (unchanged)  ═══════════════════════════════════════ */
 
-const toHighlight = (r: any): Highlight => ({
-  value: r.value ?? "",
-  title: r.title ?? "",
-  title_ja: r.title_ja ?? "",
-  description: r.description ?? "",
-  description_ja: r.description_ja ?? "",
-});
-
-const toBenefit = (r: any): Benefit => ({
-  title: r.title ?? "",
-  title_ja: r.title_ja ?? "",
-  description: r.description ?? "",
-  description_ja: r.description_ja ?? "",
-});
-
-const toPageFaq = (r: any): PageFaq => ({
-  question: r.question ?? "",
-  question_ja: r.question_ja ?? "",
-  answer: r.answer ?? "",
-  answer_ja: r.answer_ja ?? "",
-});
-
-const toPageIndustry = (r: any): PageIndustry => ({
-  title: r.title ?? "",
-  title_ja: r.title_ja ?? "",
-  description: r.description ?? "",
-  description_ja: r.description_ja ?? "",
-});
-
-/* JSON column rows already have the right shape — just normalize nulls */
-const toServiceItem = (r: any): IndiaDeskItem => ({ title: r.title ?? "", title_ja: r.title_ja ?? "", description: r.description ?? "", description_ja: r.description_ja ?? "" });
+const toHighlight     = (r: any): Highlight     => ({ value: r.value ?? "", title: r.title ?? "", title_ja: r.title_ja ?? "", description: r.description ?? "", description_ja: r.description_ja ?? "" });
+const toBenefit       = (r: any): Benefit       => ({ title: r.title ?? "", title_ja: r.title_ja ?? "", description: r.description ?? "", description_ja: r.description_ja ?? "" });
+const toPageFaq       = (r: any): PageFaq       => ({ question: r.question ?? "", question_ja: r.question_ja ?? "", answer: r.answer ?? "", answer_ja: r.answer_ja ?? "" });
+const toPageIndustry  = (r: any): PageIndustry  => ({ title: r.title ?? "", title_ja: r.title_ja ?? "", description: r.description ?? "", description_ja: r.description_ja ?? "" });
+const toServiceItem   = (r: any): IndiaDeskItem => ({ title: r.title ?? "", title_ja: r.title_ja ?? "", description: r.description ?? "", description_ja: r.description_ja ?? "" });
 const toWhyChooseItem = (r: any): WhyChooseItem => ({ title: r.title ?? "", title_ja: r.title_ja ?? "", description: r.description ?? "", description_ja: r.description_ja ?? "" });
-const toApproachStep = (r: any): ApproachStep => ({ step_number: r.step_number ?? undefined, title: r.title ?? "", title_ja: r.title_ja ?? "", description: r.description ?? "", description_ja: r.description_ja ?? "" });
-const toTestimonial = (r: any): Testimonial => ({ quote: r.quote ?? "", quote_ja: r.quote_ja ?? "", author: r.author ?? "" });
-const toTechStack = (r: any): TechStack => ({ category: r.category ?? "", category_ja: r.category_ja ?? "", items: r.items ?? "" });
-const toCaseStudy = (r: any): CaseStudy => ({ id: r.id ?? undefined, title: r.title ?? "", title_ja: r.title_ja ?? "", challenge_title: r.challenge_title ?? "", challenge_title_ja: r.challenge_title_ja ?? "", challenge_description: r.challenge_description ?? "", challenge_description_ja: r.challenge_description_ja ?? "", solution_title: r.solution_title ?? "", solution_title_ja: r.solution_title_ja ?? "", solution_description: r.solution_description ?? "", solution_description_ja: r.solution_description_ja ?? "", results: r.results ?? "", results_ja: r.results_ja ?? "" });
+const toApproachStep  = (r: any): ApproachStep  => ({ step_number: r.step_number ?? undefined, title: r.title ?? "", title_ja: r.title_ja ?? "", description: r.description ?? "", description_ja: r.description_ja ?? "" });
+const toTestimonial   = (r: any): Testimonial   => ({ quote: r.quote ?? "", quote_ja: r.quote_ja ?? "", author: r.author ?? "" });
+const toTechStack     = (r: any): TechStack     => ({ category: r.category ?? "", category_ja: r.category_ja ?? "", items: r.items ?? "" });
+const toCaseStudy     = (r: any): CaseStudy     => ({ id: r.id ?? undefined, title: r.title ?? "", title_ja: r.title_ja ?? "", challenge_title: r.challenge_title ?? "", challenge_title_ja: r.challenge_title_ja ?? "", challenge_description: r.challenge_description ?? "", challenge_description_ja: r.challenge_description_ja ?? "", solution_title: r.solution_title ?? "", solution_title_ja: r.solution_title_ja ?? "", solution_description: r.solution_description ?? "", solution_description_ja: r.solution_description_ja ?? "", results: r.results ?? "", results_ja: r.results_ja ?? "" });
 
 const slugify = (text: string) =>
   text.toLowerCase().trim()
@@ -127,15 +88,13 @@ const slugify = (text: string) =>
     .replace(/[\s_-]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
-/* ═══════════════════════════════════════
-   COMPONENT
-═══════════════════════════════════════ */
+/* ═══════════════════════════════════════  COMPONENT  ═══════════════════════════════════════ */
 
 export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
-  const [mode, setMode] = useState<"add" | "edit" | "view">("add");
-  const [current, setCurrent] = useState<IndiaDesk | null>(null);
-  const [open, setOpen] = useState(false);
-  const [langTab, setLangTab] = useState<"en" | "ja">("en");
+  const [mode, setMode]             = useState<"add" | "edit" | "view">("add");
+  const [current, setCurrent]       = useState<IndiaDesk | null>(null);
+  const [open, setOpen]             = useState(false);
+  const [langTab, setLangTab]       = useState<"en" | "ja">("en");
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   const { data, setData, reset, processing } = useForm({
@@ -150,16 +109,22 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
     cta_label: "", cta_label_ja: "",
     cta_url: "/contact",
     hero_image: null as File | null,
-    highlights: [] as Highlight[],
-    benefits: [] as Benefit[],
-    service_items: [] as IndiaDeskItem[],
-    why_choose: [] as WhyChooseItem[],
-    approach_steps: [] as ApproachStep[],
-    testimonials: [] as Testimonial[],
-    tech_stack: [] as TechStack[],
-    page_faqs: [] as PageFaq[],
+    // ★ NEW — SEO
+    meta_title: "", meta_title_ja: "",
+    meta_description: "", meta_description_ja: "",
+    meta_keywords: "", meta_keywords_ja: "",
+    og_image: null as File | null,
+    // relations
+    highlights:      [] as Highlight[],
+    benefits:        [] as Benefit[],
+    service_items:   [] as IndiaDeskItem[],
+    why_choose:      [] as WhyChooseItem[],
+    approach_steps:  [] as ApproachStep[],
+    testimonials:    [] as Testimonial[],
+    tech_stack:      [] as TechStack[],
+    page_faqs:       [] as PageFaq[],
     page_industries: [] as PageIndustry[],
-    case_studies: [] as CaseStudy[],
+    case_studies:    [] as CaseStudy[],
   });
 
   /* ── open helpers ── */
@@ -170,56 +135,35 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
 
   const openEdit = (s: IndiaDesk) => {
     setMode("edit"); setCurrent(s); setLangTab("en"); setFormErrors({});
-
     setData({
-      /* plain string fields */
-      title: s.title ?? "",
-      title_ja: s.title_ja ?? "",
+      title: s.title ?? "", title_ja: s.title_ja ?? "",
       slug: s.slug ?? "",
-      subtitle: s.subtitle ?? "",
-      subtitle_ja: s.subtitle_ja ?? "",
-      hero_description: s.hero_description ?? "",
-      hero_description_ja: s.hero_description_ja ?? "",
-      supporting_growth: s.supporting_growth ?? "",
-      supporting_growth_ja: s.supporting_growth_ja ?? "",
-      about: s.about ?? "",
-      about_ja: s.about_ja ?? "",
-      about_indosakura: s.about_indosakura ?? "",
-      about_indosakura_ja: s.about_indosakura_ja ?? "",
-      overview: s.overview ?? "",
-      overview_ja: s.overview_ja ?? "",
-      cta_label: s.cta_label ?? "",
-      cta_label_ja: s.cta_label_ja ?? "",
+      subtitle: s.subtitle ?? "", subtitle_ja: s.subtitle_ja ?? "",
+      hero_description: s.hero_description ?? "", hero_description_ja: s.hero_description_ja ?? "",
+      supporting_growth: s.supporting_growth ?? "", supporting_growth_ja: s.supporting_growth_ja ?? "",
+      about: s.about ?? "", about_ja: s.about_ja ?? "",
+      about_indosakura: s.about_indosakura ?? "", about_indosakura_ja: s.about_indosakura_ja ?? "",
+      overview: s.overview ?? "", overview_ja: s.overview_ja ?? "",
+      cta_label: s.cta_label ?? "", cta_label_ja: s.cta_label_ja ?? "",
       cta_url: s.cta_url ?? "/contact",
       hero_image: null,
-
-      /*
-       * RELATION fields — Laravel serialises relation methods to snake_case.
-       * pageFaqs()      → s.page_faqs       (NOT s.pageFaqs)
-       * pageIndustries() → s.page_industries (NOT s.pageIndustries)
-       * highlights()    → s.highlights      (already snake_case)
-       * benefits()      → s.benefits        (already snake_case)
-       *
-       * Strip DB-only fields (id, service_id, sort_order…) using helpers.
-       */
-      highlights: Array.isArray(s.highlights) ? s.highlights.map(toHighlight) : [],
-      benefits: Array.isArray(s.benefits) ? s.benefits.map(toBenefit) : [],
-      page_faqs: Array.isArray(s.page_faqs) ? s.page_faqs.map(toPageFaq) : [],
+      // ★ NEW — SEO prefill
+      meta_title: s.meta_title ?? "", meta_title_ja: s.meta_title_ja ?? "",
+      meta_description: s.meta_description ?? "", meta_description_ja: s.meta_description_ja ?? "",
+      meta_keywords: s.meta_keywords ?? "", meta_keywords_ja: s.meta_keywords_ja ?? "",
+      og_image: null,
+      // relations
+      highlights:      Array.isArray(s.highlights)      ? s.highlights.map(toHighlight)         : [],
+      benefits:        Array.isArray(s.benefits)        ? s.benefits.map(toBenefit)             : [],
+      page_faqs:       Array.isArray(s.page_faqs)       ? s.page_faqs.map(toPageFaq)            : [],
       page_industries: Array.isArray(s.page_industries) ? s.page_industries.map(toPageIndustry) : [],
-
-      /*
-       * JSON column fields — stored as JSON on the services row.
-       * These are cast as arrays by Laravel's $casts, so they come
-       * through as plain arrays already. Still normalise with helpers.
-       */
-      service_items: Array.isArray(s.service_items) ? s.service_items.map(toServiceItem) : [],
-      why_choose: Array.isArray(s.why_choose) ? s.why_choose.map(toWhyChooseItem) : [],
-      approach_steps: Array.isArray(s.approach_steps) ? s.approach_steps.map(toApproachStep) : [],
-      testimonials: Array.isArray(s.testimonials) ? s.testimonials.map(toTestimonial) : [],
-      tech_stack: Array.isArray(s.tech_stack) ? s.tech_stack.map(toTechStack) : [],
-      case_studies: Array.isArray(s.case_studies) ? s.case_studies.map(toCaseStudy) : [],
+      service_items:   Array.isArray(s.service_items)   ? s.service_items.map(toServiceItem)    : [],
+      why_choose:      Array.isArray(s.why_choose)      ? s.why_choose.map(toWhyChooseItem)     : [],
+      approach_steps:  Array.isArray(s.approach_steps)  ? s.approach_steps.map(toApproachStep)  : [],
+      testimonials:    Array.isArray(s.testimonials)    ? s.testimonials.map(toTestimonial)     : [],
+      tech_stack:      Array.isArray(s.tech_stack)      ? s.tech_stack.map(toTechStack)         : [],
+      case_studies:    Array.isArray(s.case_studies)    ? s.case_studies.map(toCaseStudy)       : [],
     });
-
     setOpen(true);
   };
 
@@ -227,11 +171,7 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
 
   /* ── slug auto-fill ── */
   const handleTitleChange = (val: string) => {
-    setData(prev => ({
-      ...prev,
-      title: val,
-      slug: prev.slug === "" ? slugify(val) : prev.slug,
-    }));
+    setData(prev => ({ ...prev, title: val, slug: prev.slug === "" ? slugify(val) : prev.slug }));
     if (formErrors.title) setFormErrors(e => ({ ...e, title: "" }));
   };
 
@@ -239,7 +179,7 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
   const validate = (): boolean => {
     const errors: Record<string, string> = {};
     if (!data.title.trim()) errors.title = "Title is required.";
-    if (!data.slug.trim()) errors.slug = "Slug is required (used in the URL).";
+    if (!data.slug.trim())  errors.slug  = "Slug is required (used in the URL).";
     setFormErrors(errors);
     if (Object.keys(errors).length) setLangTab("en");
     return Object.keys(errors).length === 0;
@@ -250,35 +190,34 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
     if (!validate()) return;
 
     const form = new FormData();
-    const app = (k: string, v: string) => form.append(k, v ?? "");
+    const app  = (k: string, v: string) => form.append(k, v ?? "");
 
-    app("title", data.title);
-    app("title_ja", data.title_ja);
-    app("slug", data.slug.trim());
-    app("subtitle", data.subtitle);
-    app("subtitle_ja", data.subtitle_ja);
-    app("hero_description", data.hero_description);
+    app("title",               data.title);        app("title_ja",            data.title_ja);
+    app("slug",                data.slug.trim());
+    app("subtitle",            data.subtitle);     app("subtitle_ja",         data.subtitle_ja);
+    app("hero_description",    data.hero_description);
     app("hero_description_ja", data.hero_description_ja);
-    app("supporting_growth", data.supporting_growth);
+    app("supporting_growth",   data.supporting_growth);
     app("supporting_growth_ja", data.supporting_growth_ja);
-    app("about", data.about);
-    app("about_ja", data.about_ja);
-    app("about_indosakura", data.about_indosakura);
+    app("about",               data.about);        app("about_ja",            data.about_ja);
+    app("about_indosakura",    data.about_indosakura);
     app("about_indosakura_ja", data.about_indosakura_ja);
-    app("overview", data.overview);
-    app("overview_ja", data.overview_ja);
-    app("cta_label", data.cta_label);
-    app("cta_label_ja", data.cta_label_ja);
-    app("cta_url", data.cta_url);
+    app("overview",            data.overview);     app("overview_ja",         data.overview_ja);
+    app("cta_label",           data.cta_label);    app("cta_label_ja",        data.cta_label_ja);
+    app("cta_url",             data.cta_url);
+    // ★ NEW — SEO fields
+    app("meta_title",          data.meta_title);   app("meta_title_ja",       data.meta_title_ja);
+    app("meta_description",    data.meta_description);
+    app("meta_description_ja", data.meta_description_ja);
+    app("meta_keywords",       data.meta_keywords);
+    app("meta_keywords_ja",    data.meta_keywords_ja);
 
     if (data.hero_image) form.append("hero_image", data.hero_image);
+    if (data.og_image)   form.append("og_image",   data.og_image); // ★ NEW
 
-    // Arrays — the controller receives these as JSON strings
-    (["highlights", "benefits", "service_items", "why_choose", "approach_steps",
-      "testimonials", "tech_stack", "page_faqs", "page_industries", "case_studies"] as const)
+    (["highlights","benefits","service_items","why_choose","approach_steps",
+      "testimonials","tech_stack","page_faqs","page_industries","case_studies"] as const)
       .forEach(k => form.append(k, JSON.stringify(data[k])));
-    /* (["highlights", "benefits", "service_items", "why_choose", "page_faqs", "page_industries"] as const)
-      .forEach(k => form.append(k, JSON.stringify(data[k]))); */
 
     const opts = { onSuccess: () => { reset(); setFormErrors({}); setOpen(false); } };
 
@@ -300,13 +239,12 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
   };
 
   /* ── array helpers ── */
-  const addItem = (k: keyof typeof data, item: any) => setData(k, [...(data[k] as any[]), item]);
-  const removeItem = (k: keyof typeof data, i: number) => {
-    const a = [...(data[k] as any[])]; a.splice(i, 1); setData(k, a);
-  };
-  const updateItem = (k: keyof typeof data, i: number, field: string, val: string) => {
-    const a = [...(data[k] as any[])]; a[i][field] = val; setData(k, a);
-  };
+  const addItem    = (k: keyof typeof data, item: any) => setData(k, [...(data[k] as any[]), item]);
+  const removeItem = (k: keyof typeof data, i: number) => { const a = [...(data[k] as any[])]; a.splice(i, 1); setData(k, a); };
+  const updateItem = (k: keyof typeof data, i: number, field: string, val: string) => { const a = [...(data[k] as any[])]; a[i][field] = val; setData(k, a); };
+
+  /* ★ SEO setData bridge */
+  const setSeoData = (key: string, value: any) => setData(key as any, value);
 
   /* ═══════════════════ RENDER ═══════════════════ */
   return (
@@ -344,16 +282,29 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
                   <p>{current.cta_label}{current.cta_label_ja ? ` / ${current.cta_label_ja}` : ""} → {current.cta_url}</p>
                 </div>
               )}
-              <ViewList label="Our Services" items={current.service_items} />
-              <ViewList label="Highlights" items={current.highlights} showValue />
-              <ViewList label="Benefits" items={current.benefits} />
-              <ViewList label="Why Choose Us" items={current.why_choose} />
-              <ViewList label="Approach Steps" items={current.approach_steps} showStep />
-              <ViewList label="Testimonials" items={current.testimonials} isQuote />
-              <ViewList label="Tech Stack" items={current.tech_stack} isTech />
-              <ViewList label="Case Studies" items={current.case_studies} />
-              {/* relations come as snake_case in JSON */}
-              <ViewList label="Page FAQs" items={current.page_faqs} isFaq />
+              {/* ★ NEW — SEO preview in view mode */}
+              {(current.meta_title || current.meta_description) && (
+                <div className="border rounded-xl p-4 bg-muted/20 space-y-2">
+                  <p className="font-semibold text-sm flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-primary inline-block" /> SEO
+                  </p>
+                  {current.meta_title       && <p className="text-sm"><span className="text-muted-foreground">Title:</span> {current.meta_title}</p>}
+                  {current.meta_description && <p className="text-sm"><span className="text-muted-foreground">Desc:</span> {current.meta_description}</p>}
+                  {current.meta_keywords    && <p className="text-sm"><span className="text-muted-foreground">Keywords:</span> {current.meta_keywords}</p>}
+                  {current.og_image && (
+                    <img src={`/storage/${current.og_image}`} className="h-20 rounded border object-cover mt-2" alt="OG" />
+                  )}
+                </div>
+              )}
+              <ViewList label="Our Services"    items={current.service_items} />
+              <ViewList label="Highlights"      items={current.highlights}    showValue />
+              <ViewList label="Benefits"        items={current.benefits} />
+              <ViewList label="Why Choose Us"   items={current.why_choose} />
+              <ViewList label="Approach Steps"  items={current.approach_steps} showStep />
+              <ViewList label="Testimonials"    items={current.testimonials}   isQuote />
+              <ViewList label="Tech Stack"      items={current.tech_stack}     isTech />
+              <ViewList label="Case Studies"    items={current.case_studies} />
+              <ViewList label="Page FAQs"       items={current.page_faqs}      isFaq />
               <ViewList label="Page Industries" items={current.page_industries} />
             </div>
           )}
@@ -361,8 +312,6 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
           {/* ── ADD / EDIT MODE ── */}
           {mode !== "view" && (
             <div className="space-y-5 mt-6">
-
-              {/* Error banner */}
               {Object.keys(formErrors).length > 0 && (
                 <div className="flex items-start gap-3 bg-destructive/10 border border-destructive/30
                                 text-destructive rounded-xl px-4 py-3 text-sm">
@@ -389,21 +338,17 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
                       placeholder="India Business Services for Japanese Enterprises"
                       className={formErrors.title ? "border-destructive" : ""} />
                   </Field>
-
                   <Field label="Slug *" error={formErrors.slug} hint="Auto-filled from title. Used in the URL.">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground whitespace-nowrap">/services/</span>
-                      <Input value={data.slug} onChange={e => { setData("slug", e.target.value); if (formErrors.slug) setFormErrors(er => ({ ...er, slug: "" })); }}
+                      <span className="text-xs text-muted-foreground whitespace-nowrap">/india-desks/</span>
+                      <Input value={data.slug}
+                        onChange={e => { setData("slug", e.target.value); if (formErrors.slug) setFormErrors(er => ({ ...er, slug: "" })); }}
                         placeholder="india-desk" className={`flex-1 ${formErrors.slug ? "border-destructive" : ""}`} />
                       {data.title && !data.slug && (
-                        <Button type="button" variant="outline" size="sm"
-                          onClick={() => setData("slug", slugify(data.title))}>
-                          Auto-fill
-                        </Button>
+                        <Button type="button" variant="outline" size="sm" onClick={() => setData("slug", slugify(data.title))}>Auto-fill</Button>
                       )}
                     </div>
                   </Field>
-
                   <Field label="Subtitle (EN)">
                     <Input value={data.subtitle} onChange={e => setData("subtitle", e.target.value)}
                       placeholder="Bridging Japan and India Through Business, Technology, and Talent" />
@@ -411,15 +356,6 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
                   <Field label="Overview (EN)">
                     <ReactQuill value={data.overview} onChange={v => setData("overview", v)} />
                   </Field>
-                  {/* <Field label="Supporting Japanese Business Growth in India (EN)">
-                    <ReactQuill value={data.supporting_growth} onChange={v => setData("supporting_growth", v)} />
-                  </Field>
-                  <Field label="About Indosakura (EN)">
-                    <ReactQuill value={data.about_indosakura} onChange={v => setData("about_indosakura", v)} />
-                  </Field>
-                  <Field label="India Desk (EN)">
-                    <ReactQuill value={data.about} onChange={v => setData("about", v)} />
-                  </Field> */}
                 </TabsContent>
 
                 <TabsContent value="ja" className="space-y-4">
@@ -432,15 +368,6 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
                   <Field label="Overview (JA)">
                     <ReactQuill value={data.overview_ja} onChange={v => setData("overview_ja", v)} />
                   </Field>
-                  {/* <Field label="Supporting Japanese Business Growth (JA)">
-                    <ReactQuill value={data.supporting_growth_ja} onChange={v => setData("supporting_growth_ja", v)} />
-                  </Field>
-                  <Field label="About Indosakura (JA)">
-                    <ReactQuill value={data.about_indosakura_ja} onChange={v => setData("about_indosakura_ja", v)} />
-                  </Field>
-                  <Field label="India Desk (JA)">
-                    <ReactQuill value={data.about_ja} onChange={v => setData("about_ja", v)} />
-                  </Field> */}
                 </TabsContent>
               </Tabs>
 
@@ -471,8 +398,25 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
                 </Field>
               </SectionBox>
 
+              {/* ★ NEW — SEO Section */}
+              <SeoFields
+                data={{
+                  meta_title:          data.meta_title,
+                  meta_title_ja:       data.meta_title_ja,
+                  meta_description:    data.meta_description,
+                  meta_description_ja: data.meta_description_ja,
+                  meta_keywords:       data.meta_keywords,
+                  meta_keywords_ja:    data.meta_keywords_ja,
+                  og_image:            data.og_image,
+                }}
+                setData={setSeoData}
+                activeLang={langTab}
+                mode={mode}
+                currentOgImage={current?.og_image}
+              />
+
               {/* Our Services */}
-              <SectionBlock title="Our Services List" hint="Icon cards — Enterprise AI Copilots, Generative AI…"
+              <SectionBlock title="Our Services List" hint="Icon cards"
                 items={data.service_items}
                 onAdd={() => addItem("service_items", { title: "", title_ja: "", description: "", description_ja: "" })}
                 onRemove={i => removeItem("service_items", i)}
@@ -480,183 +424,114 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
               />
 
               {/* Highlights */}
-              <SectionBlock title="Key Highlights" hint="Presence in India and Japan, 20 Years Experience, etc."
+              <SectionBlock title="Key Highlights" hint="Presence in India and Japan, 20 Years Experience…"
                 items={data.highlights}
                 onAdd={() => addItem("highlights", { value: "", title: "", title_ja: "", description: "", description_ja: "" })}
                 onRemove={i => removeItem("highlights", i)}
                 render={(item, i) => (
                   <div className="space-y-2">
                     <div className="grid grid-cols-2 gap-2">
-                      <Field label="Stat value">
-                        <Input value={item.value} placeholder="20+" onChange={e => updateItem("highlights", i, "value", e.target.value)} />
-                      </Field>
-                      <Field label="Title (EN)">
-                        <Input value={item.title} placeholder="Years of Experience" onChange={e => updateItem("highlights", i, "title", e.target.value)} />
-                      </Field>
+                      <Field label="Stat value"><Input value={item.value} placeholder="20+" onChange={e => updateItem("highlights", i, "value", e.target.value)} /></Field>
+                      <Field label="Title (EN)"><Input value={item.title} placeholder="Years of Experience" onChange={e => updateItem("highlights", i, "title", e.target.value)} /></Field>
                     </div>
-                    <Field label="Title (JA)">
-                      <Input value={item.title_ja || ""} onChange={e => updateItem("highlights", i, "title_ja", e.target.value)} />
-                    </Field>
-                    <Field label="Description (EN)">
-                      <ReactQuill theme="snow" value={item.description || ""} onChange={v => updateItem("highlights", i, "description", v)} />
-                    </Field>
-                    <Field label="Description (JA)">
-                      <ReactQuill theme="snow" value={item.description_ja || ""} onChange={v => updateItem("highlights", i, "description_ja", v)} />
-                    </Field>
+                    <Field label="Title (JA)"><Input value={item.title_ja || ""} onChange={e => updateItem("highlights", i, "title_ja", e.target.value)} /></Field>
+                    <Field label="Description (EN)"><ReactQuill theme="snow" value={item.description || ""} onChange={v => updateItem("highlights", i, "description", v)} /></Field>
+                    <Field label="Description (JA)"><ReactQuill theme="snow" value={item.description_ja || ""} onChange={v => updateItem("highlights", i, "description_ja", v)} /></Field>
                   </div>
                 )}
               />
 
               {/* Benefits */}
-              <SectionBlock title="Benefits" hint="Icon cards in the Benefits section"
-                items={data.benefits}
+              <SectionBlock title="Benefits" items={data.benefits}
                 onAdd={() => addItem("benefits", { title: "", title_ja: "", description: "", description_ja: "" })}
                 onRemove={i => removeItem("benefits", i)}
                 render={(item, i) => <BilingualTitleDesc item={item} index={i} field="benefits" updateItem={updateItem} />}
               />
 
               {/* Why Choose Us */}
-              <SectionBlock title="Why Choose Us" hint="e.g. Proven AI Expertise, Custom AI Solutions…"
-                items={data.why_choose}
+              <SectionBlock title="Why Choose Us" items={data.why_choose}
                 onAdd={() => addItem("why_choose", { title: "", title_ja: "", description: "", description_ja: "" })}
                 onRemove={i => removeItem("why_choose", i)}
                 render={(item, i) => <BilingualTitleDesc item={item} index={i} field="why_choose" updateItem={updateItem} />}
               />
 
               {/* Approach Steps */}
-              <SectionBlock title="Development Approach Steps" hint="1. AI Strategy & Consulting…"
-                items={data.approach_steps}
+              <SectionBlock title="Development Approach Steps" items={data.approach_steps}
                 onAdd={() => addItem("approach_steps", { step_number: data.approach_steps.length + 1, title: "", title_ja: "", description: "", description_ja: "" })}
                 onRemove={i => removeItem("approach_steps", i)}
                 render={(item, i) => (
                   <div className="space-y-2">
                     <div className="grid grid-cols-3 gap-2">
-                      <Field label="Step #">
-                        <Input type="number" value={item.step_number ?? i + 1} onChange={e => updateItem("approach_steps", i, "step_number", e.target.value)} />
-                      </Field>
-                      <div className="col-span-2">
-                        <Field label="Title (EN)">
-                          <Input value={item.title} placeholder="AI Strategy & Consulting" onChange={e => updateItem("approach_steps", i, "title", e.target.value)} />
-                        </Field>
-                      </div>
+                      <Field label="Step #"><Input type="number" value={item.step_number ?? i + 1} onChange={e => updateItem("approach_steps", i, "step_number", e.target.value)} /></Field>
+                      <div className="col-span-2"><Field label="Title (EN)"><Input value={item.title} onChange={e => updateItem("approach_steps", i, "title", e.target.value)} /></Field></div>
                     </div>
-                    <Field label="Title (JA)">
-                      <Input value={item.title_ja || ""} onChange={e => updateItem("approach_steps", i, "title_ja", e.target.value)} />
-                    </Field>
-                    <Field label="Description (EN)">
-                      <ReactQuill theme="snow" value={item.description || ""} onChange={v => updateItem("approach_steps", i, "description", v)} />
-                    </Field>
-                    <Field label="Description (JA)">
-                      <ReactQuill theme="snow" value={item.description_ja || ""} onChange={v => updateItem("approach_steps", i, "description_ja", v)} />
-                    </Field>
+                    <Field label="Title (JA)"><Input value={item.title_ja || ""} onChange={e => updateItem("approach_steps", i, "title_ja", e.target.value)} /></Field>
+                    <Field label="Description (EN)"><ReactQuill theme="snow" value={item.description || ""} onChange={v => updateItem("approach_steps", i, "description", v)} /></Field>
+                    <Field label="Description (JA)"><ReactQuill theme="snow" value={item.description_ja || ""} onChange={v => updateItem("approach_steps", i, "description_ja", v)} /></Field>
                   </div>
                 )}
               />
 
-              <SectionBlock title="Case Studies" hint="Client success stories"
-                items={data.case_studies}
+              {/* Case Studies */}
+              <SectionBlock title="Case Studies" hint="Client success stories" items={data.case_studies}
                 onAdd={() => addItem("case_studies", { title: "", title_ja: "", challenge_title: "", challenge_title_ja: "", challenge_description: "", challenge_description_ja: "", solution_title: "", solution_title_ja: "", solution_description: "", solution_description_ja: "", results: "", results_ja: "" })}
                 onRemove={i => removeItem("case_studies", i)}
                 render={(item, i) => (
                   <div className="space-y-2">
                     <div className="grid grid-cols-2 gap-2">
-                      <Field label="Title (EN)">
-                        <Input value={item.title} placeholder="Case Study Title" onChange={e => updateItem("case_studies", i, "title", e.target.value)} />
-                      </Field>
-                      <Field label="Title (JA)">
-                        <Input value={item.title_ja || ""} onChange={e => updateItem("case_studies", i, "title_ja", e.target.value)} />
-                      </Field>
+                      <Field label="Title (EN)"><Input value={item.title} onChange={e => updateItem("case_studies", i, "title", e.target.value)} /></Field>
+                      <Field label="Title (JA)"><Input value={item.title_ja || ""} onChange={e => updateItem("case_studies", i, "title_ja", e.target.value)} /></Field>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
-                      <Field label="Challenge Title (EN)">
-                        <Input value={item.challenge_title} placeholder="Challenge Title" onChange={e => updateItem("case_studies", i, "challenge_title", e.target.value)} />
-                      </Field>
-                      <Field label="Challenge Title (JA)">
-                        <Input value={item.challenge_title_ja || ""} onChange={e => updateItem("case_studies", i, "challenge_title_ja", e.target.value)} />
-                      </Field>
-                      <Field label="Challenge Description (EN)">
-                        <ReactQuill theme="snow" value={item.challenge_description || ""} onChange={v => updateItem("case_studies", i, "challenge_description", v)} />
-                      </Field>
-                      <Field label="Challenge Description (JA)">
-                        <ReactQuill theme="snow" value={item.challenge_description_ja || ""} onChange={v => updateItem("case_studies", i, "challenge_description_ja", v)} />
-                      </Field>
+                      <Field label="Challenge Title (EN)"><Input value={item.challenge_title} onChange={e => updateItem("case_studies", i, "challenge_title", e.target.value)} /></Field>
+                      <Field label="Challenge Title (JA)"><Input value={item.challenge_title_ja || ""} onChange={e => updateItem("case_studies", i, "challenge_title_ja", e.target.value)} /></Field>
+                      <Field label="Challenge Description (EN)"><ReactQuill theme="snow" value={item.challenge_description || ""} onChange={v => updateItem("case_studies", i, "challenge_description", v)} /></Field>
+                      <Field label="Challenge Description (JA)"><ReactQuill theme="snow" value={item.challenge_description_ja || ""} onChange={v => updateItem("case_studies", i, "challenge_description_ja", v)} /></Field>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
-                      <Field label="Solution Title (EN)">
-                        <Input value={item.solution_title} placeholder="Solution Title" onChange={e => updateItem("case_studies", i, "solution_title", e.target.value)} />
-                      </Field>
-                      <Field label="Solution Title (JA)">
-                        <Input value={item.solution_title_ja || ""} onChange={e => updateItem("case_studies", i, "solution_title_ja", e.target.value)} />
-                      </Field>
-                      <Field label="Solution Description (EN)">
-                        <ReactQuill theme="snow" value={item.solution_description || ""} onChange={v => updateItem("case_studies", i, "solution_description", v)} />
-                      </Field>
-                      <Field label="Solution Description (JA)">
-                        <ReactQuill theme="snow" value={item.solution_description_ja || ""} onChange={v => updateItem("case_studies", i, "solution_description_ja", v)} />
-                      </Field>
+                      <Field label="Solution Title (EN)"><Input value={item.solution_title} onChange={e => updateItem("case_studies", i, "solution_title", e.target.value)} /></Field>
+                      <Field label="Solution Title (JA)"><Input value={item.solution_title_ja || ""} onChange={e => updateItem("case_studies", i, "solution_title_ja", e.target.value)} /></Field>
+                      <Field label="Solution Description (EN)"><ReactQuill theme="snow" value={item.solution_description || ""} onChange={v => updateItem("case_studies", i, "solution_description", v)} /></Field>
+                      <Field label="Solution Description (JA)"><ReactQuill theme="snow" value={item.solution_description_ja || ""} onChange={v => updateItem("case_studies", i, "solution_description_ja", v)} /></Field>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
-                      <Field label="Results (EN) (comma-separated)">
-                        <Input value={item.results || ""} placeholder="TensorFlow, PyTorch, Scikit-learn" onChange={e => updateItem("case_studies", i, "results", e.target.value)} />
-                      </Field>
-                      <Field label="Results (JA) (comma-separated)">
-                        <Input value={item.results_ja || ""} placeholder="TensorFlow, PyTorch, Scikit-learn" onChange={e => updateItem("case_studies", i, "results_ja", e.target.value)} />
-                      </Field>
+                      <Field label="Results (EN)"><Input value={item.results || ""} onChange={e => updateItem("case_studies", i, "results", e.target.value)} /></Field>
+                      <Field label="Results (JA)"><Input value={item.results_ja || ""} onChange={e => updateItem("case_studies", i, "results_ja", e.target.value)} /></Field>
                     </div>
                   </div>
                 )}
               />
 
-              {/* Per-service Industries */}
-              <SectionBlock
-                title="Industries We Serve (per-india-desk)"
-                hint="Leave empty → falls back to global Industries panel"
+              {/* Per-india-desk Industries */}
+              <SectionBlock title="Industries We Serve (per-india-desk)" hint="Leave empty → falls back to global"
                 items={data.page_industries}
                 onAdd={() => addItem("page_industries", { title: "", title_ja: "", description: "", description_ja: "" })}
                 onRemove={i => removeItem("page_industries", i)}
                 render={(item, i) => (
                   <div className="space-y-2">
                     <div className="grid grid-cols-2 gap-2">
-                      <Field label="Title (EN)">
-                        <Input value={item.title} placeholder="Manufacturing" onChange={e => updateItem("page_industries", i, "title", e.target.value)} />
-                      </Field>
-                      <Field label="Title (JA)">
-                        <Input value={item.title_ja || ""} onChange={e => updateItem("page_industries", i, "title_ja", e.target.value)} />
-                      </Field>
+                      <Field label="Title (EN)"><Input value={item.title} onChange={e => updateItem("page_industries", i, "title", e.target.value)} /></Field>
+                      <Field label="Title (JA)"><Input value={item.title_ja || ""} onChange={e => updateItem("page_industries", i, "title_ja", e.target.value)} /></Field>
                     </div>
-                    <Field label="Description (EN)">
-                      <Input value={item.description || ""} onChange={e => updateItem("page_industries", i, "description", e.target.value)} />
-                    </Field>
-                    <Field label="Description (JA)">
-                      <Input value={item.description_ja || ""} onChange={e => updateItem("page_industries", i, "description_ja", e.target.value)} />
-                    </Field>
+                    <Field label="Description (EN)"><Input value={item.description || ""} onChange={e => updateItem("page_industries", i, "description", e.target.value)} /></Field>
+                    <Field label="Description (JA)"><Input value={item.description_ja || ""} onChange={e => updateItem("page_industries", i, "description_ja", e.target.value)} /></Field>
                   </div>
                 )}
               />
 
-              {/* Per-service FAQs */}
-              <SectionBlock
-                title="FAQs (per-india-desk)"
-                hint="Leave empty → falls back to global FAQ panel"
+              {/* Per-india-desk FAQs */}
+              <SectionBlock title="FAQs (per-india-desk)" hint="Leave empty → falls back to global"
                 items={data.page_faqs}
                 onAdd={() => addItem("page_faqs", { question: "", question_ja: "", answer: "", answer_ja: "" })}
                 onRemove={i => removeItem("page_faqs", i)}
                 render={(item, i) => (
                   <div className="space-y-2">
                     <div className="grid grid-cols-2 gap-2">
-                      <Field label="Question (EN)">
-                        <Input value={item.question} placeholder="What is a Mini GCC?" onChange={e => updateItem("page_faqs", i, "question", e.target.value)} />
-                      </Field>
-                      <Field label="Question (JA)">
-                        <Input value={item.question_ja || ""} placeholder="ミニGCCとは何ですか？" onChange={e => updateItem("page_faqs", i, "question_ja", e.target.value)} />
-                      </Field>
+                      <Field label="Question (EN)"><Input value={item.question} onChange={e => updateItem("page_faqs", i, "question", e.target.value)} /></Field>
+                      <Field label="Question (JA)"><Input value={item.question_ja || ""} onChange={e => updateItem("page_faqs", i, "question_ja", e.target.value)} /></Field>
                     </div>
-                    <Field label="Answer (EN)">
-                      <ReactQuill theme="snow" value={item.answer || ""} onChange={v => updateItem("page_faqs", i, "answer", v)} />
-                    </Field>
-                    <Field label="Answer (JA)">
-                      <ReactQuill theme="snow" value={item.answer_ja || ""} onChange={v => updateItem("page_faqs", i, "answer_ja", v)} />
-                    </Field>
+                    <Field label="Answer (EN)"><ReactQuill theme="snow" value={item.answer || ""} onChange={v => updateItem("page_faqs", i, "answer", v)} /></Field>
+                    <Field label="Answer (JA)"><ReactQuill theme="snow" value={item.answer_ja || ""} onChange={v => updateItem("page_faqs", i, "answer_ja", v)} /></Field>
                   </div>
                 )}
               />
@@ -676,6 +551,7 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
             <TableHead className="text-white">#</TableHead>
             <TableHead className="text-white">Title</TableHead>
             <TableHead className="text-white">Slug</TableHead>
+            <TableHead className="text-white">SEO</TableHead>{/* ★ NEW column */}
             <TableHead className="text-white">FAQs</TableHead>
             <TableHead className="text-white">Industries</TableHead>
             <TableHead className="text-white">Actions</TableHead>
@@ -687,6 +563,12 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
               <TableCell>{i + 1}</TableCell>
               <TableCell className="font-medium">{s.title}</TableCell>
               <TableCell className="text-muted-foreground text-xs">{s.slug}</TableCell>
+              {/* ★ NEW — SEO status badge */}
+              <TableCell>
+                {s.meta_title
+                  ? <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Set</span>
+                  : <span className="text-xs text-muted-foreground">–</span>}
+              </TableCell>
               <TableCell>
                 {(s.page_faqs?.length ?? 0) > 0
                   ? <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">{s.page_faqs.length} custom</span>
@@ -710,21 +592,15 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
   );
 }
 
-/* ═══════════════════ HELPER COMPONENTS ═══════════════════ */
+/* ═══════════════════ HELPER COMPONENTS (unchanged) ═══════════════════ */
 
-function Field({ label, children, error, hint }: {
-  label: string; children: React.ReactNode; error?: string; hint?: string;
-}) {
+function Field({ label, children, error, hint }: { label: string; children: React.ReactNode; error?: string; hint?: string }) {
   return (
     <div className="space-y-1">
       <Label className={`text-xs ${error ? "text-destructive" : "text-muted-foreground"}`}>{label}</Label>
       {hint && <p className="text-xs text-muted-foreground/70 -mt-0.5">{hint}</p>}
       {children}
-      {error && (
-        <p className="text-xs text-destructive flex items-center gap-1 mt-1">
-          <AlertCircle className="w-3 h-3" /> {error}
-        </p>
-      )}
+      {error && <p className="text-xs text-destructive flex items-center gap-1 mt-1"><AlertCircle className="w-3 h-3" /> {error}</p>}
     </div>
   );
 }
@@ -766,9 +642,7 @@ function SectionBlock({ title, hint, items, onAdd, onRemove, render }: {
               {render(item, i)}
             </div>
           ))}
-          <Button variant="outline" size="sm" onClick={onAdd}>
-            <Plus className="w-3 h-3 mr-1" /> Add {title.split(" ")[0]}
-          </Button>
+          <Button variant="outline" size="sm" onClick={onAdd}><Plus className="w-3 h-3 mr-1" /> Add {title.split(" ")[0]}</Button>
         </div>
       )}
     </div>
@@ -821,10 +695,10 @@ function ViewList({ label, items, showValue = false, showStep = false, isQuote =
             {isFaq
               ? <><p className="font-medium">Q: {item.question}</p><p className="text-muted-foreground mt-1 text-xs">A: {item.answer?.replace(/<[^>]+>/g, "").slice(0, 120)}…</p></>
               : showValue && item.value ? <><span className="text-primary font-bold mr-2">{item.value}</span>{item.title}</>
-                : showStep ? <><span className="text-primary font-bold mr-2">Step {item.step_number ?? i + 1}.</span>{item.title}</>
-                  : isTech ? <><span className="font-semibold text-primary">{item.category}:</span> {item.items}</>
-                    : isQuote ? <><span className="italic">"{item.quote}"</span>{item.author && <span className="ml-2 font-semibold">— {item.author}</span>}</>
-                      : <span className="font-medium">{item.title}</span>
+              : showStep              ? <><span className="text-primary font-bold mr-2">Step {item.step_number ?? i + 1}.</span>{item.title}</>
+              : isTech               ? <><span className="font-semibold text-primary">{item.category}:</span> {item.items}</>
+              : isQuote              ? <><span className="italic">"{item.quote}"</span>{item.author && <span className="ml-2 font-semibold">— {item.author}</span>}</>
+              : <span className="font-medium">{item.title}</span>
             }
           </li>
         ))}

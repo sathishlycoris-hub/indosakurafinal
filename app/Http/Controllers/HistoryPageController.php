@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\History;
 use Inertia\Inertia;
+use App\Models\Seo;
 
 class HistoryPageController extends Controller
 {
@@ -14,6 +15,8 @@ class HistoryPageController extends Controller
             'histories' => History::orderBy('year', 'desc')
                 ->orderBy('month', 'desc')
                 ->get(),
+
+            'seo' => Seo::where('page', 'history')->first(),
         ]);
     }
 }

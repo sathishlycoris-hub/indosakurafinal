@@ -2,6 +2,7 @@ import Layout from "@/components/layout/Layout";
 import Subheader from "@/components/layout/Subheader";
 import ContactCTA from "@/components/layout/Contact";
 import { usePage } from "@inertiajs/react";
+import PageSeo, { type PageSeoProps } from "@/components/PageSeo";
 
 interface Greeting {
   id: number;
@@ -14,7 +15,10 @@ interface Greeting {
 
 export default function Greetings({ greeting }: { greeting: Greeting | null }) {
 
-  const { lang } = usePage<{ lang: "en" | "ja" }>().props;
+  const { lang, pageSeo } = usePage<{
+  lang: "en" | "ja";
+  pageSeo: PageSeoProps;
+}>().props;
 
   const title =
     lang === "ja"
@@ -28,6 +32,8 @@ export default function Greetings({ greeting }: { greeting: Greeting | null }) {
 
   return (
     <Layout>
+       <PageSeo {...pageSeo} />
+
       <div className="sticky top-16 lg:top-[101px] z-40 bg-white">
         <Subheader currentPage={lang === "ja" ? "ご挨拶" : "Greetings"} />
       </div>

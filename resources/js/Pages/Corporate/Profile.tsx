@@ -6,7 +6,8 @@ import ContactCTA from "@/components/layout/Contact";
 import { Link } from "@inertiajs/react";
 import AOS from "aos";
 import "aos/dist/aos.css";
-import { usePage } from "@inertiajs/react";
+import { usePage, Head } from "@inertiajs/react";
+
 
 
 
@@ -17,17 +18,22 @@ interface CompanyProfile {
   content: string;
   content_ja?: string | null;
 }
+interface Seo {
+  meta_title?: string | null;
+  meta_description?: string | null;
+  meta_keywords?: string | null;
+}
 interface CorpProfileSettings {
-  strengths_heading: string;    strengths_heading_ja: string;
-  strengths_para1: string;      strengths_para1_ja: string;
-  strengths_para2: string;      strengths_para2_ja: string;
-  strengths_cta: string;        strengths_cta_ja: string;
- 
+  strengths_heading: string; strengths_heading_ja: string;
+  strengths_para1: string; strengths_para1_ja: string;
+  strengths_para2: string; strengths_para2_ja: string;
+  strengths_cta: string; strengths_cta_ja: string;
+
   str_stat1_value: string; str_stat1_label: string; str_stat1_label_ja: string; str_stat1_sub: string; str_stat1_sub_ja: string;
   str_stat2_value: string; str_stat2_label: string; str_stat2_label_ja: string; str_stat2_sub: string; str_stat2_sub_ja: string;
   str_stat3_value: string; str_stat3_label: string; str_stat3_label_ja: string; str_stat3_sub: string; str_stat3_sub_ja: string;
   str_stat4_value: string; str_stat4_label: string; str_stat4_label_ja: string; str_stat4_sub: string; str_stat4_sub_ja: string;
- 
+
   str_feat1_title: string; str_feat1_title_ja: string; str_feat1_sub: string; str_feat1_sub_ja: string; str_feat1_desc: string; str_feat1_desc_ja: string;
   str_feat2_title: string; str_feat2_title_ja: string; str_feat2_sub: string; str_feat2_sub_ja: string; str_feat2_desc: string; str_feat2_desc_ja: string;
   str_feat3_title: string; str_feat3_title_ja: string; str_feat3_sub: string; str_feat3_sub_ja: string; str_feat3_desc: string; str_feat3_desc_ja: string;
@@ -36,16 +42,16 @@ interface CorpProfileSettings {
 
 interface CorpProfileSettings {
   // ... existing strengths / stats / feats fields ...
- 
+
   loc1_name: string; loc1_name_ja: string; loc1_address: string; loc1_address_ja: string;
   loc2_name: string; loc2_name_ja: string; loc2_address: string; loc2_address_ja: string;
   loc3_name: string; loc3_name_ja: string; loc3_address: string; loc3_address_ja: string;
   loc4_name: string; loc4_name_ja: string; loc4_address: string; loc4_address_ja: string;
   loc5_name: string; loc5_name_ja: string; loc5_address: string; loc5_address_ja: string;
 }
- 
+
 // ── STEP 2: Build a locations array from CMS inside your component ────────────
- 
+
 
 const Profile = ({
   companyProfiles,
@@ -54,7 +60,10 @@ const Profile = ({
   companyProfiles: CompanyProfile[];
   corpSettings: CorpProfileSettings;   // <-- add this
 }) => {
-  const { lang } = usePage<{ lang: "en" | "ja" }>().props;
+  const { lang, seo } = usePage<{
+    lang: "en" | "ja";
+    seo?: Seo | null;
+  }>().props;
 
   // Helper to pick EN or JA
   const t = (en: string, ja: string) => (lang === "ja" ? ja || en : en);
@@ -62,13 +71,13 @@ const Profile = ({
   const cs = corpSettings; // shorthand
 
   // Add this alongside strStats / strFeats:
-const locations = [
-  { name: t(cs.loc1_name, cs.loc1_name_ja), address: t(cs.loc1_address, cs.loc1_address_ja), Icon: Building },
-  { name: t(cs.loc2_name, cs.loc2_name_ja), address: t(cs.loc2_address, cs.loc2_address_ja), Icon: MapPin },
-  { name: t(cs.loc3_name, cs.loc3_name_ja), address: t(cs.loc3_address, cs.loc3_address_ja), Icon: Users },
-  { name: t(cs.loc4_name, cs.loc4_name_ja), address: t(cs.loc4_address, cs.loc4_address_ja), Icon: Globe },
-  { name: t(cs.loc5_name, cs.loc5_name_ja), address: t(cs.loc5_address, cs.loc5_address_ja), Icon: Globe },
-];
+  const locations = [
+    { name: t(cs.loc1_name, cs.loc1_name_ja), address: t(cs.loc1_address, cs.loc1_address_ja), Icon: Building },
+    { name: t(cs.loc2_name, cs.loc2_name_ja), address: t(cs.loc2_address, cs.loc2_address_ja), Icon: MapPin },
+    { name: t(cs.loc3_name, cs.loc3_name_ja), address: t(cs.loc3_address, cs.loc3_address_ja), Icon: Users },
+    { name: t(cs.loc4_name, cs.loc4_name_ja), address: t(cs.loc4_address, cs.loc4_address_ja), Icon: Globe },
+    { name: t(cs.loc5_name, cs.loc5_name_ja), address: t(cs.loc5_address, cs.loc5_address_ja), Icon: Globe },
+  ];
 
 
   // Build stats array from CMS
@@ -81,10 +90,10 @@ const locations = [
 
   // Build feature cards array from CMS
   const strFeats = [
-    { Icon: Users,       title: t(cs.str_feat1_title, cs.str_feat1_title_ja), sub: t(cs.str_feat1_sub, cs.str_feat1_sub_ja), desc: t(cs.str_feat1_desc, cs.str_feat1_desc_ja) },
-    { Icon: Globe,       title: t(cs.str_feat2_title, cs.str_feat2_title_ja), sub: t(cs.str_feat2_sub, cs.str_feat2_sub_ja), desc: t(cs.str_feat2_desc, cs.str_feat2_desc_ja) },
+    { Icon: Users, title: t(cs.str_feat1_title, cs.str_feat1_title_ja), sub: t(cs.str_feat1_sub, cs.str_feat1_sub_ja), desc: t(cs.str_feat1_desc, cs.str_feat1_desc_ja) },
+    { Icon: Globe, title: t(cs.str_feat2_title, cs.str_feat2_title_ja), sub: t(cs.str_feat2_sub, cs.str_feat2_sub_ja), desc: t(cs.str_feat2_desc, cs.str_feat2_desc_ja) },
     { Icon: CheckCircle, title: t(cs.str_feat3_title, cs.str_feat3_title_ja), sub: t(cs.str_feat3_sub, cs.str_feat3_sub_ja), desc: t(cs.str_feat3_desc, cs.str_feat3_desc_ja) },
-    { Icon: ArrowRight,  title: t(cs.str_feat4_title, cs.str_feat4_title_ja), sub: t(cs.str_feat4_sub, cs.str_feat4_sub_ja), desc: t(cs.str_feat4_desc, cs.str_feat4_desc_ja) },
+    { Icon: ArrowRight, title: t(cs.str_feat4_title, cs.str_feat4_title_ja), sub: t(cs.str_feat4_sub, cs.str_feat4_sub_ja), desc: t(cs.str_feat4_desc, cs.str_feat4_desc_ja) },
   ];
 
 
@@ -96,7 +105,7 @@ const locations = [
     delay: 80,
   });
 
-  
+
 
 
 
@@ -174,6 +183,28 @@ services and more, ensuring your business stays ahead in innovation.`
 
   return (
     <Layout>
+      <Head>
+        <title>
+          {seo?.meta_title ??
+            (lang === "ja"
+              ? "会社概要 | Indo Sakura"
+              : "Corporate Profile | Indo Sakura")}
+        </title>
+
+        {seo?.meta_description && (
+          <meta
+            name="description"
+            content={seo.meta_description}
+          />
+        )}
+
+        {seo?.meta_keywords && (
+          <meta
+            name="keywords"
+            content={seo.meta_keywords}
+          />
+        )}
+      </Head>
       <div className="sticky top-16 lg:top-[101px] z-40 bg-white">
         <Subheader
           currentPage={lang === "ja" ? "会社概要" : "Corporate Profile"}
@@ -291,64 +322,64 @@ services and more, ensuring your business stays ahead in innovation.`
 
       {/* Our Strengths */}
       {/* Our Strengths */}
-      
-    <section className="py-20 bg-accent-pink text-primary-foreground">
-      <div className="container mx-auto px-4 lg:px-8" data-aos="fade-up">
 
-        <div className="section-divider mb-8 border-white/80">
-          <h2 className="text-3xl font-semibold text-white">
-            {lang === "ja" ? "当社の強み" : "Our Strengths"}
-          </h2>
-        </div>
+      <section className="py-20 bg-accent-pink text-primary-foreground">
+        <div className="container mx-auto px-4 lg:px-8" data-aos="fade-up">
 
-        <div className="grid lg:grid-cols-[65%_35%] gap-0">
-
-          {/* LEFT — CMS text */}
-          <div>
-            <h2 className="text-3xl lg:text-4xl font-bold leading-snug mb-6">
-              {t(cs.strengths_heading, cs.strengths_heading_ja)}
+          <div className="section-divider mb-8 border-white/80">
+            <h2 className="text-3xl font-semibold text-white">
+              {lang === "ja" ? "当社の強み" : "Our Strengths"}
             </h2>
-
-            <p className="text-white mb-4 leading-relaxed">
-              {t(cs.strengths_para1, cs.strengths_para1_ja)}
-            </p>
-
-            <p className="text-white mb-8 leading-relaxed">
-              {t(cs.strengths_para2, cs.strengths_para2_ja)}
-            </p>
-
-            <Link href="/contact">
-              <Button
-                variant="heroOutline"
-                className="bg-white text-sm font-semibold text-pink-800 hover:bg-white/90 rounded-3xl px-8 py-4"
-              >
-                {t(cs.strengths_cta, cs.strengths_cta_ja)}
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
           </div>
 
-          {/* RIGHT — CMS stat boxes */}
-          <div className="grid grid-cols-2 gap-4">
-            {strStats.map((s, i) => (
-              <div key={i} className="bg-primary rounded-xl p-5">
-                <div className="text-3xl font-bold mb-1">{s.value}</div>
-                <p className="font-medium text-white">{s.label}</p>
-                <p className="text-white">{s.sub}</p>
-              </div>
+          <div className="grid lg:grid-cols-[65%_35%] gap-0">
+
+            {/* LEFT — CMS text */}
+            <div>
+              <h2 className="text-3xl lg:text-4xl font-bold leading-snug mb-6">
+                {t(cs.strengths_heading, cs.strengths_heading_ja)}
+              </h2>
+
+              <p className="text-white mb-4 leading-relaxed">
+                {t(cs.strengths_para1, cs.strengths_para1_ja)}
+              </p>
+
+              <p className="text-white mb-8 leading-relaxed">
+                {t(cs.strengths_para2, cs.strengths_para2_ja)}
+              </p>
+
+              <Link href="/contact">
+                <Button
+                  variant="heroOutline"
+                  className="bg-white text-sm font-semibold text-pink-800 hover:bg-white/90 rounded-3xl px-8 py-4"
+                >
+                  {t(cs.strengths_cta, cs.strengths_cta_ja)}
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </Link>
+            </div>
+
+            {/* RIGHT — CMS stat boxes */}
+            <div className="grid grid-cols-2 gap-4">
+              {strStats.map((s, i) => (
+                <div key={i} className="bg-primary rounded-xl p-5">
+                  <div className="text-3xl font-bold mb-1">{s.value}</div>
+                  <p className="font-medium text-white">{s.label}</p>
+                  <p className="text-white">{s.sub}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* FEATURE CARDS — CMS-driven */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-16">
+            {strFeats.map(({ Icon, title, sub, desc }, i) => (
+              <FeatureCard key={i} icon={<Icon className="w-6 h-6 mx-auto mb-3" />} title={title} subtitle={sub} description={desc} />
             ))}
           </div>
-        </div>
 
-        {/* FEATURE CARDS — CMS-driven */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-16">
-          {strFeats.map(({ Icon, title, sub, desc }, i) => (
-            <FeatureCard key={i} icon={<Icon className="w-6 h-6 mx-auto mb-3" />} title={title} subtitle={sub} description={desc} />
-          ))}
         </div>
-
-      </div>
-    </section>
+      </section>
 
 
 
@@ -398,38 +429,38 @@ services and more, ensuring your business stays ahead in innovation.`
 
 
 
-    <section className="py-2">
-  <div className="container mx-auto px-4 lg:px-8">
- 
-    <h2 className="text-primary text-3xl font-bold mb-4">
-      {lang === "ja" ? "拠点情報" : "Locations"}
-    </h2>
- 
-    <div className="w-full flex justify-center mb-0">
-      <img
-        src="/image/LocationEng.png"
-        alt="Indo-Sakura Global Locations"
-        className="rounded-lg shadow-md w-full"
-      />
-    </div>
- 
-    {/* CMS-driven location cards */}
-    <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-5 bg-[#E8E8E8] p-6 rounded-lg shadow-md">
-      {locations.map(({ name, address, Icon }, i) => (
-        <div key={i} className="flex items-start gap-3">
-          <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-            <Icon className="w-9 h-9 text-primary" />
+      <section className="py-2">
+        <div className="container mx-auto px-4 lg:px-8">
+
+          <h2 className="text-primary text-3xl font-bold mb-4">
+            {lang === "ja" ? "拠点情報" : "Locations"}
+          </h2>
+
+          <div className="w-full flex justify-center mb-0">
+            <img
+              src="/image/LocationEng.png"
+              alt="Indo-Sakura Global Locations"
+              className="rounded-lg shadow-md w-full"
+            />
           </div>
-          <div>
-            <p className="font-semibold text-sm">{name}</p>
-            <p className="text-sm">{address}</p>
+
+          {/* CMS-driven location cards */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-5 bg-[#E8E8E8] p-6 rounded-lg shadow-md">
+            {locations.map(({ name, address, Icon }, i) => (
+              <div key={i} className="flex items-start gap-3">
+                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Icon className="w-9 h-9 text-primary" />
+                </div>
+                <div>
+                  <p className="font-semibold text-sm">{name}</p>
+                  <p className="text-sm">{address}</p>
+                </div>
+              </div>
+            ))}
           </div>
+
         </div>
-      ))}
-    </div>
- 
-  </div>
-</section>
+      </section>
 
 
       {/* Contact Form Section */}

@@ -1,4 +1,4 @@
-import { usePage } from "@inertiajs/react";
+import { usePage, Head } from "@inertiajs/react";
 import Layout from "@/components/layout/Layout";
 import Subheader from "@/components/layout/Subheader";
 import ContactCTA from "@/components/layout/Contact";
@@ -6,7 +6,11 @@ import ContactCTA from "@/components/layout/Contact";
 /* =========================
    TYPES
    ========================= */
-
+interface Seo {
+  meta_title?: string | null;
+  meta_description?: string | null;
+  meta_keywords?: string | null;
+}
 type TeamMember = {
   name: string;
   name_ja?: string | null;
@@ -108,11 +112,12 @@ function SectionBlock({
 const ECOSYSTEM_CATEGORIES = ["Strategic Alliance Partners"];
 
 export default function Team() {
-  const { lang }       = usePage<{ lang: "en" | "ja" }>().props as any;
-  const { grouped, categories } = usePage<{
-    grouped: Grouped;
-    categories: TeamCategory[];
-  }>().props;
+  const { lang, grouped, categories, seo } = usePage<{
+  lang: "en" | "ja";
+  grouped: Grouped;
+  categories: TeamCategory[];
+  seo?: Seo | null;
+}>().props;
 
   // Split categories into two sections
   const execCategories      = categories.filter((c) => !ECOSYSTEM_CATEGORIES.includes(c.name));
@@ -132,6 +137,28 @@ export default function Team() {
 
   return (
     <Layout>
+       <Head>
+      <title>
+        {seo?.meta_title ??
+          (lang === "ja"
+            ? "マネジメントチーム | Indo Sakura"
+            : "Management Team | Indo Sakura")}
+      </title>
+
+      {seo?.meta_description && (
+        <meta
+          name="description"
+          content={seo.meta_description}
+        />
+      )}
+
+      {seo?.meta_keywords && (
+        <meta
+          name="keywords"
+          content={seo.meta_keywords}
+        />
+      )}
+    </Head>
       <div className="sticky top-16 lg:top-[101px] z-40 bg-white">
         <Subheader currentPage={ui.subheader} />
       </div>

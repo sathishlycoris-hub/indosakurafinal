@@ -1,7 +1,7 @@
 import Layout from "@/components/layout/Layout";
 import Serviceshead from "@/components/layout/Serviceshead";
 
-import { Link, usePage } from "@inertiajs/react";
+import { Link, usePage, Head } from "@inertiajs/react";
 import { Calendar, Clock, MapPin, Tag } from "lucide-react";
 import AOS from "aos";
 import "aos/dist/aos.css";
@@ -19,11 +19,19 @@ interface Seminar {
   image?: string | null;
   status: "upcoming" | "archived";
 }
-
+interface Seo {
+  meta_title?: string | null;
+  meta_description?: string | null;
+  meta_keywords?: string | null;
+}
 export default function Seminars() {
 
-  const { lang } = usePage<{ lang: "en" | "ja" }>().props;
-  const page = usePage();
+  const { lang, seo } = usePage<{
+  lang: "en" | "ja";
+  seo?: Seo | null;
+}>().props;
+
+const page = usePage();
   const upcomingSeminars = page.props.upcomingSeminars as Seminar[];
   const archivedSeminars = page.props.archivedSeminars as Seminar[];
 
@@ -55,6 +63,28 @@ export default function Seminars() {
 
   return (
     <Layout>
+  <Head>
+    <title>
+      {seo?.meta_title ??
+        (lang === "ja"
+          ? "セミナー・イベント | Indo Sakura"
+          : "Seminars & Events | Indo Sakura")}
+    </title>
+
+    {seo?.meta_description && (
+      <meta
+        name="description"
+        content={seo.meta_description}
+      />
+    )}
+
+    {seo?.meta_keywords && (
+      <meta
+        name="keywords"
+        content={seo.meta_keywords}
+      />
+    )}
+  </Head>
       <div className="sticky top-16 lg:top-[101px] z-40 bg-white">
         <Insightshead />
       </div>

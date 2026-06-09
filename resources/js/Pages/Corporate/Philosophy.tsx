@@ -1,7 +1,8 @@
 import Layout from "@/components/layout/Layout";
 import Subheader from "@/components/layout/Subheader";
 import ContactCTA from "@/components/layout/Contact";
-import { usePage } from "@inertiajs/react";
+import { usePage, Head } from "@inertiajs/react";
+
 
 interface Philosophy {
   id: number;
@@ -13,16 +14,45 @@ interface Philosophy {
   description_ja?: string | null;
   image?: string | null;
 }
-
+interface Seo {
+  meta_title?: string | null;
+  meta_description?: string | null;
+  meta_keywords?: string | null;
+}
 export default function Philosophy({
   philosophies,
 }: {
   philosophies: Philosophy[];
 }) {
-  const { lang } = usePage<{ lang: "en" | "ja" }>().props;
+  const { lang, seo } = usePage<{
+    lang: "en" | "ja";
+    seo?: Seo | null;
+  }>().props;
 
   return (
     <Layout>
+      <Head>
+        <title>
+          {seo?.meta_title ??
+            (lang === "ja"
+              ? "企業理念 | Indo Sakura"
+              : "Corporate Philosophy | Indo Sakura")}
+        </title>
+
+        {seo?.meta_description && (
+          <meta
+            name="description"
+            content={seo.meta_description}
+          />
+        )}
+
+        {seo?.meta_keywords && (
+          <meta
+            name="keywords"
+            content={seo.meta_keywords}
+          />
+        )}
+      </Head>
       <div className="sticky top-16 lg:top-[101px] z-40 bg-white">
         <Subheader
           currentPage={
@@ -52,8 +82,8 @@ export default function Philosophy({
           <section
             key={item.id}
             className={`py-20 ${index % 2 === 0
-                ? "bg-section-light"
-                : "bg-primary/5"
+              ? "bg-section-light"
+              : "bg-primary/5"
               }`}
           >
             <div className="container">

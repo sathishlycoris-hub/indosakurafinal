@@ -35,6 +35,18 @@ const PAGES = [
   { value: "case-studies", label: "Case Studies Page" },
   { value: "corporate-info", label: "Corporate Info Page" },
   { value: "recruitment", label: "Recruitment Page" },
+  { value: "philosophy", label: "Corporate Philosophy Page" },
+  { value: "corporate-profile", label: "Profile Page" },
+  { value: "contact", label: "Contact Page" },
+  { value: "team", label: "Management Team Page" },
+  { value: "blog", label: "Blog Page" },
+  { value: "history", label: "History Page" },
+  { value: "press-release", label: "Press Release Page" },
+  { value: "clients", label: "Clients & Partners Page" },
+  { value: "policy", label: "Policy Statements Page" },
+  { value: "infographics", label: "Infographics Page" },
+  { value: "seminars", label: "Seminars Page" },
+  { value: "india-desks", label: "India Desks Page" },
 ];
 
 export default function Index({ seos }: { seos: Seo[] }) {
@@ -100,49 +112,49 @@ export default function Index({ seos }: { seos: Seo[] }) {
       </div>
 
       {/* ================= SHEET ================= */}
-    <Sheet open={open} onOpenChange={setOpen}>
-  <SheetContent className="w-[90%] sm:max-w-2xl overflow-y-auto">
-    <SheetHeader>
-      <SheetTitle>
-        {mode === "add" && "Add SEO"}
-        {mode === "edit" && "Edit SEO"}
-        {mode === "view" && "SEO Details"}
-      </SheetTitle>
-    </SheetHeader>
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent className="w-[90%] sm:max-w-2xl overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>
+              {mode === "add" && "Add SEO"}
+              {mode === "edit" && "Edit SEO"}
+              {mode === "view" && "SEO Details"}
+            </SheetTitle>
+          </SheetHeader>
 
-    {/* ================= VIEW ================= */}
-    {mode === "view" && current && (
-      <div className="space-y-6 mt-6">
+          {/* ================= VIEW ================= */}
+          {mode === "view" && current && (
+            <div className="space-y-6 mt-6">
 
-        <div className="space-y-1">
-          <strong>Page</strong>
-          <p>{current.page}</p>
-        </div>
+              <div className="space-y-1">
+                <strong>Page</strong>
+                <p>{current.page}</p>
+              </div>
 
-        <div className="space-y-1">
-          <strong>Meta Title</strong>
-          <p>{current.meta_title || "-"}</p>
-        </div>
+              <div className="space-y-1">
+                <strong>Meta Title</strong>
+                <p>{current.meta_title || "-"}</p>
+              </div>
 
-        <div className="space-y-1">
-          <strong>Meta Description</strong>
-          <p>{current.meta_description || "-"}</p>
-        </div>
+              <div className="space-y-1">
+                <strong>Meta Description</strong>
+                <p>{current.meta_description || "-"}</p>
+              </div>
 
-        <div className="space-y-1">
-          <strong>Meta Keywords</strong>
-          <p>{current.meta_keywords || "-"}</p>
-        </div>
+              <div className="space-y-1">
+                <strong>Meta Keywords</strong>
+                <p>{current.meta_keywords || "-"}</p>
+              </div>
 
-      </div>
-    )}
+            </div>
+          )}
 
-    {/* ================= ADD / EDIT ================= */}
-    {mode !== "view" && (
-      <div className="space-y-5 mt-6">
+          {/* ================= ADD / EDIT ================= */}
+          {mode !== "view" && (
+            <div className="space-y-5 mt-6">
 
-        {/* Page */}
-        {/* <div className="space-y-1">
+              {/* Page */}
+              {/* <div className="space-y-1">
           <label className="font-medium">Page</label>
           <select
             className="w-full border border-input rounded-md px-3 py-2"
@@ -159,57 +171,57 @@ export default function Index({ seos }: { seos: Seo[] }) {
           </select>
         </div> */}
 
-        {/* Meta Title */}
-        <div className="space-y-1">
-          <label className="font-medium">Meta Title</label>
-          <Input
-            placeholder="Meta title"
-            value={data.meta_title}
-            onChange={(e) => setData("meta_title", e.target.value)}
-          />
-        </div>
+              {/* Meta Title */}
+              <div className="space-y-1">
+                <label className="font-medium">Meta Title</label>
+                <Input
+                  placeholder="Meta title"
+                  value={data.meta_title}
+                  onChange={(e) => setData("meta_title", e.target.value)}
+                />
+              </div>
 
-        {/* Meta Description */}
-        <div className="space-y-1">
-          <label className="font-medium">Meta Description</label>
-          <Textarea
-            rows={4}
-            placeholder="Meta description"
-            value={data.meta_description}
-            onChange={(e) =>
-              setData("meta_description", e.target.value)
-            }
-          />
-        </div>
+              {/* Meta Description */}
+              <div className="space-y-1">
+                <label className="font-medium">Meta Description</label>
+                <Textarea
+                  rows={4}
+                  placeholder="Meta description"
+                  value={data.meta_description}
+                  onChange={(e) =>
+                    setData("meta_description", e.target.value)
+                  }
+                />
+              </div>
 
-        {/* Meta Keywords */}
-        <div className="space-y-1">
-          <label className="font-medium">
-            Meta Keywords (comma separated)
-          </label>
-          <Textarea
-            rows={3}
-            placeholder="keyword1, keyword2, keyword3"
-            value={data.meta_keywords}
-            onChange={(e) =>
-              setData("meta_keywords", e.target.value)
-            }
-          />
-        </div>
+              {/* Meta Keywords */}
+              <div className="space-y-1">
+                <label className="font-medium">
+                  Meta Keywords (comma separated)
+                </label>
+                <Textarea
+                  rows={3}
+                  placeholder="keyword1, keyword2, keyword3"
+                  value={data.meta_keywords}
+                  onChange={(e) =>
+                    setData("meta_keywords", e.target.value)
+                  }
+                />
+              </div>
 
-        {/* Submit */}
-        <Button
-          className="w-full"
-          disabled={processing}
-          onClick={submitSave}
-        >
-          Save SEO
-        </Button>
+              {/* Submit */}
+              <Button
+                className="w-full"
+                disabled={processing}
+                onClick={submitSave}
+              >
+                Save SEO
+              </Button>
 
-      </div>
-    )}
-  </SheetContent>
-</Sheet>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
 
 
       {/* ================= TABLE ================= */}
@@ -239,7 +251,7 @@ export default function Index({ seos }: { seos: Seo[] }) {
                 <Button
                   title="View"
                   size="icon"
-                  
+
                   onClick={() => openView(seo)}
                 >
                   <Eye className="w-4 h-4" />
@@ -247,7 +259,7 @@ export default function Index({ seos }: { seos: Seo[] }) {
                 <Button
                   title="Edit"
                   size="icon"
-                  
+
                   onClick={() => openEdit(seo)}
                 >
                   <Pencil className="w-4 h-4" />

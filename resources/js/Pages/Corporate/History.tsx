@@ -1,7 +1,7 @@
 import Layout from "@/components/layout/Layout";
 import Subheader from "@/components/layout/Subheader";
 import ContactCTA from "@/components/layout/Contact";
-import { usePage } from "@inertiajs/react";
+import { usePage, Head } from "@inertiajs/react";
 interface HistoryItem {
   id: number;
   year: string;
@@ -11,12 +11,21 @@ interface HistoryItem {
   description: string;
   description_ja?: string | null;
 }
+
+interface Seo {
+  meta_title?: string | null;
+  meta_description?: string | null;
+  meta_keywords?: string | null;
+}
 const History = ({
   histories,
 }: {
   histories: HistoryItem[];
 }) => {
-  const { lang } = usePage<{ lang: "en" | "ja" }>().props;
+  const { lang, seo } = usePage<{
+    lang: "en" | "ja";
+    seo?: Seo | null;
+  }>().props;
 
   // Convert data into table-friendly structure (year / month / description)
   // const historyTable = [
@@ -102,6 +111,28 @@ const History = ({
 
   return (
     <Layout>
+      <Head>
+        <title>
+          {seo?.meta_title ??
+            (lang === "ja"
+              ? "会社沿革 | Indo Sakura"
+              : "Company History | Indo Sakura")}
+        </title>
+
+        {seo?.meta_description && (
+          <meta
+            name="description"
+            content={seo.meta_description}
+          />
+        )}
+
+        {seo?.meta_keywords && (
+          <meta
+            name="keywords"
+            content={seo.meta_keywords}
+          />
+        )}
+      </Head>
       <div className="sticky top-16 lg:top-[101px] z-40 bg-white">
         <Subheader
           currentPage={lang === "ja" ? "沿革" : "History"}

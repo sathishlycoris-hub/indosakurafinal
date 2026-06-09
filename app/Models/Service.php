@@ -24,6 +24,14 @@ class Service extends Model
         'approach_steps',
         'testimonials',
         'tech_stack',
+        // SEO
+        'meta_title',
+        'meta_title_ja',
+        'meta_description',
+        'meta_description_ja',
+        'meta_keywords',
+        'meta_keywords_ja',
+        'og_image',
     ];
 
     protected $casts = [
@@ -44,21 +52,34 @@ class Service extends Model
         return $this->hasMany(ServiceBenefit::class)->orderBy('sort_order');
     }
 
-    /**
-     * Per-service page FAQs → service_page_faqs table.
-     * Distinct from any global service_faqs used elsewhere.
-     */
     public function pageFaqs()
     {
         return $this->hasMany(ServicePageFaq::class)->orderBy('sort_order');
     }
 
-    /**
-     * Per-service page Industries → service_page_industries table.
-     * Distinct from any global service_industries used elsewhere.
-     */
     public function pageIndustries()
     {
         return $this->hasMany(ServicePageIndustry::class)->orderBy('sort_order');
+    }
+
+    /**
+     * Resolve effective meta title for a given locale.
+     */
+    public function getEffectiveMetaTitle(string $lang = 'en'): string
+    {
+        $field = $lang === 'ja' ? 'meta_title_ja' : 'meta_title';
+        return $this->{$field}
+            ?? ($lang === 'ja' ? $this->title_ja : null)
+            ?? $this->title
+            ?? '';
+    }
+
+    /**
+     * Resolve effective meta description for a given locale.
+     */
+    public function getEffectiveMetaDescription(string $lang = 'en'): string
+    {
+        $field = $lang === 'ja' ? 'meta_description_ja' : 'meta_description';
+        return $this->{$field} ?? '';
     }
 }

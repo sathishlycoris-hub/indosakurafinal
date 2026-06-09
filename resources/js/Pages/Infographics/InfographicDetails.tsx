@@ -1,9 +1,13 @@
+// resources/js/Pages/Infographics/InfographicDetails.tsx
+// Changes vs original: import PageSeo, read pageSeo from usePage, render <PageSeo>
+
 import { useState } from "react";
 import Layout from "@/components/layout/Layout";
 import ContactCTA from "@/components/layout/Contact";
 import { usePage, Link } from "@inertiajs/react";
-import { Calendar, User, ArrowLeft, Tag, List } from "lucide-react";
+import { Calendar, User, Tag, List, ArrowLeft } from "lucide-react";
 import Insightshead from "@/components/layout/InsightsHead";
+import PageSeo, { type PageSeoProps } from "@/components/PageSeo"; // ← import
 
 interface TocItem { label: string; }
 
@@ -27,10 +31,12 @@ interface Infographic {
 }
 
 export default function InfographicDetails() {
-  const { infographic, related, lang } = usePage<{
+  // ← Read pageSeo alongside existing props
+  const { infographic, related, lang, pageSeo } = usePage<{
     infographic: Infographic;
     related: Infographic[];
     lang: "en" | "ja";
+    pageSeo: PageSeoProps;
   }>().props;
 
   const [tocOpen, setTocOpen] = useState(true);
@@ -43,51 +49,29 @@ export default function InfographicDetails() {
     return `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")}`;
   };
 
-  const toc = lang === "ja"
-    ? (infographic.table_of_contents_ja ?? infographic.table_of_contents ?? [])
-    : (infographic.table_of_contents ?? []);
+  const toc =
+    lang === "ja"
+      ? (infographic.table_of_contents_ja ?? infographic.table_of_contents ?? [])
+      : (infographic.table_of_contents ?? []);
 
   return (
     <Layout>
+      {/* ← Inject SEO meta tags */}
+      <PageSeo {...pageSeo} />
+
       <Insightshead />
 
       <article className="py-12 bg-white">
         <div className="container mx-auto px-4 max-w-4xl">
 
-          {/* ── HEADER ── */}
+          {/* HEADER */}
           <header className="mb-8 text-center">
             <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4 leading-snug">
               {getValue(infographic.title, infographic.title_ja)}
             </h1>
-
-            {/* Author + date row */}
-            {/* <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground mb-4">
-              {infographic.author && (
-                <span className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center">
-                    <User size={13} className="text-primary" />
-                  </div>
-                  <span className="font-medium text-foreground">
-                    {getValue(infographic.author, infographic.author_ja)}
-                  </span>
-                </span>
-              )}
-              <span className="flex items-center gap-1">
-                <Calendar size={13} />
-                {formatDate(infographic.published_date)}
-              </span>
-              {infographic.category && (
-                <span className="inline-flex items-center gap-1 px-3 py-0.5 bg-rose-500 text-white font-bold rounded-full text-xs uppercase tracking-wide">
-                  <Tag size={10} />
-                  {getValue(infographic.category, infographic.category_ja)}
-                </span>
-              )}
-            </div> */}
-
-           
           </header>
 
-          {/* ── COVER IMAGE (shown at top, like reference) ── */}
+          {/* COVER IMAGE */}
           {infographic.image && (
             <div className="rounded-xl overflow-hidden shadow-md mb-10">
               <img
@@ -98,7 +82,7 @@ export default function InfographicDetails() {
             </div>
           )}
 
-          {/* ── TABLE OF CONTENTS (collapsible, matches reference) ── */}
+          {/* TABLE OF CONTENTS */}
           {toc && toc.length > 0 && (
             <div className="border border-border rounded-lg mb-10 overflow-hidden">
               <button
@@ -111,7 +95,9 @@ export default function InfographicDetails() {
                   {lang === "ja" ? "目次" : "Table of Contents"}
                 </span>
                 <span className="text-xs text-primary font-medium">
-                  {tocOpen ? (lang === "ja" ? "閉じる" : "close") : (lang === "ja" ? "開く" : "open")}
+                  {tocOpen
+                    ? lang === "ja" ? "閉じる" : "close"
+                    : lang === "ja" ? "開く" : "open"}
                 </span>
               </button>
 
@@ -132,13 +118,14 @@ export default function InfographicDetails() {
             </div>
           )}
 
-           {infographic.short_description && (
-              <p className="text-muted-foreground max-w-4xl mx-auto leading-relaxed justify-start text-start mb-12">
-                {getValue(infographic.short_description, infographic.short_description_ja)}
-              </p>
-            )}
+          {/* SHORT DESCRIPTION */}
+          {infographic.short_description && (
+            <p className="text-muted-foreground max-w-4xl mx-auto leading-relaxed text-start mb-12">
+              {getValue(infographic.short_description, infographic.short_description_ja)}
+            </p>
+          )}
 
-          {/* ── RICH TEXT CONTENT ── */}
+          {/* RICH TEXT CONTENT */}
           {infographic.content && (
             <div
               className="prose prose-lg max-w-none mb-12
@@ -152,7 +139,7 @@ export default function InfographicDetails() {
             />
           )}
 
-          {/* ── MAIN INFOGRAPHIC IMAGE (tall, full width — the infographic itself) ── */}
+          {/* MAIN INFOGRAPHIC IMAGE */}
           {infographic.infographic_image && (
             <div className="rounded-xl overflow-hidden shadow-lg mb-12">
               <img
@@ -163,21 +150,20 @@ export default function InfographicDetails() {
             </div>
           )}
 
-          {/* ── BACK LINK ── */}
+          {/* BACK LINK */}
           <div className="mt-12 pt-8 border-t">
             <Link
-               href={`/blogs/infographics`}
+              href="/blogs/infographics"
               className="inline-flex items-center gap-2 text-primary font-medium hover:underline"
             >
               <ArrowLeft size={18} />
               {getValue("Back to Infographics", "インフォグラフィックス一覧に戻る")}
             </Link>
           </div>
-
         </div>
       </article>
 
-      {/* ── RELATED POSTS — larger cards matching reference ── */}
+      {/* RELATED POSTS */}
       {related && related.length > 0 && (
         <section className="py-14 bg-gray-50 border-t border-border">
           <div className="container mx-auto px-4 max-w-5xl">
@@ -189,10 +175,9 @@ export default function InfographicDetails() {
               {related.map((item) => (
                 <Link
                   key={item.id}
-                   href={`/blogs/infographics/${item.id}`}
+                  href={`/blogs/infographics/${item.id}`}
                   className="group bg-white border border-border rounded-xl overflow-hidden hover:shadow-lg transition-shadow"
                 >
-                  {/* Larger image for related posts */}
                   <div className="h-48 overflow-hidden bg-muted">
                     <img
                       src={item.image ? `/storage/${item.image}` : "/image/case1.jpg"}
@@ -213,21 +198,20 @@ export default function InfographicDetails() {
                       {getValue(item.title, item.title_ja)}
                     </h3>
 
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                      {item.author && (
+                    {item.author && (
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1.5">
                           <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
                             <User size={10} className="text-primary" />
                           </div>
                           {getValue(item.author, item.author_ja)}
                         </span>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 </Link>
               ))}
             </div>
-
           </div>
         </section>
       )}

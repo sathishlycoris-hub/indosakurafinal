@@ -1,117 +1,89 @@
+// resources/js/Pages/Admin/Jobs/Index.tsx
+// Changes vs original:
+//   1. Added SEO fields to useForm
+//   2. Added <SeoFields> inside the sheet form (after the sections block)
+//   3. submitAdd uses forceFormData:true so og_image file is sent correctly
+//   4. submitUpdate passes og_image via the spread (forceFormData:true)
+
 import { useState, useRef, useMemo } from "react";
 import { useForm, router } from "@inertiajs/react";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
+  Sheet, SheetContent, SheetHeader, SheetTitle,
 } from "@/components/ui/sheet";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import {
-  Pencil,
-  Trash2,
-  Plus,
-  Search,
-  GripVertical,
-} from "lucide-react";
+import { Pencil, Trash2, Plus, Search, GripVertical } from "lucide-react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import axios from "axios";
+import SeoFields from "@/components/SeoFields"; // ← import
 
 interface Job {
   id: number;
-  title?: string;
-  title_ja?: string;
-  department?: string;
-  department_ja?: string;
-  location?: string;
-  location_ja?: string;
-  employment_type?: string;
-  employment_type_ja?: string;
-  experience?: string;
-  experience_ja?: string;
-  salary?: string;
-  salary_ja?: string;
-  short_description?: string;
-  short_description_ja?: string;
-  about_role?: string;
-  about_role_ja?: string;
+  title?: string; title_ja?: string;
+  department?: string; department_ja?: string;
+  location?: string; location_ja?: string;
+  employment_type?: string; employment_type_ja?: string;
+  experience?: string; experience_ja?: string;
+  salary?: string; salary_ja?: string;
+  short_description?: string; short_description_ja?: string;
+  about_role?: string; about_role_ja?: string;
   status: "published" | "draft";
   sort_order: number;
-  sections: {
-    section_type: string;
-    content?: string;
-    content_ja?: string;
-  }[];
+  sections: { section_type: string; content?: string; content_ja?: string; }[];
+  // SEO
+  meta_title?: string | null; meta_title_ja?: string | null;
+  meta_description?: string | null; meta_description_ja?: string | null;
+  meta_keywords?: string | null; meta_keywords_ja?: string | null;
+  og_image?: string | null;
 }
 
 function csrfToken() {
-  return (
-    (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)
-      ?.content ?? ""
-  );
+  return (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? "";
 }
 
 function apiPost(url: string, body: object) {
   return axios.post(url, body, {
-    headers: {
-      "X-CSRF-TOKEN": csrfToken(),
-      "Content-Type": "application/json",
-    },
+    headers: { "X-CSRF-TOKEN": csrfToken(), "Content-Type": "application/json" },
   });
 }
 
 export default function Index({ jobs: initialJobs }: { jobs: Job[] }) {
   const [jobs, setJobs] = useState<Job[]>(initialJobs);
-  const [mode, setMode] = useState<"add" | "edit" | "view">("add");
+  const [mode, setMode] = useState<"add" | "edit">("add");
   const [activeLang, setActiveLang] = useState<"en" | "ja">("en");
   const [current, setCurrent] = useState<Job | null>(null);
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
-  // Drag state — track by ID
   const dragId = useRef<number | null>(null);
   const [draggingId, setDraggingId] = useState<number | null>(null);
 
   const { data, setData, post, reset, processing } = useForm({
-    title: "",
-    department: "",
-    location: "",
-    employment_type: "",
-    experience: "",
-    salary: "",
-    short_description: "",
-    about_role: "",
+    title: "", title_ja: "",
+    department: "", department_ja: "",
+    location: "", location_ja: "",
+    employment_type: "", employment_type_ja: "",
+    experience: "", experience_ja: "",
+    salary: "", salary_ja: "",
+    short_description: "", short_description_ja: "",
+    about_role: "", about_role_ja: "",
     status: "draft" as "draft" | "published",
     sections: [] as { type: string; content: string; content_ja: string }[],
-    title_ja: "",
-    department_ja: "",
-    location_ja: "",
-    employment_type_ja: "",
-    experience_ja: "",
-    salary_ja: "",
-    short_description_ja: "",
-    about_role_ja: "",
+    // SEO
+    meta_title: "", meta_title_ja: "",
+    meta_description: "", meta_description_ja: "",
+    meta_keywords: "", meta_keywords_ja: "",
+    og_image: null as File | null,
   });
 
-  /* ================= SEARCH FILTER ================= */
   const filteredJobs = useMemo(() => {
     if (!search) return jobs;
     const q = search.toLowerCase();
@@ -122,18 +94,15 @@ export default function Index({ jobs: initialJobs }: { jobs: Job[] }) {
     );
   }, [search, jobs]);
 
-  /* ================= DRAG & DROP ================= */
-  const handleDragStart = (id: number) => {
-    dragId.current = id;
-    setDraggingId(id);
-  };
+  /* ── DRAG & DROP ── */
+  const handleDragStart = (id: number) => { dragId.current = id; setDraggingId(id); };
 
   const handleDragEnter = (targetId: number) => {
     if (dragId.current === null || dragId.current === targetId) return;
     setJobs((prev) => {
       const updated = [...prev];
       const from = updated.findIndex((j) => j.id === dragId.current);
-      const to = updated.findIndex((j) => j.id === targetId);
+      const to   = updated.findIndex((j) => j.id === targetId);
       if (from === -1 || to === -1) return prev;
       const [dragged] = updated.splice(from, 1);
       updated.splice(to, 0, dragged);
@@ -150,77 +119,69 @@ export default function Index({ jobs: initialJobs }: { jobs: Job[] }) {
     });
   };
 
-  /* ================= OPEN ADD ================= */
+  /* ── OPEN ADD ── */
   const openAdd = () => {
     reset();
     setData({
-      title: "",
-      department: "",
-      location: "",
-      employment_type: "",
-      experience: "",
-      salary: "",
-      short_description: "",
-      about_role: "",
+      title: "", title_ja: "",
+      department: "", department_ja: "",
+      location: "", location_ja: "",
+      employment_type: "", employment_type_ja: "",
+      experience: "", experience_ja: "",
+      salary: "", salary_ja: "",
+      short_description: "", short_description_ja: "",
+      about_role: "", about_role_ja: "",
       status: "published",
       sections: [
         { type: "responsibilities", content: "", content_ja: "" },
-        { type: "requirements", content: "", content_ja: "" },
-        { type: "preferred", content: "", content_ja: "" },
-        { type: "offer", content: "", content_ja: "" },
+        { type: "requirements",     content: "", content_ja: "" },
+        { type: "preferred",        content: "", content_ja: "" },
+        { type: "offer",            content: "", content_ja: "" },
       ],
-      title_ja: "",
-      department_ja: "",
-      location_ja: "",
-      employment_type_ja: "",
-      experience_ja: "",
-      salary_ja: "",
-      short_description_ja: "",
-      about_role_ja: "",
+      meta_title: "", meta_title_ja: "",
+      meta_description: "", meta_description_ja: "",
+      meta_keywords: "", meta_keywords_ja: "",
+      og_image: null,
     });
-    setMode("add");
-    setCurrent(null);
-    setOpen(true);
+    setMode("add"); setCurrent(null); setOpen(true);
   };
 
-  /* ================= OPEN EDIT ================= */
+  /* ── OPEN EDIT ── */
   const openEdit = (job: Job) => {
-    setMode("edit");
-    setCurrent(job);
-    setOpen(true);
+    setMode("edit"); setCurrent(job); setOpen(true);
     setData({
-      title: job.title ?? "",
-      department: job.department ?? "",
-      location: job.location ?? "",
-      employment_type: job.employment_type ?? "",
-      experience: job.experience ?? "",
-      salary: job.salary ?? "",
+      title: job.title ?? "", title_ja: job.title_ja ?? "",
+      department: job.department ?? "", department_ja: job.department_ja ?? "",
+      location: job.location ?? "", location_ja: job.location_ja ?? "",
+      employment_type: job.employment_type ?? "", employment_type_ja: job.employment_type_ja ?? "",
+      experience: job.experience ?? "", experience_ja: job.experience_ja ?? "",
+      salary: job.salary ?? "", salary_ja: job.salary_ja ?? "",
       short_description: job.short_description ?? "",
-      about_role: job.about_role ?? "",
+      short_description_ja: job.short_description_ja ?? "",
+      about_role: job.about_role ?? "", about_role_ja: job.about_role_ja ?? "",
       status: job.status,
       sections: job.sections.map((s) => ({
         type: s.section_type,
         content: s.content ?? "",
         content_ja: s.content_ja ?? "",
       })),
-      title_ja: job.title_ja ?? "",
-      department_ja: job.department_ja ?? "",
-      location_ja: job.location_ja ?? "",
-      employment_type_ja: job.employment_type_ja ?? "",
-      experience_ja: job.experience_ja ?? "",
-      salary_ja: job.salary_ja ?? "",
-      short_description_ja: job.short_description_ja ?? "",
-      about_role_ja: job.about_role_ja ?? "",
+      // SEO
+      meta_title: job.meta_title ?? "", meta_title_ja: job.meta_title_ja ?? "",
+      meta_description: job.meta_description ?? "",
+      meta_description_ja: job.meta_description_ja ?? "",
+      meta_keywords: job.meta_keywords ?? "",
+      meta_keywords_ja: job.meta_keywords_ja ?? "",
+      og_image: null,
     });
   };
 
-  /* ================= SAVE ================= */
+  /* ── SAVE ──
+     Both add and update need forceFormData:true so the og_image File is
+     serialised correctly. Inertia will multipart-encode the whole payload. */
   const submitAdd = () => {
     post(route("admin.jobs.store"), {
-      onSuccess: () => {
-        reset();
-        setOpen(false);
-      },
+      forceFormData: true,
+      onSuccess: () => { reset(); setOpen(false); },
     });
   };
 
@@ -230,15 +191,13 @@ export default function Index({ jobs: initialJobs }: { jobs: Job[] }) {
       route("admin.jobs.update", current.id),
       { _method: "PUT", ...data },
       {
-        onSuccess: () => {
-          reset();
-          setOpen(false);
-        },
+        forceFormData: true,
+        onSuccess: () => { reset(); setOpen(false); },
       }
     );
   };
 
-  /* ================= DELETE ================= */
+  /* ── DELETE ── */
   const deleteItem = (id: number) => {
     if (confirm("Delete this job?")) {
       router.delete(route("admin.jobs.destroy", id), {
@@ -247,7 +206,7 @@ export default function Index({ jobs: initialJobs }: { jobs: Job[] }) {
     }
   };
 
-  /* ================= SECTION HELPERS ================= */
+  /* ── SECTION HELPERS ── */
   const renderSection = (type: string, title: string) => (
     <div className="space-y-3">
       <h4 className="font-semibold">{title}</h4>
@@ -260,19 +219,13 @@ export default function Index({ jobs: initialJobs }: { jobs: Job[] }) {
               value={activeLang === "en" ? content : content_ja}
               onChange={(e) => {
                 const updated = [...data.sections];
-                if (activeLang === "en") {
-                  updated[i].content = e.target.value;
-                } else {
-                  updated[i].content_ja = e.target.value;
-                }
+                if (activeLang === "en") updated[i].content = e.target.value;
+                else updated[i].content_ja = e.target.value;
                 setData("sections", updated);
               }}
               placeholder="Enter point"
             />
-            <Button
-              type="button"
-              variant="destructive"
-              size="icon"
+            <Button type="button" variant="destructive" size="icon"
               onClick={() => {
                 const updated = [...data.sections];
                 updated.splice(i, 1);
@@ -283,16 +236,8 @@ export default function Index({ jobs: initialJobs }: { jobs: Job[] }) {
             </Button>
           </div>
         ))}
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={() =>
-          setData("sections", [
-            ...data.sections,
-            { type, content: "", content_ja: "" },
-          ])
-        }
+      <Button type="button" variant="outline" size="sm"
+        onClick={() => setData("sections", [...data.sections, { type, content: "", content_ja: "" }])}
       >
         + Add Point
       </Button>
@@ -308,19 +253,13 @@ export default function Index({ jobs: initialJobs }: { jobs: Job[] }) {
             Drag rows to reorder — changes save automatically.
           </p>
         </div>
-        <Button onClick={openAdd}>
-          <Plus className="w-4 h-4 mr-2" />
-          Add Job
-        </Button>
+        <Button onClick={openAdd}><Plus className="w-4 h-4 mr-2" />Add Job</Button>
       </div>
 
       {/* SEARCH */}
       <div className="mb-4 max-w-sm relative">
         <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
-        <input
-          type="text"
-          placeholder="Search jobs..."
-          value={search}
+        <input type="text" placeholder="Search jobs..." value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full pl-9 pr-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary"
         />
@@ -330,180 +269,122 @@ export default function Index({ jobs: initialJobs }: { jobs: Job[] }) {
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent className="w-[90%] sm:max-w-3xl overflow-y-auto">
           <SheetHeader>
-            <SheetTitle>
-              {mode === "add" && "Add Job"}
-              {mode === "edit" && "Edit Job"}
-            </SheetTitle>
+            <SheetTitle>{mode === "add" ? "Add Job" : "Edit Job"}</SheetTitle>
           </SheetHeader>
 
-          {mode !== "view" && (
-            <div className="space-y-5 mt-6">
-              {/* Language toggle */}
-              <div className="flex gap-3 mb-6">
-                <Button
-                  type="button"
-                  variant={activeLang === "ja" ? "default" : "outline"}
-                  onClick={() => setActiveLang("ja")}
-                >
-                  Japanese
-                </Button>
-                <Button
-                  type="button"
-                  variant={activeLang === "en" ? "default" : "outline"}
-                  onClick={() => setActiveLang("en")}
-                >
-                  English
-                </Button>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm font-medium">Job Title</label>
-                <Input
-                  value={activeLang === "en" ? data.title : data.title_ja}
-                  onChange={(e) =>
-                    activeLang === "en"
-                      ? setData("title", e.target.value)
-                      : setData("title_ja", e.target.value)
-                  }
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm font-medium">Department</label>
-                <Input
-                  value={
-                    activeLang === "en" ? data.department : data.department_ja
-                  }
-                  onChange={(e) =>
-                    activeLang === "en"
-                      ? setData("department", e.target.value)
-                      : setData("department_ja", e.target.value)
-                  }
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm font-medium">Location</label>
-                <Input
-                  value={activeLang === "en" ? data.location : data.location_ja}
-                  onChange={(e) =>
-                    activeLang === "en"
-                      ? setData("location", e.target.value)
-                      : setData("location_ja", e.target.value)
-                  }
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm font-medium">Employment Type</label>
-                <Input
-                  value={
-                    activeLang === "en"
-                      ? data.employment_type
-                      : data.employment_type_ja
-                  }
-                  onChange={(e) =>
-                    activeLang === "en"
-                      ? setData("employment_type", e.target.value)
-                      : setData("employment_type_ja", e.target.value)
-                  }
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm font-medium">Experience</label>
-                <Input
-                  value={
-                    activeLang === "en" ? data.experience : data.experience_ja
-                  }
-                  onChange={(e) =>
-                    activeLang === "en"
-                      ? setData("experience", e.target.value)
-                      : setData("experience_ja", e.target.value)
-                  }
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm font-medium">Salary</label>
-                <Input
-                  value={activeLang === "en" ? data.salary : data.salary_ja}
-                  onChange={(e) =>
-                    activeLang === "en"
-                      ? setData("salary", e.target.value)
-                      : setData("salary_ja", e.target.value)
-                  }
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm font-medium">Short Description</label>
-                <Input
-                  placeholder="Short description"
-                  value={
-                    activeLang === "en"
-                      ? data.short_description
-                      : data.short_description_ja
-                  }
-                  onChange={(e) =>
-                    activeLang === "en"
-                      ? setData("short_description", e.target.value)
-                      : setData("short_description_ja", e.target.value)
-                  }
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm font-medium">Status</label>
-                <Select
-                  value={data.status}
-                  onValueChange={(v) =>
-                    setData("status", v as "draft" | "published")
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="published">Published</SelectItem>
-                    <SelectItem value="draft">Draft</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium">About Role</label>
-                <ReactQuill
-                  key={activeLang}
-                  theme="snow"
-                  style={{ height: "200px", marginBottom: "50px" }}
-                  value={
-                    activeLang === "en" ? data.about_role : data.about_role_ja
-                  }
-                  onChange={(value) =>
-                    activeLang === "en"
-                      ? setData("about_role", value)
-                      : setData("about_role_ja", value)
-                  }
-                />
-              </div>
-
-              <div className="space-y-6">
-                {renderSection("responsibilities", "Responsibilities")}
-                {renderSection("requirements", "Requirements")}
-                {renderSection("preferred", "Preferred Skills")}
-                {renderSection("offer", "What We Offer")}
-              </div>
-
-              <Button
-                className="w-full mt-4"
-                disabled={processing}
-                onClick={mode === "edit" ? submitUpdate : submitAdd}
-              >
-                {mode === "edit" ? "Update Job" : "Save Job"}
-              </Button>
+          <div className="space-y-5 mt-6">
+            {/* Language toggle */}
+            <div className="flex gap-3 mb-6">
+              <Button type="button" variant={activeLang === "ja" ? "default" : "outline"} onClick={() => setActiveLang("ja")}>Japanese</Button>
+              <Button type="button" variant={activeLang === "en" ? "default" : "outline"} onClick={() => setActiveLang("en")}>English</Button>
             </div>
-          )}
+
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Job Title</label>
+              <Input
+                value={activeLang === "en" ? data.title : data.title_ja}
+                onChange={(e) => activeLang === "en" ? setData("title", e.target.value) : setData("title_ja", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Department</label>
+              <Input
+                value={activeLang === "en" ? data.department : data.department_ja}
+                onChange={(e) => activeLang === "en" ? setData("department", e.target.value) : setData("department_ja", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Location</label>
+              <Input
+                value={activeLang === "en" ? data.location : data.location_ja}
+                onChange={(e) => activeLang === "en" ? setData("location", e.target.value) : setData("location_ja", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Employment Type</label>
+              <Input
+                value={activeLang === "en" ? data.employment_type : data.employment_type_ja}
+                onChange={(e) => activeLang === "en" ? setData("employment_type", e.target.value) : setData("employment_type_ja", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Experience</label>
+              <Input
+                value={activeLang === "en" ? data.experience : data.experience_ja}
+                onChange={(e) => activeLang === "en" ? setData("experience", e.target.value) : setData("experience_ja", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Salary</label>
+              <Input
+                value={activeLang === "en" ? data.salary : data.salary_ja}
+                onChange={(e) => activeLang === "en" ? setData("salary", e.target.value) : setData("salary_ja", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Short Description</label>
+              <Input
+                placeholder="Short description"
+                value={activeLang === "en" ? data.short_description : data.short_description_ja}
+                onChange={(e) => activeLang === "en" ? setData("short_description", e.target.value) : setData("short_description_ja", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Status</label>
+              <Select value={data.status} onValueChange={(v) => setData("status", v as "draft" | "published")}>
+                <SelectTrigger><SelectValue placeholder="Select status" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="published">Published</SelectItem>
+                  <SelectItem value="draft">Draft</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">About Role</label>
+              <ReactQuill key={activeLang} theme="snow" style={{ height: "200px", marginBottom: "50px" }}
+                value={activeLang === "en" ? data.about_role : data.about_role_ja}
+                onChange={(value) => activeLang === "en" ? setData("about_role", value) : setData("about_role_ja", value)}
+              />
+            </div>
+
+            <div className="space-y-6">
+              {renderSection("responsibilities", "Responsibilities")}
+              {renderSection("requirements",     "Requirements")}
+              {renderSection("preferred",        "Preferred Skills")}
+              {renderSection("offer",            "What We Offer")}
+            </div>
+
+            {/* ── SEO FIELDS ── */}
+            <SeoFields
+              data={{
+                meta_title: data.meta_title,
+                meta_title_ja: data.meta_title_ja,
+                meta_description: data.meta_description,
+                meta_description_ja: data.meta_description_ja,
+                meta_keywords: data.meta_keywords,
+                meta_keywords_ja: data.meta_keywords_ja,
+                og_image: data.og_image,
+              }}
+              setData={(key, value) => setData(key as any, value)}
+              activeLang={activeLang}
+              mode={mode}
+              currentOgImage={current?.og_image}
+            />
+
+            <Button className="w-full mt-4" disabled={processing}
+              onClick={mode === "edit" ? submitUpdate : submitAdd}
+            >
+              {mode === "edit" ? "Update Job" : "Save Job"}
+            </Button>
+          </div>
         </SheetContent>
       </Sheet>
 
@@ -524,74 +405,41 @@ export default function Index({ jobs: initialJobs }: { jobs: Job[] }) {
         <TableBody className="bg-white">
           {filteredJobs.length === 0 && (
             <TableRow>
-              <TableCell
-                colSpan={7}
-                className="text-center py-6 text-gray-500"
-              >
-                No jobs found
-              </TableCell>
+              <TableCell colSpan={7} className="text-center py-6 text-gray-500">No jobs found</TableCell>
             </TableRow>
           )}
-
           {filteredJobs.map((job, i) => (
-            <TableRow
-              key={job.id}
-              draggable
+            <TableRow key={job.id} draggable
               onDragStart={() => handleDragStart(job.id)}
               onDragEnter={() => handleDragEnter(job.id)}
               onDragEnd={handleDragEnd}
               onDragOver={(e) => e.preventDefault()}
-              className={`transition-opacity ${
-                draggingId === job.id ? "opacity-40" : "opacity-100"
-              }`}
+              className={`transition-opacity ${draggingId === job.id ? "opacity-40" : "opacity-100"}`}
             >
-              {/* Drag Handle */}
               <TableCell className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600">
                 <GripVertical className="w-4 h-4" />
               </TableCell>
-
               <TableCell>{i + 1}</TableCell>
               <TableCell>{job.title ?? "-"}</TableCell>
               <TableCell>{job.department ?? "-"}</TableCell>
               <TableCell>
-                <span
-                  className={`inline-flex items-center px-2 py-0.5 rounded text-sm font-medium ${
-                    job.status === "published"
-                      ? "bg-green-100 text-grey-700"
-                      : "bg-yellow-100 text-grey-700"
-                  }`}
-                >
+                <span className={`inline-flex items-center px-2 py-0.5 rounded text-sm font-medium ${
+                  job.status === "published" ? "bg-green-100 text-grey-700" : "bg-yellow-100 text-grey-700"
+                }`}>
                   {job.status}
                 </span>
               </TableCell>
               <TableCell>
                 <button
-                  onClick={() =>
-                    router.visit(
-                      route("admin.job-applications.index", { job: job.id })
-                    )
-                  }
+                  onClick={() => router.visit(route("admin.job-applications.index", { job: job.id }))}
                   className="text-pink-600 hover:underline font-medium text-sm"
                 >
                   View Applications
                 </button>
               </TableCell>
               <TableCell className="space-x-2 text-center">
-                <Button
-                  title="Edit"
-                  size="icon"
-                  onClick={() => openEdit(job)}
-                >
-                  <Pencil className="w-4 h-4" />
-                </Button>
-                <Button
-                  title="Delete"
-                  size="icon"
-                  variant="destructive"
-                  onClick={() => deleteItem(job.id)}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+                <Button title="Edit" size="icon" onClick={() => openEdit(job)}><Pencil className="w-4 h-4" /></Button>
+                <Button title="Delete" size="icon" variant="destructive" onClick={() => deleteItem(job.id)}><Trash2 className="w-4 h-4" /></Button>
               </TableCell>
             </TableRow>
           ))}

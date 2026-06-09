@@ -1,25 +1,24 @@
+// resources/js/Pages/Admin/Greetings/Index.tsx
+// Changes vs original:
+//   1. Added SEO fields to useForm
+//   2. Added <SeoFields> inside the Add/Edit form
+//   3. Both submitAdd / submitUpdate already use forceFormData:true — og_image just works
+
 import { useState } from "react";
 import { useForm, router } from "@inertiajs/react";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
+  Sheet, SheetContent, SheetHeader, SheetTitle,
 } from "@/components/ui/sheet";
 import { Plus, Eye, Pencil, Trash2 } from "lucide-react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+import SeoFields from "@/components/SeoFields"; // ← import
 
 interface Greeting {
   id: number;
@@ -28,6 +27,11 @@ interface Greeting {
   title_ja?: string | null;
   description_ja?: string | null;
   image?: string | null;
+  // SEO
+  meta_title?: string | null; meta_title_ja?: string | null;
+  meta_description?: string | null; meta_description_ja?: string | null;
+  meta_keywords?: string | null; meta_keywords_ja?: string | null;
+  og_image?: string | null;
 }
 
 export default function Index({ greetings }: { greetings: Greeting[] }) {
@@ -38,81 +42,86 @@ export default function Index({ greetings }: { greetings: Greeting[] }) {
 
   const { data, setData, post, reset, processing } = useForm<{
     title: string;
+    title_ja: string;
     description: string;
+    description_ja: string;
     image: File | null;
-    title_ja?: string;
-    description_ja?: string;
+    // SEO
+    meta_title: string; meta_title_ja: string;
+    meta_description: string; meta_description_ja: string;
+    meta_keywords: string; meta_keywords_ja: string;
+    og_image: File | null;
   }>({
-    title: "",
-    description: "",
-    description_ja: "",
-    title_ja: "",
+    title: "", title_ja: "",
+    description: "", description_ja: "",
     image: null,
+    // SEO
+    meta_title: "", meta_title_ja: "",
+    meta_description: "", meta_description_ja: "",
+    meta_keywords: "", meta_keywords_ja: "",
+    og_image: null,
   });
 
-  /* ================= OPEN ADD ================= */
+  /* ── OPEN ADD ── */
   const openAdd = () => {
     reset();
     setMode("add");
     setCurrent(null);
-    setOpen(true);
     setActiveLang("en");
+    setOpen(true);
   };
 
-  /* ================= OPEN EDIT ================= */
- const openEdit = (item: Greeting) => {
-  setMode("edit");
-  setCurrent(item);
-  setActiveLang("en"); // reset language tab
-  setOpen(true);
+  /* ── OPEN EDIT ── */
+  const openEdit = (item: Greeting) => {
+    setMode("edit");
+    setCurrent(item);
+    setActiveLang("en");
+    setOpen(true);
+    setData({
+      title: item.title,
+      title_ja: item.title_ja || "",
+      description: item.description,
+      description_ja: item.description_ja || "",
+      image: null,
+      // SEO
+      meta_title: item.meta_title || "",
+      meta_title_ja: item.meta_title_ja || "",
+      meta_description: item.meta_description || "",
+      meta_description_ja: item.meta_description_ja || "",
+      meta_keywords: item.meta_keywords || "",
+      meta_keywords_ja: item.meta_keywords_ja || "",
+      og_image: null,
+    });
+  };
 
-  setData({
-    title: item.title,
-    description: item.description,
-    title_ja: item.title_ja || "",
-    description_ja: item.description_ja || "",
-    image: null,
-  });
-};
-
-  /* ================= OPEN VIEW ================= */
+  /* ── OPEN VIEW ── */
   const openView = (item: Greeting) => {
     setMode("view");
     setCurrent(item);
     setOpen(true);
   };
 
-  /* ================= SAVE ================= */
+  /* ── SAVE ── */
   const submitAdd = () => {
     post(route("admin.greetings.store"), {
       forceFormData: true,
-      onSuccess: () => {
-        reset();
-        setOpen(false);
-      },
+      onSuccess: () => { reset(); setOpen(false); },
     });
   };
 
   const submitUpdate = () => {
     if (!current) return;
-
     router.post(
       route("admin.greetings.update", current.id),
-      {
-        _method: "PUT",
-        ...data,
-      },
+      { _method: "PUT", ...data },
       {
         forceFormData: true,
-        onSuccess: () => {
-          reset();
-          setOpen(false);
-        },
+        onSuccess: () => { reset(); setOpen(false); },
       }
     );
   };
 
-  /* ================= DELETE ================= */
+  /* ── DELETE ── */
   const deleteItem = (id: number) => {
     if (confirm("Delete this greeting?")) {
       router.delete(route("admin.greetings.destroy", id));
@@ -123,42 +132,36 @@ export default function Index({ greetings }: { greetings: Greeting[] }) {
     <Authenticated header={<h2 className="font-bold text-xl">Greetings</h2>}>
       <div className="mb-5 flex items-center justify-between">
         <h1 className="text-2xl font-bold">Greetings</h1>
-
         <Button onClick={openAdd}>
-          <Plus className="w-4 h-4 mr-2" />
-          Add Greeting
+          <Plus className="w-4 h-4 mr-2" />Add Greeting
         </Button>
       </div>
 
-      {/* ================= SHEET ================= */}
+      {/* SHEET */}
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent className="w-[90%] sm:max-w-3xl overflow-y-auto">
           <SheetHeader>
             <SheetTitle>
-              {mode === "add" && "Add Greeting"}
+              {mode === "add"  && "Add Greeting"}
               {mode === "edit" && "Edit Greeting"}
               {mode === "view" && "Greeting Details"}
             </SheetTitle>
           </SheetHeader>
 
-          {/* ================= VIEW ================= */}
+          {/* VIEW */}
           {mode === "view" && current && (
             <div className="space-y-6 mt-6">
               <div>
                 <strong>Title</strong>
                 <p className="mt-1">{current.title}</p>
               </div>
-
               <div>
                 <strong>Description</strong>
                 <div
                   className="prose max-w-none mt-2 text-muted-foreground"
-                  dangerouslySetInnerHTML={{
-                    __html: current.description,
-                  }}
+                  dangerouslySetInnerHTML={{ __html: current.description }}
                 />
               </div>
-
               {current.image && (
                 <div>
                   <strong>Image</strong>
@@ -172,26 +175,13 @@ export default function Index({ greetings }: { greetings: Greeting[] }) {
             </div>
           )}
 
-          {/* ================= ADD / EDIT ================= */}
+          {/* ADD / EDIT */}
           {mode !== "view" && (
             <div className="space-y-5 mt-6">
+              {/* Language toggle */}
               <div className="flex gap-2">
-                 <Button
-                  type="button"
-                  variant={activeLang === "ja" ? "default" : "outline"}
-                  onClick={() => setActiveLang("ja")}
-                >
-                  Japanese
-                </Button>
-                <Button
-                  type="button"
-                  variant={activeLang === "en" ? "default" : "outline"}
-                  onClick={() => setActiveLang("en")}
-                >
-                  English
-                </Button>
-
-               
+                <Button type="button" variant={activeLang === "ja" ? "default" : "outline"} onClick={() => setActiveLang("ja")}>Japanese</Button>
+                <Button type="button" variant={activeLang === "en" ? "default" : "outline"} onClick={() => setActiveLang("en")}>English</Button>
               </div>
 
               {/* Title */}
@@ -211,7 +201,7 @@ export default function Index({ greetings }: { greetings: Greeting[] }) {
               <div className="space-y-2">
                 <label className="font-medium">Description</label>
                 <ReactQuill
-                key={activeLang}
+                  key={activeLang}
                   theme="snow"
                   style={{ height: "200px", marginBottom: "50px" }}
                   value={activeLang === "en" ? data.description : data.description_ja}
@@ -223,7 +213,7 @@ export default function Index({ greetings }: { greetings: Greeting[] }) {
                 />
               </div>
 
-              {/* Existing Image (EDIT ONLY) */}
+              {/* Existing Image (edit only) */}
               {mode === "edit" && current?.image && (
                 <div className="space-y-2">
                   <label className="font-medium">Existing Image</label>
@@ -240,21 +230,32 @@ export default function Index({ greetings }: { greetings: Greeting[] }) {
                 <label className="font-medium">
                   {mode === "edit" ? "Replace Image" : "Upload Image"}
                 </label>
-
                 <div className="flex items-center gap-3">
                   <Input
                     type="file"
                     accept="image/*"
-                    onChange={(e) =>
-                      setData("image", e.target.files?.[0] ?? null)
-                    }
+                    onChange={(e) => setData("image", e.target.files?.[0] ?? null)}
                   />
-
-                  <span className="text-xs text-gray-500 whitespace-nowrap">
-                    Max: 2048 KB
-                  </span>
+                  <span className="text-xs text-gray-500 whitespace-nowrap">Max: 4096 KB</span>
                 </div>
               </div>
+
+              {/* ── SEO FIELDS ── */}
+              <SeoFields
+                data={{
+                  meta_title: data.meta_title,
+                  meta_title_ja: data.meta_title_ja,
+                  meta_description: data.meta_description,
+                  meta_description_ja: data.meta_description_ja,
+                  meta_keywords: data.meta_keywords,
+                  meta_keywords_ja: data.meta_keywords_ja,
+                  og_image: data.og_image,
+                }}
+                setData={(key, value) => setData(key as any, value)}
+                activeLang={activeLang}
+                mode={mode}
+                currentOgImage={current?.og_image}
+              />
 
               {/* Submit */}
               <Button
@@ -262,26 +263,21 @@ export default function Index({ greetings }: { greetings: Greeting[] }) {
                 disabled={processing}
                 onClick={mode === "edit" ? submitUpdate : submitAdd}
               >
-                {mode === "edit"
-                  ? "Update Greeting"
-                  : "Save Greeting"}
+                {mode === "edit" ? "Update Greeting" : "Save Greeting"}
               </Button>
             </div>
           )}
         </SheetContent>
       </Sheet>
 
-
-      {/* ================= TABLE ================= */}
+      {/* TABLE */}
       <Table>
         <TableHeader className="bg-primary">
           <TableRow>
             <TableHead className="text-white">#</TableHead>
             <TableHead className="text-white">Title</TableHead>
             <TableHead className="text-white">Image</TableHead>
-            <TableHead className="text-white text-center">
-              Actions
-            </TableHead>
+            <TableHead className="text-white text-center">Actions</TableHead>
           </TableRow>
         </TableHeader>
 
@@ -289,32 +285,16 @@ export default function Index({ greetings }: { greetings: Greeting[] }) {
           {greetings.map((item, i) => (
             <TableRow key={item.id}>
               <TableCell>{i + 1}</TableCell>
-              <TableCell>
-                {item.title}
-              </TableCell>
+              <TableCell>{item.title}</TableCell>
               <TableCell>
                 {item.image && (
-                  <img
-                    src={`/storage/${item.image}`}
-                    className="w-12 h-12 object-cover rounded"
-                  />
+                  <img src={`/storage/${item.image}`} className="w-12 h-12 object-cover rounded" />
                 )}
               </TableCell>
               <TableCell className="space-x-2 text-center">
-                <Button title="View" size="icon" onClick={() => openView(item)}>
-                  <Eye className="w-4 h-4" />
-                </Button>
-                <Button title="Edit" size="icon" onClick={() => openEdit(item)}>
-                  <Pencil className="w-4 h-4" />
-                </Button>
-                <Button
-                  title="Delete"
-                  size="icon"
-                  variant="destructive"
-                  onClick={() => deleteItem(item.id)}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+                <Button title="View" size="icon" onClick={() => openView(item)}><Eye className="w-4 h-4" /></Button>
+                <Button title="Edit" size="icon" onClick={() => openEdit(item)}><Pencil className="w-4 h-4" /></Button>
+                <Button title="Delete" size="icon" variant="destructive" onClick={() => deleteItem(item.id)}><Trash2 className="w-4 h-4" /></Button>
               </TableCell>
             </TableRow>
           ))}

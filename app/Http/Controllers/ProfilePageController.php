@@ -8,6 +8,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\CorpProfileSetting;
 use App\Models\Profile;
+use App\Models\Seo;
 use Inertia\Inertia;
 
 class ProfilePageController extends Controller
@@ -20,6 +21,7 @@ class ProfilePageController extends Controller
 
             // NEW: Our Strengths CMS settings (auto-created with defaults if not exists)
             'corpSettings' => CorpProfileSetting::firstOrCreate([]),
+            'seo' => Seo::where('page', 'corporate-profile')->first(),
         ]);
     }
 }

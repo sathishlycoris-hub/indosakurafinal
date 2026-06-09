@@ -23,40 +23,46 @@ class SolutionPageController extends Controller
                 'hero_description_ja',
                 'link'
             )
-                ->orderBy('id') 
+                ->orderBy('id')
                 ->get(),
 
-            'solutionNav' => Solution::select(
-                'title',
-                'title_ja',
-                'slug'
-            )
+            'solutionNav' => Solution::select('title', 'title_ja', 'slug')
                 ->orderBy('id')
                 ->get(),
         ]);
     }
 
-   public function show(string $slug)
-{
-    $solution = Solution::where('slug', $slug)
-        ->with([
-            'features:id,solution_id,title,title_ja,description,description_ja',
-            'useCases:id,solution_id,title,title_ja,subtitle,subtitle_ja,description,description_ja',
-            'industries:id,solution_id,title,title_ja,description,description_ja',
-            'caseStudies:id,solution_id,title,title_ja,summary,summary_ja,result,result_ja',
-        ])
-        ->firstOrFail();
+    public function show(string $slug)
+    {
+        $solution = Solution::where('slug', $slug)
+            ->with([
+                'features:id,solution_id,title,title_ja,description,description_ja',
+                'useCases:id,solution_id,title,title_ja,subtitle,subtitle_ja,description,description_ja',
+                'industries:id,solution_id,title,title_ja,description,description_ja',
+                'caseStudies:id,solution_id,title,title_ja,summary,summary_ja,result,result_ja',
+            ])
+            ->firstOrFail();
 
-    return Inertia::render('Solutions/Show', [
-        'solution' => $solution,
+        $lang = app()->getLocale();
 
-        'solutionNav' => Solution::select(
-                'title',
-                'title_ja',
-                'slug'
-            )
-            ->orderBy('id')
-            ->get(),
-    ]);
-}
+        return Inertia::render('Solutions/Show', [
+            'solution' => $solution,
+
+            // Resolved SEO data (ready to use in <Head> without extra logic in React)
+            'pageSeo' => [
+                'meta_title'       => $solution->getEffectiveMetaTitle($lang),
+                'meta_description' => $solution->getEffectiveMetaDescription($lang),
+                'meta_keywords'    => $lang === 'ja'
+                    ? ($solution->meta_keywords_ja ?? $solution->meta_keywords ?? '')
+                    : ($solution->meta_keywords ?? ''),
+                'og_image'         => $solution->og_image
+                    ? asset('storage/' . $solution->og_image)
+                    : ($solution->hero_image ? asset('storage/' . $solution->hero_image) : null),
+            ],
+
+            'solutionNav' => Solution::select('title', 'title_ja', 'slug')
+                ->orderBy('id')
+                ->get(),
+        ]);
+    }
 }

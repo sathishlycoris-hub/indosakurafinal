@@ -11,9 +11,6 @@ use Inertia\Inertia;
 
 class BlogController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         return Inertia::render('Admin/Blog/Index', [
@@ -21,20 +18,10 @@ class BlogController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
+    public function create() {}
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
         $decoded = $this->validated($request);
 
         return DB::transaction(function () use ($request, $decoded) {
@@ -44,9 +31,12 @@ class BlogController extends Controller
                 $data['image'] = $request->file('image')->store('blogs', 'public');
             }
 
+            if ($request->hasFile('og_image')) {
+                $data['og_image'] = $request->file('og_image')->store('blogs/og', 'public');
+            }
+
             $blog = Blog::create($data);
 
-            // Save relationship records out of the decoded array loop
             foreach ($decoded['page_faqs'] as $i => $item) {
                 $blog->pageFaqs()->create([
                     'question'    => $item['question'] ?? '',
@@ -61,45 +51,33 @@ class BlogController extends Controller
         });
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Blog $blog)
-    {
-        //
-    }
+    public function show(Blog $blog) {}
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Blog $blog)
-    {
-        //
-    }
+    public function edit(Blog $blog) {}
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Blog $blog)
     {
-        //
         $decoded = $this->validated($request, $blog->id);
 
         return DB::transaction(function () use ($request, $blog, $decoded) {
             $data = $request->except('page_faqs');
 
             if ($request->hasFile('image')) {
-                if ($blog->image) {
-                    Storage::disk('public')->delete($blog->image);
-                }
+                if ($blog->image) Storage::disk('public')->delete($blog->image);
                 $data['image'] = $request->file('image')->store('blogs', 'public');
             } else {
                 unset($data['image']);
             }
 
+            if ($request->hasFile('og_image')) {
+                if ($blog->og_image) Storage::disk('public')->delete($blog->og_image);
+                $data['og_image'] = $request->file('og_image')->store('blogs/og', 'public');
+            } else {
+                unset($data['og_image']);
+            }
+
             $blog->update($data);
 
-            // Sync relation data by wiping old FAQs and recreating them fresh
             $blog->pageFaqs()->delete();
             foreach ($decoded['page_faqs'] as $i => $item) {
                 $blog->pageFaqs()->create([
@@ -115,12 +93,8 @@ class BlogController extends Controller
         });
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Blog $blog)
     {
-        //
         $blog->delete();
         return back()->with('success', 'Blog deleted successfully');
     }
@@ -131,7 +105,6 @@ class BlogController extends Controller
             ? 'required|string|unique:blogs,slug,' . $ignoreId
             : 'required|string|unique:blogs,slug';
 
-        // 1. Keep 'page_faqs' unvalidated or nullable without the array type
         $request->validate([
             'title'                => 'nullable|string',
             'title_ja'             => 'nullable|string',
@@ -147,14 +120,21 @@ class BlogController extends Controller
             'published_date'       => 'nullable|date',
             'status'               => 'nullable|in:published,draft',
             'image'                => 'nullable|image',
-            'page_faqs'            => 'nullable', // Left open for JSON string data
+            'page_faqs'            => 'nullable',
+            // SEO
+            'meta_title'           => 'nullable|string|max:255',
+            'meta_title_ja'        => 'nullable|string|max:255',
+            'meta_description'     => 'nullable|string|max:500',
+            'meta_description_ja'  => 'nullable|string|max:500',
+            'meta_keywords'        => 'nullable|string|max:255',
+            'meta_keywords_ja'     => 'nullable|string|max:255',
+            'og_image'             => 'nullable|image|max:4096',
         ]);
 
-        // 2. Decode the incoming JSON string into a PHP array
         return [
             'page_faqs' => $request->filled('page_faqs')
                 ? json_decode($request->input('page_faqs'), true)
-                : []
+                : [],
         ];
     }
 }
