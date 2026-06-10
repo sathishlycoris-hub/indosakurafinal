@@ -49,7 +49,16 @@ const PAGES = [
   { value: "india-desks", label: "India Desks Page" },
 ];
 
-export default function Index({ seos }: { seos: Seo[] }) {
+interface PaginatedSeo {
+  data: Seo[];
+  links: {
+    url: string | null;
+    label: string;
+    active: boolean;
+  }[];
+}
+
+export default function Index({ seos }: { seos: PaginatedSeo }) {
   const [mode, setMode] = useState<"add" | "edit" | "view">("add");
   const [current, setCurrent] = useState<Seo | null>(null);
   const [open, setOpen] = useState(false);
@@ -238,7 +247,7 @@ export default function Index({ seos }: { seos: Seo[] }) {
         </TableHeader>
 
         <TableBody className="bg-white">
-          {seos.map((seo) => (
+          {seos.data.map((seo) => (
             <TableRow key={seo.id}>
               <TableCell className="capitalize">{seo.page}</TableCell>
               <TableCell className=" max-w-md">
@@ -269,6 +278,25 @@ export default function Index({ seos }: { seos: Seo[] }) {
           ))}
         </TableBody>
       </Table>
+      <div className="flex items-center justify-center gap-2 mt-6">
+  {seos.links.map((link, index) => (
+    <button
+      key={index}
+      disabled={!link.url}
+      onClick={() => {
+        if (link.url) {
+          router.visit(link.url);
+        }
+      }}
+      className={`px-3 py-2 rounded border text-sm ${
+        link.active
+          ? "bg-primary text-white border-primary"
+          : "bg-white hover:bg-gray-100"
+      } ${!link.url ? "opacity-50 cursor-not-allowed" : ""}`}
+      dangerouslySetInnerHTML={{ __html: link.label }}
+    />
+  ))}
+</div>
     </Authenticated>
   );
 }

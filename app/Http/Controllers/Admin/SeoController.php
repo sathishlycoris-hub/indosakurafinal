@@ -12,7 +12,9 @@ class SeoController extends Controller
     public function index()
     {
         return Inertia::render('Admin/Seo/Index', [
-            'seos' => Seo::orderBy('id')->get(),
+             'seos' => Seo::orderBy('id')
+            ->paginate(10)
+            ->withQueryString(),
         ]);
     }
 

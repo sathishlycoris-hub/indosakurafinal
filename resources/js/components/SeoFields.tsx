@@ -150,7 +150,7 @@ export default function SeoFields({
         </Field>
 
         {/* OG Image — language-independent, shown once */}
-        {activeLang === "en" && (
+        {/* {activeLang === "en" && (
           <Field
             label="OG Image (Open Graph)"
             hint="Used when shared on social media. Recommended: 1200×630 px, max 4 MB."
@@ -174,7 +174,7 @@ export default function SeoFields({
               Falls back to hero image when not set.
             </p>
           </Field>
-        )}
+        )} */}
 
       </div>
     </div>
