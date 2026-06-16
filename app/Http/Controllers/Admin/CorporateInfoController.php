@@ -6,16 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\CorporateInfo;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-
+use App\Models\CorporateInfoPage;
 class CorporateInfoController extends Controller
 {
     public function index()
-    {
-        return Inertia::render('Admin/CorporateInfo/Index', [
-            'items' => CorporateInfo::orderBy('sort_order')->get()
-        ]);
-    }
-
+{
+    return Inertia::render('Admin/CorporateInfo/Index', [
+        'items'    => CorporateInfo::orderBy('sort_order')->get(),
+        'pageData' => CorporateInfoPage::first(), 
+    ]);
+}
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -43,11 +43,11 @@ class CorporateInfoController extends Controller
         'image' => 'nullable|image|max:4096',
     ]);
 
-    // ✅ If new image uploaded
+    //  If new image uploaded
     if ($request->hasFile('image')) {
         $data['image'] = $request->file('image')->store('corporate', 'public');
     } else {
-        // ✅ KEEP OLD IMAGE
+        //  KEEP OLD IMAGE
         $data['image'] = $corporateInfo->image;
     }
 
@@ -59,5 +59,20 @@ class CorporateInfoController extends Controller
     {
         $corporateInfo->delete();
         return back()->with('success', 'Deleted');
+    }
+
+     // ── NEW: save page-level hero fields ──
+    public function updatePage(Request $request)
+    {
+        $data = $request->validate([
+            'hero_title'    => 'nullable|string|max:255',
+            'hero_title_ja' => 'nullable|string|max:255',
+            'hero_subtitle'    => 'nullable|string|max:255',
+            'hero_subtitle_ja' => 'nullable|string|max:255',
+        ]);
+
+        CorporateInfoPage::updateOrCreate(['id' => 1], $data);
+
+        return back()->with('success', 'Page settings saved');
     }
 }

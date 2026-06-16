@@ -14,7 +14,22 @@ interface Seo { meta_title?: string | null; meta_description?: string | null; me
 interface CorporateItem { id: number; title?: string; title_ja?: string; path?: string; image?: string | null }
 
 export default function CorporateInfo() {
-    const { lang, items, seo } = usePage<{ lang: "en" | "ja"; items: CorporateItem[]; seo?: Seo | null }>().props;
+    // Add pageData to the props destructured from usePage
+const { lang, items, seo, pageData } = usePage<{
+  lang: "en" | "ja";
+  items: CorporateItem[];
+  seo?: Seo | null;
+  pageData?: {
+    hero_title?: string | null;
+    hero_title_ja?: string | null;
+    hero_subtitle?: string | null;
+    hero_subtitle_ja?: string | null;
+  } | null;
+}>().props;
+
+// Helper (same pattern as IndiaDesks)
+const v = (en?: string | null, ja?: string | null) =>
+  (lang === "ja" ? ja || en : en) || "";
     const sections = items || [];
 
     return (
@@ -28,12 +43,18 @@ export default function CorporateInfo() {
             <div className="sticky top-16 lg:top-[101px] z-40 bg-white"><Subheader /></div>
 
             <section className="hero-gradient text-primary-foreground py-16 lg:py-16">
-                <div className="container mx-auto px-4 lg:px-8">
-                    <h1 className="text-4xl lg:text-5xl font-bold mb-4">
-                        {lang === "en" ? "Company Information" : "企業情報"}
-                    </h1>
-                </div>
-            </section>
+  <div className="container mx-auto px-4 lg:px-8">
+    <h1 className="text-4xl lg:text-5xl font-bold mb-4">
+      {v(pageData?.hero_title, pageData?.hero_title_ja) ||
+        (lang === "en" ? "Company Information" : "企業情報")}
+    </h1>
+    {(pageData?.hero_subtitle || pageData?.hero_subtitle_ja) && (
+      <p className="text-lg text-primary-foreground/80 mt-2">
+        {v(pageData.hero_subtitle, pageData.hero_subtitle_ja)}
+      </p>
+    )}
+  </div>
+</section>
 
             <section className="py-16 bg-section-light">
                 <div className="container mx-auto px-4 lg:px-8">

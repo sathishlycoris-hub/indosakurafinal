@@ -313,6 +313,9 @@ Route::prefix('admin')
         Route::delete('/corporate-info/{corporateInfo}', [CorporateInfoController::class, 'destroy'])
             ->name('corporate.destroy');
 
+            // ← new
+Route::post('/corporate-info-page', [CorporateInfoController::class, 'updatePage'])->name('corporate.updatePage');
+
         Route::post('newsevent/{newsevent}', [NewseventController::class, 'update'])
             ->name('newsevent.update');
         Route::resource('newsevent', NewseventController::class)
