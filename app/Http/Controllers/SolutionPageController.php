@@ -6,31 +6,25 @@ use App\Models\Solution;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Seo;
+use App\Models\SolutionPage;
 
 class SolutionPageController extends Controller
 {
-    public function index()
-    {
-        return Inertia::render('Solutions', [
-            'seo' => Seo::where('page', 'solutions')->first(),
+   public function index()
+{
+    return Inertia::render('Solutions', [
+        'seo'      => Seo::where('page', 'solutions')->first(),
+        'pageData' => SolutionPage::first(), // ← add this
 
-            'solutions' => Solution::select(
-                'id',
-                'title',
-                'title_ja',
-                'slug',
-                'hero_description',
-                'hero_description_ja',
-                'link'
-            )
-                ->orderBy('id')
-                ->get(),
+        'solutions' => Solution::select(
+            'id', 'title', 'title_ja', 'slug',
+            'hero_description', 'hero_description_ja', 'link'
+        )->orderBy('id')->get(),
 
-            'solutionNav' => Solution::select('title', 'title_ja', 'slug')
-                ->orderBy('id')
-                ->get(),
-        ]);
-    }
+        'solutionNav' => Solution::select('title', 'title_ja', 'slug')
+            ->orderBy('id')->get(),
+    ]);
+}
 
     public function show(string $slug)
     {

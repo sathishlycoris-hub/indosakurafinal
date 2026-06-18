@@ -26,7 +26,7 @@ const NAV_DEFAULTS: SiteSettings = {
   nav6_en: "India Desks",    nav6_ja: "インドデスク",   nav6_href: "/india-desks",
   contact_label_en: "Contact us",
   contact_label_ja: "お問い合わせ",
-};
+}; 
 
 const Header = () => {
   const { url, props } = usePage<{ lang: "en" | "ja"; siteSettings?: SiteSettings }>();

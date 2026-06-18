@@ -8,7 +8,7 @@ use Inertia\Inertia;
 use App\Models\Blog;
 use App\Models\BlogPageFaq;
 use App\Models\Seo;
-
+use App\Models\BlogPage;
 class BlogPageController extends Controller
 {
     public function index()
@@ -18,6 +18,7 @@ class BlogPageController extends Controller
                 ->orderBy('published_date', 'desc')
                 ->get(),
             'seo' => Seo::where('page', 'blogs')->first(),
+            'pageData' => BlogPage::first(),
         ]);
     }
 

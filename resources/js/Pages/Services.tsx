@@ -91,11 +91,18 @@ function Services({
   faqs,
   industries,
   seo,
+  pageData, // ← add
 }: {
   services: Service[];
   faqs: Faq[];
   industries: Industry[];
   seo?: Seo | null;
+  pageData?: {           // ← add
+    hero_title?: string | null;
+    hero_title_ja?: string | null;
+    hero_subtitle?: string | null;
+    hero_subtitle_ja?: string | null;
+  } | null;
 }) {
   const { lang } = usePage<{ lang: "en" | "ja" }>().props;
 
@@ -241,19 +248,22 @@ function Services({
       </div>
 
       {/* Hero Section */}
-      <section className="hero-gradient text-primary-foreground py-16 lg:py-16">
-
-        <div className="container mx-auto px-4 relative z-10" data-aos="fade-right">
-          <h1 className="text-4xl lg:text-5xl font-bold mb-4">
-            {lang === 'en' ? "Services" : "サービス"}
-          </h1>
-          <p className="text-lg text-primary-foreground/90">
-            {lang === 'en'
-              ? "Comprehensive IT solutions tailored to drive your business forward"
-              : "ビジネスを前進させるためのオーダーメイドの包括的なITソリューション"}
-          </p>
-        </div>
-      </section>
+     <section className="hero-gradient text-primary-foreground py-16 lg:py-16">
+  <div className="container mx-auto px-4 relative z-10" data-aos="fade-right">
+    <h1 className="text-4xl lg:text-5xl font-bold mb-4">
+      {getValue(
+        pageData?.hero_title    || "Services",
+        pageData?.hero_title_ja || "サービス"
+      )}
+    </h1>
+    <p className="text-lg text-primary-foreground/90">
+      {getValue(
+        pageData?.hero_subtitle    || "Comprehensive IT solutions tailored to drive your business forward",
+        pageData?.hero_subtitle_ja || "ビジネスを前進させるためのオーダーメイドの包括的なITソリューション"
+      )}
+    </p>
+  </div>
+</section>
 
       {/* Services Grid */}
       <section className="py-16 bg-background">

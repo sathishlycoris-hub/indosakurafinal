@@ -182,6 +182,12 @@ export default function SiteSettingsIndex() {
             <Field label="Resources Column" value={data[l === "en" ? "footer_resources_heading_en" : "footer_resources_heading_ja"] ?? ""} onChange={(v) => set(l === "en" ? "footer_resources_heading_en" : "footer_resources_heading_ja", v)} lang={l} />
             <Field label="Solutions Column" value={data[l === "en" ? "footer_solutions_heading_en" : "footer_solutions_heading_ja"] ?? ""} onChange={(v) => set(l === "en" ? "footer_solutions_heading_en" : "footer_solutions_heading_ja", v)} lang={l} />
             <Field label="Services Column" value={data[l === "en" ? "footer_services_heading_en" : "footer_services_heading_ja"] ?? ""} onChange={(v) => set(l === "en" ? "footer_services_heading_en" : "footer_services_heading_ja", v)} lang={l} />
+            <Field
+              label="India Desks Column"
+              value={data[l === "en" ? "footer_india_desks_heading_en" : "footer_india_desks_heading_ja"] ?? ""}
+              onChange={(v) => set(l === "en" ? "footer_india_desks_heading_en" : "footer_india_desks_heading_ja", v)}
+              lang={l}
+            />
           </div>
           <div className="space-y-3">
             <h3 className="font-semibold text-base border-b pb-2">Bottom Bar</h3>

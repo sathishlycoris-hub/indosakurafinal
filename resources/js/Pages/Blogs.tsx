@@ -29,11 +29,17 @@ interface PageProps {
     blogs: Blog[];
     seo?: Seo | null;
     lang: "en" | "ja";
-    [key: string]: unknown; 
+    pageData?: {           // ← add
+        hero_title?: string | null;
+        hero_title_ja?: string | null;
+        hero_subtitle?: string | null;
+        hero_subtitle_ja?: string | null;
+    } | null;
+    [key: string]: unknown;
 }
 
 export default function Blogs() {
-    const { blogs, seo, lang } = usePage<PageProps>().props;
+    const { blogs, seo, lang, pageData } = usePage<PageProps>().props;
 
     const getValue = (en: string, ja?: string) => (lang === "ja" ? ja || en : en);
 
@@ -50,7 +56,7 @@ export default function Blogs() {
             <Head>
                 <title>{seo?.meta_title ?? (lang === "en" ? "Blogs | Indo Sakura" : "ブログ | インドサクラ")}</title>
                 {seo?.meta_description && <meta name="description" content={seo.meta_description} />}
-                {seo?.meta_keywords    && <meta name="keywords"    content={seo.meta_keywords}    />}
+                {seo?.meta_keywords && <meta name="keywords" content={seo.meta_keywords} />}
             </Head>
 
             <div className="sticky top-16 lg:top-[101px] z-40 bg-white">
@@ -60,11 +66,16 @@ export default function Blogs() {
             {/* Hero */}
             <section className="bg-primary py-16 lg:py-16 text-white">
                 <div className="container mx-auto px-4" data-aos="fade-right">
-                    <h1 className="text-4xl lg:text-5xl font-bold mb-4">{getValue("Blogs", "ブログ")}</h1>
+                    <h1 className="text-4xl lg:text-5xl font-bold mb-4">
+                        {getValue(
+                            pageData?.hero_title || "Blogs",
+                            pageData?.hero_title_ja || "ブログ"
+                        )}
+                    </h1>
                     <p className="opacity-90">
                         {getValue(
-                            "Insights, updates, and thought leadership from our experts",
-                            "専門家によるインサイトと最新情報"
+                            pageData?.hero_subtitle || "Insights, updates, and thought leadership from our experts",
+                            pageData?.hero_subtitle_ja || "専門家によるインサイトと最新情報"
                         )}
                     </p>
                 </div>

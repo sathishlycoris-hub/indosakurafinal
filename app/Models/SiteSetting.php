@@ -26,7 +26,7 @@ class SiteSetting extends Model
         'footer_copyright_en', 'footer_copyright_ja',
         'footer_offices_en',   'footer_offices_ja',
         'footer_sitemap_en',   'footer_sitemap_ja',
-        'footer_logo_image',
+        'footer_logo_image', 'footer_india_desks_heading_en', 'footer_india_desks_heading_ja',
 
         // ── Footer — Company links (5 items) ──────────────
         'fc1_en', 'fc1_ja', 'fc1_href',

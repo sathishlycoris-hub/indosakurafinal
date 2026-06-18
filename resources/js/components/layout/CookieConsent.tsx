@@ -16,7 +16,7 @@ const enableAnalytics = () => {
   (window as any).__analyticsLoaded = true;
 
   const script = document.createElement("script");
-  script.src = "https://www.googletagmanager.com/gtag/js?id=G-1MZW5JZ2TT";
+  script.src = "https://www.googletagmanager.com/gtag/js?id=G-M6094B5NH9";
   script.async = true;
   document.head.appendChild(script);
 

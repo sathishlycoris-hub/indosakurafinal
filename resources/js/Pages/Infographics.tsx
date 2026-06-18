@@ -27,11 +27,18 @@ interface Seo {
 }
 
 export default function Infographics() {
- const { infographics, lang, seo } = usePage<{
-  infographics: Infographic[];
-  lang: "en" | "ja";
-  seo?: Seo | null;
-}>().props;
+  // Update usePage destructure
+  const { infographics, lang, seo, pageData } = usePage<{
+    infographics: Infographic[];
+    lang: "en" | "ja";
+    seo?: Seo | null;
+    pageData?: {
+      hero_title?: string | null;
+      hero_title_ja?: string | null;
+      hero_subtitle?: string | null;
+      hero_subtitle_ja?: string | null;
+    } | null;
+  }>().props;
 
   AOS.init({ duration: 800, easing: "ease-out-cubic", once: true, offset: 80 });
 
@@ -47,28 +54,28 @@ export default function Infographics() {
 
   return (
     <Layout>
-  <Head>
-    <title>
-      {seo?.meta_title ??
-        (lang === "ja"
-          ? "インフォグラフィックス | Indo Sakura"
-          : "Infographics | Indo Sakura")}
-    </title>
+      <Head>
+        <title>
+          {seo?.meta_title ??
+            (lang === "ja"
+              ? "インフォグラフィックス | Indo Sakura"
+              : "Infographics | Indo Sakura")}
+        </title>
 
-    {seo?.meta_description && (
-      <meta
-        name="description"
-        content={seo.meta_description}
-      />
-    )}
+        {seo?.meta_description && (
+          <meta
+            name="description"
+            content={seo.meta_description}
+          />
+        )}
 
-    {seo?.meta_keywords && (
-      <meta
-        name="keywords"
-        content={seo.meta_keywords}
-      />
-    )}
-  </Head>
+        {seo?.meta_keywords && (
+          <meta
+            name="keywords"
+            content={seo.meta_keywords}
+          />
+        )}
+      </Head>
       <div className="sticky top-16 lg:top-[101px] z-40 bg-white">
         <Insightshead />
       </div>
@@ -77,12 +84,15 @@ export default function Infographics() {
       <section className="bg-primary py-20 text-white">
         <div className="container mx-auto px-4" data-aos="fade-right">
           <h1 className="text-4xl font-bold mb-4">
-            {getValue("Infographics", "インフォグラフィックス")}
+            {getValue(
+              pageData?.hero_title || "Infographics",
+              pageData?.hero_title_ja || "インフォグラフィックス"
+            )}
           </h1>
           <p className="opacity-90">
             {getValue(
-              "Visual insights and data-driven stories from our experts",
-              "専門家によるビジュアルインサイト"
+              pageData?.hero_subtitle || "Visual insights and data-driven stories from our experts",
+              pageData?.hero_subtitle_ja || "専門家によるビジュアルインサイト"
             )}
           </p>
         </div>

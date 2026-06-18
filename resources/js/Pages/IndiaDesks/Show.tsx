@@ -20,17 +20,18 @@ import "aos/dist/aos.css";
 import { usePage } from "@inertiajs/react";
 
 /* ─── TYPES (unchanged) ─── */
-interface Highlight    { id: number; title: string; title_ja?: string; value?: string; description?: string; description_ja?: string; }
-interface Benefit      { id: number; title: string; title_ja?: string; description?: string; description_ja?: string; }
-interface ServiceItem  { id: number; title: string; title_ja?: string; description?: string; description_ja?: string; }
+interface Highlight { id: number; title: string; title_ja?: string; value?: string; description?: string; description_ja?: string; }
+interface Benefit { id: number; title: string; title_ja?: string; description?: string; description_ja?: string; }
+interface ServiceItem { id: number; title: string; title_ja?: string; description?: string; description_ja?: string; }
 interface WhyChooseItem { id: number; title: string; title_ja?: string; description?: string; description_ja?: string; }
 interface ApproachStep { id: number; step_number?: number; title: string; title_ja?: string; description?: string; description_ja?: string; }
-interface Testimonial  { quote: string; quote_ja?: string; author?: string; }
-interface TechStack    { category: string; category_ja?: string; items: string; }
-interface Faq          { id: number; question: string; question_ja?: string; answer: string; answer_ja?: string; }
-interface Industry     { id: number; title: string; title_ja?: string; description: string; description_ja?: string; }
-interface CaseStudy    {
+interface Testimonial { quote: string; quote_ja?: string; author?: string; }
+interface TechStack { category: string; category_ja?: string; items: string; }
+interface Faq { id: number; question: string; question_ja?: string; answer: string; answer_ja?: string; }
+interface Industry { id: number; title: string; title_ja?: string; description: string; description_ja?: string; }
+interface CaseStudy {
   id: number; title: string; title_ja?: string;
+  logo?: string | null;
   challenge_title?: string; challenge_title_ja?: string;
   challenge_description?: string; challenge_description_ja?: string;
   solution_title?: string; solution_title_ja?: string;
@@ -71,10 +72,10 @@ interface Props {
 }
 
 /* ─── ICON POOLS (unchanged) ─── */
-const BENEFIT_ICONS      = [CheckCircle, TrendingUp, Award, Users, Clock, Zap, ShieldCheck, BarChart3];
+const BENEFIT_ICONS = [CheckCircle, TrendingUp, Award, Users, Clock, Zap, ShieldCheck, BarChart3];
 const SERVICE_ITEM_ICONS = [Bot, Sparkles, Network, BrainCircuit, Database, MessageCircle, Workflow, Layers];
-const WHY_ICONS          = [CheckCircle2, Star, Layers, Lock, Target, BadgeCheck, Lightbulb, TrendingUp];
-const INDUSTRY_ICONS     = [Heart, Wallet, GraduationCap, Factory, ShoppingCart, Building2, Cpu, Shield, Globe, Cloud];
+const WHY_ICONS = [CheckCircle2, Star, Layers, Lock, Target, BadgeCheck, Lightbulb, TrendingUp];
+const INDUSTRY_ICONS = [Heart, Wallet, GraduationCap, Factory, ShoppingCart, Building2, Cpu, Shield, Globe, Cloud];
 
 const icon = (pool: any[], i: number) => pool[i % pool.length];
 
@@ -105,16 +106,16 @@ export default function Show({ indiaDesk, faqs = [], industries = [], pageSeo }:
   const v = (en?: string | null, ja?: string | null) =>
     ((lang === "ja" ? ja || en : en) || "").trim();
 
-  const highlights    = Array.isArray(indiaDesk.highlights)    ? indiaDesk.highlights    : [];
-  const benefits      = Array.isArray(indiaDesk.benefits)      ? indiaDesk.benefits      : [];
-  const serviceItems  = Array.isArray(indiaDesk.service_items) ? indiaDesk.service_items : [];
-  const whyChoose     = Array.isArray(indiaDesk.why_choose)    ? indiaDesk.why_choose    : [];
-  const approachSteps = Array.isArray(indiaDesk.approach_steps)? indiaDesk.approach_steps: [];
-  const safeFaqs      = Array.isArray(faqs)       ? faqs       : [];
+  const highlights = Array.isArray(indiaDesk.highlights) ? indiaDesk.highlights : [];
+  const benefits = Array.isArray(indiaDesk.benefits) ? indiaDesk.benefits : [];
+  const serviceItems = Array.isArray(indiaDesk.service_items) ? indiaDesk.service_items : [];
+  const whyChoose = Array.isArray(indiaDesk.why_choose) ? indiaDesk.why_choose : [];
+  const approachSteps = Array.isArray(indiaDesk.approach_steps) ? indiaDesk.approach_steps : [];
+  const safeFaqs = Array.isArray(faqs) ? faqs : [];
   const safeIndustries = Array.isArray(industries) ? industries : [];
   const safeCaseStudies = Array.isArray(indiaDesk.case_studies) ? indiaDesk.case_studies : [];
 
-  const ctaUrl   = indiaDesk.cta_url || "/contact";
+  const ctaUrl = indiaDesk.cta_url || "/contact";
   const ctaLabel = v(indiaDesk.cta_label, indiaDesk.cta_label_ja) ||
     (lang === "ja" ? "無料相談を予約する" : "Book a Free Consultation");
   const svcTitle = v(indiaDesk.title, indiaDesk.title_ja);
@@ -131,75 +132,77 @@ export default function Show({ indiaDesk, faqs = [], industries = [], pageSeo }:
       {/* 1. HERO */}
       <section className="hero-gradient text-primary-foreground py-16 lg:py-16 relative overflow-hidden">
         <div className="container mx-auto px-6 max-w-7xl relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div data-aos="fade-right">
-              <span className="inline-flex items-center gap-2 text-white/60 text-sm font-medium mb-5 tracking-wide uppercase">
-                <span className="w-5 h-px bg-white/60" />
-                {lang === "ja" ? "インドデスク" : "India Desk"}
-              </span>
-              <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-5 text-white">{svcTitle}</h1>
-              {v(indiaDesk.subtitle, indiaDesk.subtitle_ja) && (
-                <p className="text-xl font-medium text-white/80 mb-4 leading-snug">{v(indiaDesk.subtitle, indiaDesk.subtitle_ja)}</p>
-              )}
-              {v(indiaDesk.overview, indiaDesk.overview_ja) && (
-                <div className="prose max-w-xl mb-8 text-base leading-relaxed [&_*]:!text-white [&_p]:!text-white [&_li]:!text-white"
-                  dangerouslySetInnerHTML={{ __html: v(indiaDesk.overview, indiaDesk.overview_ja) }} />
-              )}
-              <a href={ctaUrl}
-                className="inline-flex items-center gap-2 bg-white text-primary font-semibold px-8 py-3.5 rounded-xl hover:opacity-90 transition-colors shadow-lg text-sm">
-                {ctaLabel} <ArrowRight className="w-4 h-4" />
-              </a>
-            </div>
-            <div data-aos="fade-left" className="hidden lg:flex flex-col gap-4 justify-center">
-              {indiaDesk.hero_image ? (
-                <img src={`/storage/${indiaDesk.hero_image}`} alt={svcTitle} className="w-full max-h-80 object-cover rounded-2xl shadow-2xl" />
-              ) : highlights.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {highlights.slice(0, 3).map((h) => (
-                    <div key={h.id} className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 text-center">
-                      {h.value && <p className="text-4xl font-extrabold text-white mb-1">{h.value}</p>}
-                      <p className="text-sm font-medium text-white/80 leading-snug">{v(h.title, h.title_ja)}</p>
-                    </div>
-                  ))}
-                </div>
-              ) : null}
-            </div>
+
+          <div data-aos="fade-right" className="w-full">
+            <span className="inline-flex items-center gap-2 text-white/60 text-sm font-medium mb-5 tracking-wide uppercase">
+              <span className="w-5 h-px bg-white/60" />
+              {lang === "ja" ? "インドデスク" : "India Desk"}
+            </span>
+
+            <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-5 text-white">{svcTitle}</h1>
+
+            {v(indiaDesk.subtitle, indiaDesk.subtitle_ja) && (
+              <p className="text-xl font-medium text-white/80 mb-4 leading-snug">{v(indiaDesk.subtitle, indiaDesk.subtitle_ja)}</p>
+            )}
+
+            {v(indiaDesk.overview, indiaDesk.overview_ja) && (
+              /* Removed 'max-w-xl' and added 'max-w-full' to match the fully expanded design pattern */
+              <div className="prose max-w-full mb-8 text-base leading-relaxed [&_*]:!text-white [&_p]:!text-white [&_li]:!text-white"
+                dangerouslySetInnerHTML={{ __html: v(indiaDesk.overview, indiaDesk.overview_ja) }} />
+            )}
+
+            <a href={ctaUrl}
+              className="inline-flex items-center gap-2 bg-white text-primary font-semibold px-8 py-3.5 rounded-xl hover:opacity-90 transition-colors shadow-lg text-sm">
+              {ctaLabel} <ArrowRight className="w-4 h-4" />
+            </a>
           </div>
+
         </div>
       </section>
 
       {/* 2. HIGHLIGHTS */}
       {highlights.length > 0 && (
-        <section className="py-20 bg-background">
-          <div className="container mx-auto px-6 max-w-7xl">
-            <SectionHeading title={lang === "ja" ? "主なハイライト" : "Key Highlights"} />
-            <div className="border border-border rounded-3xl overflow-hidden bg-card divide-y divide-border/60">
+        <section className="py-16 bg-muted/20">
+          <div className="container mx-auto px-4 lg:px-8">
+
+            {/* Section Divider */}
+            <div className="section-divider mb-8 border-pink/80">
+              <h2 className="text-3xl font-bold mb-8 text-primary">
+                {lang === "ja" ? "主なハイライト" : "Key Highlights"}
+              </h2>
+            </div>
+
+            {/* Two Column Pink Style */}
+            <div className="border border-gray-300 rounded-lg overflow-hidden text-sm">
               {highlights.map((item, i) => {
                 const Icon = icon(SERVICE_ITEM_ICONS, i);
+
                 return (
-                  <div key={item.id} data-aos="fade-up" data-aos-delay={i * 50}
-                    className="group relative p-6 md:p-8 flex flex-col md:flex-row md:items-center gap-6 transition-all duration-300 hover:bg-muted/30 first:rounded-t-3xl last:rounded-b-3xl">
-                    <div className="flex items-center gap-4 shrink-0">
-                      <div className="w-10 h-10 flex items-center justify-center text-primary group-hover:text-muted-foreground transition-colors">
-                        <Icon className="w-6 h-6 stroke-[1.5]" />
-                      </div>
-                    </div>
-                    <div className="md:w-1/3 shrink-0">
-                      <h3 className="text-lg font-bold text-primary group-hover:text-muted-foreground tracking-tight transition-colors">
+                  <div
+                    key={item.id}
+                    className="grid grid-cols-1 md:grid-cols-[320px,1fr] border-b border-gray-300 last:border-b-0"
+                  >
+                    {/* LEFT COLUMN - Pink Background */}
+                    <div className="bg-pink-100 p-5 md:p-6 font-semibold leading-relaxed flex items-start gap-3">
+                      {Icon && (
+                        <div className="text-pink-600 mt-0.5 shrink-0">
+                          <Icon className="w-5 h-5" />
+                        </div>
+                      )}
+                      <span className="text-lg font-bold text-pink-600">
                         {v(item.title, item.title_ja)}
-                      </h3>
+                      </span>
                     </div>
+
+                    {/* RIGHT COLUMN - Description (Original styling preserved) */}
                     {item.description && (
-                      <div className="flex-1 min-w-0 md:opacity-70 group-hover:opacity-100 transition-opacity duration-300">
-                        <div className="text-sm text-muted-foreground leading-relaxed prose prose-sm max-w-none"
-                          dangerouslySetInnerHTML={{ __html: v(item.description, item.description_ja) }} />
-                      </div>
+                      <div
+                        className="p-5 md:p-6 leading-relaxed prose prose-sm max-w-none bg-white text-sm text-muted-foreground"
+                        dangerouslySetInnerHTML={{
+                          __html: v(item.description, item.description_ja)
+                        }}
+                      />
                     )}
-                    <div className="absolute right-6 md:right-8 top-1/2 -translate-y-1/2 hidden md:block opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300">
-                      <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </div>
                   </div>
                 );
               })}
@@ -207,7 +210,6 @@ export default function Show({ indiaDesk, faqs = [], industries = [], pageSeo }:
           </div>
         </section>
       )}
-
       {/* 3. MID-PAGE CTA */}
       <section className="py-16 bg-primary" data-aos="fade-up">
         <div className="container mx-auto px-6 max-w-7xl">
@@ -362,7 +364,7 @@ export default function Show({ indiaDesk, faqs = [], industries = [], pageSeo }:
       )}
 
       {/* 8. INDUSTRIES */}
-      {safeIndustries.length > 0 && (
+      {/* {safeIndustries.length > 0 && (
         <section className="py-16 bg-muted/30">
           <div className="container mx-auto px-6">
             <h2 className="text-3xl font-bold text-center text-primary mb-4" data-aos="fade-up">
@@ -391,7 +393,7 @@ export default function Show({ indiaDesk, faqs = [], industries = [], pageSeo }:
             </div>
           </div>
         </section>
-      )}
+      )} */}
 
       {/* 9. CASE STUDIES */}
       {safeCaseStudies.length > 0 && (
@@ -399,54 +401,119 @@ export default function Show({ indiaDesk, faqs = [], industries = [], pageSeo }:
           <div className="container mx-auto px-6 max-w-7xl">
             <SectionHeading
               title={lang === "ja" ? "ケーススタディ" : "Case Studies"}
-              subtitle={lang === "ja" ? "インドデスクが支援したプロジェクトの成功事例をご紹介します。" : "Explore success stories from our supported projects that demonstrate our impact and expertise."} />
-            <div className="space-y-12">
+              subtitle={lang === "ja"
+                ? "インドデスクが支援したプロジェクトの成功事例をご紹介します。"
+                : "Explore success stories from our supported projects that demonstrate our impact and expertise."}
+            />
+            <div className="space-y-10">
               {safeCaseStudies.map((cs, i) => (
-                <div key={cs.id} data-aos="fade-up" data-aos-delay={i * 80}
-                  className="bg-card border border-border rounded-2xl p-6 md:p-8 hover:shadow-lg transition-all duration-300 group">
-                  <div className="border-b border-border/60 pb-5 mb-6">
-                    <h3 className="text-2xl font-bold text-primary tracking-tight">{v(cs.title, cs.title_ja)}</h3>
+                <div
+                  key={cs.id}
+                  data-aos="fade-up"
+                  data-aos-delay={i * 80}
+                  className="rounded-2xl border border-border overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
+                >
+                  {/* Card Header */}
+                  {/* Card Header */}
+                  <div className="bg-primary px-6 py-4 flex items-center gap-4">
+                    {cs.logo && (
+                      <div className="flex-shrink-0 w-11 h-11 rounded-full bg-white overflow-hidden flex items-center justify-center shadow-md ring-2 ring-white/30">
+                        <img
+                          src={cs.logo}
+                          alt={v(cs.title, cs.title_ja)}
+                          className="w-full h-full object-contain p-1"
+                        />
+                      </div>
+                    )}
+                    <h3 className="text-lg font-bold text-white tracking-tight leading-snug">
+                      {v(cs.title, cs.title_ja)}
+                    </h3>
                   </div>
-                  <div className="space-y-6 md:space-y-8">
+
+                  {/* Card Body */}
+                  <div className="divide-y divide-border">
+
+                    {/* Challenge */}
                     {cs.challenge_title && (
-                      <div className="flex flex-col md:flex-row gap-2 md:gap-6 items-start">
-                        <div className="w-full md:w-40 shrink-0 md:pt-1">
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-md text-sm font-medium bg-muted text-primary/80 border border-border/40 md:w-full md:justify-center">
-                            {lang === "ja" ? "課題" : "Challenge"}
-                          </span>
+                      <div className="flex flex-col md:flex-row">
+                        {/* Left Label */}
+                        <div className="md:w-48 shrink-0 flex items-stretch">
+                          <div className="w-1 bg-pink-400 rounded-l" />
+                          <div className="flex items-center justify-center px-5 py-5 bg-pink-50 w-full">
+                            <div className="text-center">
+                              <div className="w-9 h-9 rounded-full bg-pink-100 border-2 border-pink-400 flex items-center justify-center mx-auto mb-2">
+                                <span className="text-pink-500 font-bold text-sm">01</span>
+                              </div>
+                              <span className="text-xs font-bold text-pink-600 uppercase tracking-widest block">
+                                {lang === "ja" ? "課題" : "Challenge"}
+                              </span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex-1">
-                          <div className="text-sm text-muted-foreground leading-relaxed prose prose-sm max-w-none"
-                            dangerouslySetInnerHTML={{ __html: v(cs.challenge_description, cs.challenge_description_ja) }} />
+                        {/* Right Content */}
+                        <div className="flex-1 px-6 py-5 bg-white">
+                          <div
+                            className="text-sm text-muted-foreground leading-relaxed prose prose-sm max-w-none"
+                            dangerouslySetInnerHTML={{ __html: v(cs.challenge_description, cs.challenge_description_ja) }}
+                          />
                         </div>
                       </div>
                     )}
+
+                    {/* Solution */}
                     {cs.solution_title && (
-                      <div className="flex flex-col md:flex-row gap-2 md:gap-6 items-start pt-4 border-t border-border/40">
-                        <div className="w-full md:w-40 shrink-0 md:pt-1">
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-md text-sm font-medium bg-muted text-primary/80 border border-border/40 md:w-full md:justify-center">
-                            {lang === "ja" ? "ソリューション" : "Solution"}
-                          </span>
+                      <div className="flex flex-col md:flex-row">
+                        {/* Left Label */}
+                        <div className="md:w-48 shrink-0 flex items-stretch">
+                          <div className="w-1 bg-pink-500 rounded-l" />
+                          <div className="flex items-center justify-center px-5 py-5 bg-pink-50 w-full">
+                            <div className="text-center">
+                              <div className="w-9 h-9 rounded-full bg-pink-100 border-2 border-pink-500 flex items-center justify-center mx-auto mb-2">
+                                <span className="text-pink-600 font-bold text-sm">02</span>
+                              </div>
+                              <span className="text-xs font-bold text-pink-600 uppercase tracking-widest block">
+                                {lang === "ja" ? "ソリューション" : "Solution"}
+                              </span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex-1">
-                          <div className="text-sm text-muted-foreground leading-relaxed prose prose-sm max-w-none"
-                            dangerouslySetInnerHTML={{ __html: v(cs.solution_description, cs.solution_description_ja) }} />
+                        {/* Right Content */}
+                        <div className="flex-1 px-6 py-5 bg-white">
+                          <div
+                            className="text-sm text-muted-foreground leading-relaxed prose prose-sm max-w-none"
+                            dangerouslySetInnerHTML={{ __html: v(cs.solution_description, cs.solution_description_ja) }}
+                          />
                         </div>
                       </div>
                     )}
+
+                    {/* Results */}
                     {cs.results && (
-                      <div className="flex flex-col md:flex-row gap-2 md:gap-6 items-start pt-4 border-t border-border/40">
-                        <div className="w-full md:w-40 shrink-0 md:pt-1">
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-md text-sm font-medium bg-primary text-primary-foreground md:w-full md:justify-center shadow-sm">
-                            {lang === "ja" ? "結果" : "Results"}
-                          </span>
+                      <div className="flex flex-col md:flex-row">
+                        {/* Left Label */}
+                        <div className="md:w-48 shrink-0 flex items-stretch">
+                          <div className="w-1 bg-pink-500 rounded-l" />
+                          <div className="flex items-center justify-center px-5 py-5 bg-pink-50 w-full">
+                            <div className="text-center">
+                              <div className="w-9 h-9 rounded-full bg-pink-100 border-2 border-pink-500 flex items-center justify-center mx-auto mb-2">
+                                <span className="text-pink-600 font-bold text-sm">03</span>
+                              </div>
+                              <span className="text-xs font-bold text-pink-600 uppercase tracking-widest block">
+                                {lang === "ja" ? "結果" : "Results"}
+                              </span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex-1">
-                          <div className="text-sm text-muted-foreground leading-relaxed prose prose-sm max-w-none font-medium text-foreground/90"
-                            dangerouslySetInnerHTML={{ __html: v(cs.results, cs.results_ja) }} />
+                        {/* Right Content */}
+                        <div className="flex-1 px-6 py-5 bg-pink-50/30">
+                          <div
+                            className="text-sm leading-relaxed prose prose-sm max-w-none font-medium text-foreground/90"
+                            dangerouslySetInnerHTML={{ __html: v(cs.results, cs.results_ja) }}
+                          />
                         </div>
                       </div>
                     )}
+
                   </div>
                 </div>
               ))}

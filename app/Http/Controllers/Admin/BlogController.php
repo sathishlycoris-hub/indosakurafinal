@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Blog;
+use App\Models\BlogPage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -14,7 +15,8 @@ class BlogController extends Controller
     public function index()
     {
         return Inertia::render('Admin/Blog/Index', [
-            'blogs' => Blog::with('pageFaqs')->orderBy('published_date', 'desc')->get(),
+            'blogs'    => Blog::with('pageFaqs')->orderBy('published_date', 'desc')->get(),
+            'pageData' => BlogPage::first(), // ← add this
         ]);
     }
 
@@ -136,5 +138,20 @@ class BlogController extends Controller
                 ? json_decode($request->input('page_faqs'), true)
                 : [],
         ];
+    }
+
+    // add this new method
+    public function updatePage(Request $request)
+    {
+        $data = $request->validate([
+            'hero_title'       => 'nullable|string|max:255',
+            'hero_title_ja'    => 'nullable|string|max:255',
+            'hero_subtitle'    => 'nullable|string|max:255',
+            'hero_subtitle_ja' => 'nullable|string|max:255',
+        ]);
+
+        BlogPage::updateOrCreate(['id' => 1], $data);
+
+        return back()->with('success', 'Page settings saved');
     }
 }

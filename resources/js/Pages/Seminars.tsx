@@ -26,9 +26,16 @@ interface Seo {
 }
 export default function Seminars() {
 
-  const { lang, seo } = usePage<{
+  // Update usePage destructure
+const { lang, seo, pageData } = usePage<{
   lang: "en" | "ja";
   seo?: Seo | null;
+  pageData?: {
+    hero_title?: string | null;
+    hero_title_ja?: string | null;
+    hero_subtitle?: string | null;
+    hero_subtitle_ja?: string | null;
+  } | null;
 }>().props;
 
 const page = usePage();
@@ -91,18 +98,20 @@ const page = usePage();
       
 
       {/* HERO */}
-      <section className="bg-primary py-20 text-white">
-        <div className="container mx-auto px-4" data-aos="fade-right">
-          <h1 className="text-4xl font-bold mb-4">
-            {lang === "en" ? "Seminars & Events" : "セミナー・イベント"}
-          </h1>
-          <p className="opacity-90 max-w-2xl">
-            {lang === "en"
-              ? "Stay ahead with our expert-led seminars and industry events"
-              : "専門家主導のセミナーと業界イベントで常に先を行く"}
-          </p>
-        </div>
-      </section>
+     <section className="bg-primary py-20 text-white">
+  <div className="container mx-auto px-4" data-aos="fade-right">
+    <h1 className="text-4xl font-bold mb-4">
+      {lang === "en"
+        ? pageData?.hero_title    || "Seminars & Events"
+        : pageData?.hero_title_ja || "セミナー・イベント"}
+    </h1>
+    <p className="opacity-90 max-w-2xl">
+      {lang === "en"
+        ? pageData?.hero_subtitle    || "Stay ahead with our expert-led seminars and industry events"
+        : pageData?.hero_subtitle_ja || "専門家主導のセミナーと業界イベントで常に先を行く"}
+    </p>
+  </div>
+</section>
 
       {/* UPCOMING */}
       <section className="py-16">

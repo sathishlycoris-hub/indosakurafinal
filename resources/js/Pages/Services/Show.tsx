@@ -85,7 +85,7 @@ export default function Show({ service, faqs = [], industries = [], pageSeo }: P
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   useEffect(() => {
-    const t = setTimeout(() => setPopup(true), 3000);
+    const t = setTimeout(() => setPopup(true), 8000);
     return () => clearTimeout(t);
   }, []);
 
@@ -117,44 +117,34 @@ export default function Show({ service, faqs = [], industries = [], pageSeo }: P
 
       {/* 1. HERO */}
       <section className="hero-gradient text-primary-foreground py-16 lg:py-16 relative overflow-hidden">
-        <div className="container mx-auto px-6 max-w-7xl relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div data-aos="fade-right">
-              <span className="inline-flex items-center gap-2 text-white/60 text-sm font-medium mb-5 tracking-wide uppercase">
-                <span className="w-5 h-px bg-white/60" />
-                {lang === "ja" ? "サービス" : "Services"}
-              </span>
-              <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-5 text-white">{svcTitle}</h1>
-              {v(service.subtitle, service.subtitle_ja) && (
-                <p className="text-xl font-medium text-white/80 mb-4 leading-snug">{v(service.subtitle, service.subtitle_ja)}</p>
-              )}
-              {v(service.overview, service.overview_ja) && (
-                <div className="prose max-w-xl mb-8 text-base leading-relaxed [&_*]:!text-white"
-                  dangerouslySetInnerHTML={{ __html: v(service.overview, service.overview_ja) }} />
-              )}
-              <a href={ctaUrl}
-                className="inline-flex items-center gap-2 bg-white text-primary font-semibold px-8 py-3.5 rounded-xl hover:opacity-90 transition-colors shadow-lg text-sm">
-                {ctaLabel} <ArrowRight className="w-4 h-4" />
-              </a>
-            </div>
-            <div data-aos="fade-left" className="hidden lg:flex flex-col gap-4 justify-center">
-              {service.hero_image ? (
-                <img src={`/storage/${service.hero_image}`} alt={svcTitle}
-                  className="w-full max-h-80 object-cover rounded-2xl shadow-2xl" />
-              ) : highlights.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {highlights.slice(0, 3).map((h) => (
-                    <div key={h.id} className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 text-center">
-                      {h.value && <p className="text-4xl font-extrabold text-white mb-1">{h.value}</p>}
-                      <p className="text-sm font-medium text-white/80 leading-snug">{v(h.title, h.title_ja)}</p>
-                    </div>
-                  ))}
-                </div>
-              ) : null}
-            </div>
-          </div>
-        </div>
-      </section>
+  <div className="container mx-auto px-6 max-w-7xl relative z-10">
+    
+    <div data-aos="fade-right" className="w-full">
+      <span className="inline-flex items-center gap-2 text-white/60 text-sm font-medium mb-5 tracking-wide uppercase">
+        <span className="w-5 h-px bg-white/60" />
+        {lang === "ja" ? "サービス" : "Services"}
+      </span>
+      
+      <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-5 text-white">{svcTitle}</h1>
+      
+      {v(service.subtitle, service.subtitle_ja) && (
+        <p className="text-xl font-medium text-white/80 mb-4 leading-snug">{v(service.subtitle, service.subtitle_ja)}</p>
+      )}
+      
+      {v(service.overview, service.overview_ja) && (
+        /* Removed 'max-w-xl' and added 'max-w-full' to let the prose text expand completely */
+        <div className="prose max-w-full mb-8 text-base leading-relaxed [&_*]:!text-white"
+          dangerouslySetInnerHTML={{ __html: v(service.overview, service.overview_ja) }} />
+      )}
+      
+      <a href={ctaUrl}
+        className="inline-flex items-center gap-2 bg-white text-primary font-semibold px-8 py-3.5 rounded-xl hover:opacity-90 transition-colors shadow-lg text-sm">
+        {ctaLabel} <ArrowRight className="w-4 h-4" />
+      </a>
+    </div>
+    
+  </div>
+</section>
 
       {/* 2. OUR SERVICES */}
       {serviceItems.length > 0 && (

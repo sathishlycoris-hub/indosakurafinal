@@ -15,21 +15,28 @@ import {
   Sheet, SheetContent, SheetHeader, SheetTitle,
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Eye, Pencil, Trash2, ChevronDown, ChevronUp, AlertCircle } from "lucide-react";
+import { Plus, Eye, Pencil, Trash2, ChevronDown, ChevronUp, AlertCircle, Settings } from "lucide-react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import SeoFields from "@/components/SeoFields"; // ★ NEW
 
+
 /* ─── TYPES (same as before + SEO fields) ─── */
-interface Highlight     { value: string; title: string; title_ja?: string; description?: string; description_ja?: string; }
-interface Benefit       { title: string; title_ja?: string; description?: string; description_ja?: string; }
-interface ServiceItem   { title: string; title_ja?: string; description?: string; description_ja?: string; }
+interface Highlight { value: string; title: string; title_ja?: string; description?: string; description_ja?: string; }
+interface Benefit { title: string; title_ja?: string; description?: string; description_ja?: string; }
+interface ServiceItem { title: string; title_ja?: string; description?: string; description_ja?: string; }
 interface WhyChooseItem { title: string; title_ja?: string; description?: string; description_ja?: string; }
-interface ApproachStep  { step_number?: number; title: string; title_ja?: string; description?: string; description_ja?: string; }
-interface Testimonial   { quote: string; quote_ja?: string; author?: string; }
-interface TechStack     { category: string; category_ja?: string; items: string; }
-interface PageFaq       { question: string; question_ja?: string; answer: string; answer_ja?: string; }
-interface PageIndustry  { title: string; title_ja?: string; description?: string; description_ja?: string; }
+interface ApproachStep { step_number?: number; title: string; title_ja?: string; description?: string; description_ja?: string; }
+interface Testimonial { quote: string; quote_ja?: string; author?: string; }
+interface TechStack { category: string; category_ja?: string; items: string; }
+interface PageFaq { question: string; question_ja?: string; answer: string; answer_ja?: string; }
+interface PageIndustry { title: string; title_ja?: string; description?: string; description_ja?: string; }
+interface PageData {
+  hero_title?: string | null;
+  hero_title_ja?: string | null;
+  hero_subtitle?: string | null;
+  hero_subtitle_ja?: string | null;
+}
 
 interface Service {
   id: number;
@@ -58,25 +65,63 @@ interface Service {
 }
 
 /* ─── STRIP HELPERS (unchanged) ─── */
-const toHighlight     = (r: any): Highlight     => ({ value: r.value ?? "", title: r.title ?? "", title_ja: r.title_ja ?? "", description: r.description ?? "", description_ja: r.description_ja ?? "" });
-const toBenefit       = (r: any): Benefit       => ({ title: r.title ?? "", title_ja: r.title_ja ?? "", description: r.description ?? "", description_ja: r.description_ja ?? "" });
-const toPageFaq       = (r: any): PageFaq       => ({ question: r.question ?? "", question_ja: r.question_ja ?? "", answer: r.answer ?? "", answer_ja: r.answer_ja ?? "" });
-const toPageIndustry  = (r: any): PageIndustry  => ({ title: r.title ?? "", title_ja: r.title_ja ?? "", description: r.description ?? "", description_ja: r.description_ja ?? "" });
-const toServiceItem   = (r: any): ServiceItem   => ({ title: r.title ?? "", title_ja: r.title_ja ?? "", description: r.description ?? "", description_ja: r.description_ja ?? "" });
+const toHighlight = (r: any): Highlight => ({ value: r.value ?? "", title: r.title ?? "", title_ja: r.title_ja ?? "", description: r.description ?? "", description_ja: r.description_ja ?? "" });
+const toBenefit = (r: any): Benefit => ({ title: r.title ?? "", title_ja: r.title_ja ?? "", description: r.description ?? "", description_ja: r.description_ja ?? "" });
+const toPageFaq = (r: any): PageFaq => ({ question: r.question ?? "", question_ja: r.question_ja ?? "", answer: r.answer ?? "", answer_ja: r.answer_ja ?? "" });
+const toPageIndustry = (r: any): PageIndustry => ({ title: r.title ?? "", title_ja: r.title_ja ?? "", description: r.description ?? "", description_ja: r.description_ja ?? "" });
+const toServiceItem = (r: any): ServiceItem => ({ title: r.title ?? "", title_ja: r.title_ja ?? "", description: r.description ?? "", description_ja: r.description_ja ?? "" });
 const toWhyChooseItem = (r: any): WhyChooseItem => ({ title: r.title ?? "", title_ja: r.title_ja ?? "", description: r.description ?? "", description_ja: r.description_ja ?? "" });
-const toApproachStep  = (r: any): ApproachStep  => ({ step_number: r.step_number, title: r.title ?? "", title_ja: r.title_ja ?? "", description: r.description ?? "", description_ja: r.description_ja ?? "" });
-const toTestimonial   = (r: any): Testimonial   => ({ quote: r.quote ?? "", quote_ja: r.quote_ja ?? "", author: r.author ?? "" });
-const toTechStack     = (r: any): TechStack     => ({ category: r.category ?? "", category_ja: r.category_ja ?? "", items: r.items ?? "" });
+const toApproachStep = (r: any): ApproachStep => ({ step_number: r.step_number, title: r.title ?? "", title_ja: r.title_ja ?? "", description: r.description ?? "", description_ja: r.description_ja ?? "" });
+const toTestimonial = (r: any): Testimonial => ({ quote: r.quote ?? "", quote_ja: r.quote_ja ?? "", author: r.author ?? "" });
+const toTechStack = (r: any): TechStack => ({ category: r.category ?? "", category_ja: r.category_ja ?? "", items: r.items ?? "" });
 
 const slugify = (text: string) => text.toLowerCase().trim().replace(/[^\w\s-]/g, "").replace(/[\s_-]+/g, "-").replace(/^-+|-+$/g, "");
 
 /* ─── COMPONENT ─── */
-export default function Index({ services }: { services: Service[] }) {
-  const [mode, setMode]             = useState<"add" | "edit" | "view">("add");
-  const [current, setCurrent]       = useState<Service | null>(null);
-  const [open, setOpen]             = useState(false);
-  const [langTab, setLangTab]       = useState<"en" | "ja">("en");
+export default function Index({
+  services,
+  pageData,
+}: {
+  services: Service[];
+  pageData: PageData | null;
+}) {
+  const [pageOpen, setPageOpen] = useState(false);
+  const [pageLang, setPageLang] = useState<"en" | "ja">("en");
+  const [pageProcessing, setPageProcessing] = useState(false);
+  const [mode, setMode] = useState<"add" | "edit" | "view">("add");
+  const [current, setCurrent] = useState<Service | null>(null);
+  const [open, setOpen] = useState(false);
+  const [langTab, setLangTab] = useState<"en" | "ja">("en");
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [pageFields, setPageFields] = useState({
+    hero_title: "",
+    hero_title_ja: "",
+    hero_subtitle: "",
+    hero_subtitle_ja: "",
+  });
+
+    const openPageSettings = () => {
+    setPageFields({
+      hero_title:       pageData?.hero_title       ?? "",
+      hero_title_ja:    pageData?.hero_title_ja    ?? "",
+      hero_subtitle:    pageData?.hero_subtitle    ?? "",
+      hero_subtitle_ja: pageData?.hero_subtitle_ja ?? "",
+    });
+    setPageLang("en");
+    setPageOpen(true);
+  };
+
+   const submitPage = () => {
+    setPageProcessing(true);
+    router.post(
+      route("admin.services.updatePage"),
+      pageFields,
+      {
+        onSuccess: () => { setPageOpen(false); setPageProcessing(false); },
+        onError:   () => setPageProcessing(false),
+      }
+    );
+  };
 
   const { data, setData, reset, processing } = useForm({
     title: "", title_ja: "",
@@ -94,14 +139,14 @@ export default function Index({ services }: { services: Service[] }) {
     meta_keywords: "", meta_keywords_ja: "",
     og_image: null as File | null,
     // Relations
-    highlights:      [] as Highlight[],
-    benefits:        [] as Benefit[],
-    service_items:   [] as ServiceItem[],
-    why_choose:      [] as WhyChooseItem[],
-    approach_steps:  [] as ApproachStep[],
-    testimonials:    [] as Testimonial[],
-    tech_stack:      [] as TechStack[],
-    page_faqs:       [] as PageFaq[],
+    highlights: [] as Highlight[],
+    benefits: [] as Benefit[],
+    service_items: [] as ServiceItem[],
+    why_choose: [] as WhyChooseItem[],
+    approach_steps: [] as ApproachStep[],
+    testimonials: [] as Testimonial[],
+    tech_stack: [] as TechStack[],
+    page_faqs: [] as PageFaq[],
     page_industries: [] as PageIndustry[],
   });
 
@@ -126,15 +171,15 @@ export default function Index({ services }: { services: Service[] }) {
       meta_keywords: s.meta_keywords ?? "", meta_keywords_ja: s.meta_keywords_ja ?? "",
       og_image: null,
       // Relations
-      highlights:      Array.isArray(s.highlights)      ? s.highlights.map(toHighlight)         : [],
-      benefits:        Array.isArray(s.benefits)        ? s.benefits.map(toBenefit)             : [],
-      page_faqs:       Array.isArray(s.page_faqs)       ? s.page_faqs.map(toPageFaq)            : [],
+      highlights: Array.isArray(s.highlights) ? s.highlights.map(toHighlight) : [],
+      benefits: Array.isArray(s.benefits) ? s.benefits.map(toBenefit) : [],
+      page_faqs: Array.isArray(s.page_faqs) ? s.page_faqs.map(toPageFaq) : [],
       page_industries: Array.isArray(s.page_industries) ? s.page_industries.map(toPageIndustry) : [],
-      service_items:   Array.isArray(s.service_items)   ? s.service_items.map(toServiceItem)    : [],
-      why_choose:      Array.isArray(s.why_choose)      ? s.why_choose.map(toWhyChooseItem)     : [],
-      approach_steps:  Array.isArray(s.approach_steps)  ? s.approach_steps.map(toApproachStep)  : [],
-      testimonials:    Array.isArray(s.testimonials)    ? s.testimonials.map(toTestimonial)     : [],
-      tech_stack:      Array.isArray(s.tech_stack)      ? s.tech_stack.map(toTechStack)         : [],
+      service_items: Array.isArray(s.service_items) ? s.service_items.map(toServiceItem) : [],
+      why_choose: Array.isArray(s.why_choose) ? s.why_choose.map(toWhyChooseItem) : [],
+      approach_steps: Array.isArray(s.approach_steps) ? s.approach_steps.map(toApproachStep) : [],
+      testimonials: Array.isArray(s.testimonials) ? s.testimonials.map(toTestimonial) : [],
+      tech_stack: Array.isArray(s.tech_stack) ? s.tech_stack.map(toTechStack) : [],
     });
     setOpen(true);
   };
@@ -149,7 +194,7 @@ export default function Index({ services }: { services: Service[] }) {
   const validate = (): boolean => {
     const errors: Record<string, string> = {};
     if (!data.title.trim()) errors.title = "Title is required.";
-    if (!data.slug.trim())  errors.slug  = "Slug is required.";
+    if (!data.slug.trim()) errors.slug = "Slug is required.";
     setFormErrors(errors);
     if (Object.keys(errors).length) setLangTab("en");
     return Object.keys(errors).length === 0;
@@ -160,29 +205,29 @@ export default function Index({ services }: { services: Service[] }) {
     if (!validate()) return;
 
     const form = new FormData();
-    const app  = (k: string, v: string) => form.append(k, v ?? "");
+    const app = (k: string, v: string) => form.append(k, v ?? "");
 
-    app("title",               data.title);        app("title_ja",            data.title_ja);
-    app("slug",                data.slug.trim());
-    app("subtitle",            data.subtitle);     app("subtitle_ja",         data.subtitle_ja);
-    app("hero_description",    data.hero_description);
+    app("title", data.title); app("title_ja", data.title_ja);
+    app("slug", data.slug.trim());
+    app("subtitle", data.subtitle); app("subtitle_ja", data.subtitle_ja);
+    app("hero_description", data.hero_description);
     app("hero_description_ja", data.hero_description_ja);
-    app("how_it_works",        data.how_it_works); app("how_it_works_ja",     data.how_it_works_ja);
-    app("overview",            data.overview);     app("overview_ja",         data.overview_ja);
-    app("cta_label",           data.cta_label);    app("cta_label_ja",        data.cta_label_ja);
-    app("cta_url",             data.cta_url);
+    app("how_it_works", data.how_it_works); app("how_it_works_ja", data.how_it_works_ja);
+    app("overview", data.overview); app("overview_ja", data.overview_ja);
+    app("cta_label", data.cta_label); app("cta_label_ja", data.cta_label_ja);
+    app("cta_url", data.cta_url);
     // ★ NEW — SEO
-    app("meta_title",          data.meta_title);   app("meta_title_ja",       data.meta_title_ja);
-    app("meta_description",    data.meta_description);
+    app("meta_title", data.meta_title); app("meta_title_ja", data.meta_title_ja);
+    app("meta_description", data.meta_description);
     app("meta_description_ja", data.meta_description_ja);
-    app("meta_keywords",       data.meta_keywords);
-    app("meta_keywords_ja",    data.meta_keywords_ja);
+    app("meta_keywords", data.meta_keywords);
+    app("meta_keywords_ja", data.meta_keywords_ja);
 
     if (data.hero_image) form.append("hero_image", data.hero_image);
-    if (data.og_image)   form.append("og_image",   data.og_image);  // ★ NEW
+    if (data.og_image) form.append("og_image", data.og_image);  // ★ NEW
 
-    (["highlights","benefits","service_items","why_choose","approach_steps",
-      "testimonials","tech_stack","page_faqs","page_industries"] as const)
+    (["highlights", "benefits", "service_items", "why_choose", "approach_steps",
+      "testimonials", "tech_stack", "page_faqs", "page_industries"] as const)
       .forEach(k => form.append(k, JSON.stringify(data[k])));
 
     const opts = { onSuccess: () => { reset(); setFormErrors({}); setOpen(false); } };
@@ -203,7 +248,7 @@ export default function Index({ services }: { services: Service[] }) {
     });
   };
 
-  const addItem    = (k: keyof typeof data, item: any) => setData(k, [...(data[k] as any[]), item]);
+  const addItem = (k: keyof typeof data, item: any) => setData(k, [...(data[k] as any[]), item]);
   const removeItem = (k: keyof typeof data, i: number) => { const a = [...(data[k] as any[])]; a.splice(i, 1); setData(k, a); };
   const updateItem = (k: keyof typeof data, i: number, field: string, val: string) => { const a = [...(data[k] as any[])]; a[i][field] = val; setData(k, a); };
 
@@ -213,11 +258,84 @@ export default function Index({ services }: { services: Service[] }) {
   /* ═══ RENDER ═══ */
   return (
     <Authenticated header={<h2 className="font-bold text-xl">Services</h2>}>
-      <div className="mb-5 flex justify-between">
-        <h1 className="text-2xl font-bold">Services</h1>
-        <Button onClick={openAdd}><Plus className="w-4 h-4 mr-2" />Add Service</Button>
-      </div>
+      <div className="mb-5 flex items-center justify-between">
+  <h1 className="text-2xl font-bold">Services</h1>
+  
+  {/* Both buttons grouped on the right */}
+  <div className="flex items-center gap-3">
+    <Button variant="outline" onClick={openPageSettings}>
+      <Settings className="w-4 h-4 mr-2" /> 
+      Page Settings
+    </Button>
+    
+    <Button onClick={openAdd}>
+      <Plus className="w-4 h-4 mr-2" /> 
+      Add Service
+    </Button>
+  </div>
+</div>
+<Sheet open={pageOpen} onOpenChange={setPageOpen}>
+  <SheetContent className="w-[90%] sm:max-w-2xl overflow-y-auto">
+    <SheetHeader>
+      <SheetTitle>Page Settings — Hero Section</SheetTitle>
+    </SheetHeader>
 
+    <div className="space-y-5 mt-6">
+      <Tabs value={pageLang} onValueChange={v => setPageLang(v as "en" | "ja")}>
+        <TabsList className="mb-2">
+          <TabsTrigger value="en" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+            English
+          </TabsTrigger>
+          <TabsTrigger value="ja" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+            Japanese
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="en" className="space-y-4">
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Hero Title (EN)</Label>
+            <Input
+              value={pageFields.hero_title}
+              onChange={e => setPageFields(prev => ({ ...prev, hero_title: e.target.value }))}
+              placeholder="Services"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Hero Subtitle (EN)</Label>
+            <Input
+              value={pageFields.hero_subtitle}
+              onChange={e => setPageFields(prev => ({ ...prev, hero_subtitle: e.target.value }))}
+              placeholder="Comprehensive IT solutions tailored to drive your business forward"
+            />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="ja" className="space-y-4">
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Hero Title (JA)</Label>
+            <Input
+              value={pageFields.hero_title_ja}
+              onChange={e => setPageFields(prev => ({ ...prev, hero_title_ja: e.target.value }))}
+              placeholder="サービス"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Hero Subtitle (JA)</Label>
+            <Input
+              value={pageFields.hero_subtitle_ja}
+              onChange={e => setPageFields(prev => ({ ...prev, hero_subtitle_ja: e.target.value }))}
+              placeholder="ビジネスを前進させるためのオーダーメイドの包括的なITソリューション"
+            />
+          </div>
+        </TabsContent>
+      </Tabs>
+
+      <Button disabled={pageProcessing} className="w-full" onClick={submitPage}>
+        {pageProcessing ? "Saving..." : "Save Page Settings"}
+      </Button>
+    </div>
+  </SheetContent>
+</Sheet>
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent className="w-[95%] sm:max-w-5xl overflow-y-auto">
           <SheetHeader>
@@ -241,9 +359,9 @@ export default function Index({ services }: { services: Service[] }) {
               {(current.meta_title || current.meta_description) && (
                 <div className="border rounded-xl p-4 bg-muted/20 space-y-2">
                   <p className="font-semibold text-sm">SEO</p>
-                  {current.meta_title       && <p className="text-sm"><span className="text-muted-foreground">Title:</span> {current.meta_title}</p>}
+                  {current.meta_title && <p className="text-sm"><span className="text-muted-foreground">Title:</span> {current.meta_title}</p>}
                   {current.meta_description && <p className="text-sm"><span className="text-muted-foreground">Description:</span> {current.meta_description}</p>}
-                  {current.meta_keywords    && <p className="text-sm"><span className="text-muted-foreground">Keywords:</span> {current.meta_keywords}</p>}
+                  {current.meta_keywords && <p className="text-sm"><span className="text-muted-foreground">Keywords:</span> {current.meta_keywords}</p>}
                   {current.og_image && <img src={`/storage/${current.og_image}`} className="h-20 rounded border object-cover mt-2" alt="OG" />}
                 </div>
               )}
@@ -311,13 +429,13 @@ export default function Index({ services }: { services: Service[] }) {
               {/* ★ NEW — SEO Section */}
               <SeoFields
                 data={{
-                  meta_title:          data.meta_title,
-                  meta_title_ja:       data.meta_title_ja,
-                  meta_description:    data.meta_description,
+                  meta_title: data.meta_title,
+                  meta_title_ja: data.meta_title_ja,
+                  meta_description: data.meta_description,
                   meta_description_ja: data.meta_description_ja,
-                  meta_keywords:       data.meta_keywords,
-                  meta_keywords_ja:    data.meta_keywords_ja,
-                  og_image:            data.og_image,
+                  meta_keywords: data.meta_keywords,
+                  meta_keywords_ja: data.meta_keywords_ja,
+                  og_image: data.og_image,
                 }}
                 setData={setSeoData}
                 activeLang={langTab}

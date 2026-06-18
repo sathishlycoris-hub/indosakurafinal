@@ -15,12 +15,22 @@ import { Plus, Eye, Pencil, Trash2 } from "lucide-react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import SeoFields from "@/components/SeoFields";
+import { Settings } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
 
 /* ── TYPES ── */
-interface Feature   { title: string; title_ja?: string; subtitle: string; description: string; description_ja?: string; }
-interface UseCase   { title: string; title_ja?: string; subtitle?: string; subtitle_ja?: string; description: string; description_ja?: string; }
-interface Industry  { title: string; title_ja?: string; description: string; description_ja?: string; }
+interface Feature { title: string; title_ja?: string; subtitle: string; description: string; description_ja?: string; }
+interface UseCase { title: string; title_ja?: string; subtitle?: string; subtitle_ja?: string; description: string; description_ja?: string; }
+interface Industry { title: string; title_ja?: string; description: string; description_ja?: string; }
 interface CaseStudy { title: string; title_ja?: string; client?: string; summary?: string; summary_ja?: string; result?: string; result_ja?: string; }
+// Add PageData interface
+interface PageData {
+  hero_title?: string | null;
+  hero_title_ja?: string | null;
+  hero_subtitle?: string | null;
+  hero_subtitle_ja?: string | null;
+}
 
 interface Solution {
   id: number;
@@ -42,11 +52,48 @@ interface Solution {
 }
 
 /* ── COMPONENT ── */
-export default function Index({ solutions }: { solutions: Solution[] }) {
-  const [mode, setMode]         = useState<"add" | "edit" | "view">("add");
-  const [current, setCurrent]   = useState<Solution | null>(null);
-  const [open, setOpen]         = useState(false);
+export default function Index({
+  solutions,
+  pageData,
+}: {
+  solutions: Solution[];
+  pageData: PageData | null;
+}) {
+  const [pageOpen, setPageOpen] = useState(false);
+  const [mode, setMode] = useState<"add" | "edit" | "view">("add");
+  const [current, setCurrent] = useState<Solution | null>(null);
+  const [open, setOpen] = useState(false);
   const [activeLang, setActiveLang] = useState<"en" | "ja">("en");
+  const [pageLang, setPageLang] = useState<"en" | "ja">("en");
+  const [pageProcessing, setPageProcessing] = useState(false);
+  const [pageFields, setPageFields] = useState({
+    hero_title: "",
+    hero_title_ja: "",
+    hero_subtitle: "",
+    hero_subtitle_ja: "",
+  });
+  const openPageSettings = () => {
+    setPageFields({
+      hero_title: pageData?.hero_title ?? "",
+      hero_title_ja: pageData?.hero_title_ja ?? "",
+      hero_subtitle: pageData?.hero_subtitle ?? "",
+      hero_subtitle_ja: pageData?.hero_subtitle_ja ?? "",
+    });
+    setPageLang("en");
+    setPageOpen(true);
+  };
+
+  const submitPage = () => {
+    setPageProcessing(true);
+    router.post(
+      route("admin.solutions.updatePage"),
+      pageFields,
+      {
+        onSuccess: () => { setPageOpen(false); setPageProcessing(false); },
+        onError: () => setPageProcessing(false),
+      }
+    );
+  };
 
   const { data, setData, reset, processing } = useForm({
     title: "", title_ja: "",
@@ -61,9 +108,9 @@ export default function Index({ solutions }: { solutions: Solution[] }) {
     meta_keywords: "", meta_keywords_ja: "",
     og_image: null as File | null,
     // Relations
-    features:    [] as any[],
-    use_cases:   [] as any[],
-    industries:  [] as any[],
+    features: [] as any[],
+    use_cases: [] as any[],
+    industries: [] as any[],
     case_studies: [] as any[],
   });
 
@@ -74,7 +121,7 @@ export default function Index({ solutions }: { solutions: Solution[] }) {
     setMode("edit"); setCurrent(s); setOpen(true);
     setData({
       title: s.title, title_ja: s.title_ja || "",
-      slug: s.slug,   link: s.link || "",
+      slug: s.slug, link: s.link || "",
       subtitle: s.subtitle || "", subtitle_ja: s.subtitle_ja || "",
       hero_description: s.hero_description || "",
       hero_description_ja: s.hero_description_ja || "",
@@ -85,9 +132,9 @@ export default function Index({ solutions }: { solutions: Solution[] }) {
       meta_keywords: s.meta_keywords || "", meta_keywords_ja: s.meta_keywords_ja || "",
       og_image: null,
       // Relations
-      features:     s.features     || [],
-      use_cases:    s.use_cases    || [],
-      industries:   s.industries   || [],
+      features: s.features || [],
+      use_cases: s.use_cases || [],
+      industries: s.industries || [],
       case_studies: s.case_studies || [],
     });
   };
@@ -99,26 +146,26 @@ export default function Index({ solutions }: { solutions: Solution[] }) {
     const form = new FormData();
     const a = (k: string, v: string) => form.append(k, v ?? "");
 
-    a("slug",                data.slug);
-    a("title",               data.title);        a("title_ja",            data.title_ja);
-    a("subtitle",            data.subtitle);     a("subtitle_ja",         data.subtitle_ja);
-    a("hero_description",    data.hero_description);
+    a("slug", data.slug);
+    a("title", data.title); a("title_ja", data.title_ja);
+    a("subtitle", data.subtitle); a("subtitle_ja", data.subtitle_ja);
+    a("hero_description", data.hero_description);
     a("hero_description_ja", data.hero_description_ja);
-    a("link",                data.link);
+    a("link", data.link);
     // SEO
-    a("meta_title",          data.meta_title);   a("meta_title_ja",       data.meta_title_ja);
-    a("meta_description",    data.meta_description);
+    a("meta_title", data.meta_title); a("meta_title_ja", data.meta_title_ja);
+    a("meta_description", data.meta_description);
     a("meta_description_ja", data.meta_description_ja);
-    a("meta_keywords",       data.meta_keywords);
-    a("meta_keywords_ja",    data.meta_keywords_ja);
+    a("meta_keywords", data.meta_keywords);
+    a("meta_keywords_ja", data.meta_keywords_ja);
 
     if (data.hero_image) form.append("hero_image", data.hero_image);
-    if (data.og_image)   form.append("og_image",   data.og_image);
+    if (data.og_image) form.append("og_image", data.og_image);
 
-    form.append("features",     JSON.stringify(data.features));
-    form.append("use_cases",    JSON.stringify(data.use_cases));
+    form.append("features", JSON.stringify(data.features));
+    form.append("use_cases", JSON.stringify(data.use_cases));
     form.append("case_studies", JSON.stringify(data.case_studies));
-    form.append("industries",   JSON.stringify(data.industries));
+    form.append("industries", JSON.stringify(data.industries));
 
     return form;
   };
@@ -138,13 +185,15 @@ export default function Index({ solutions }: { solutions: Solution[] }) {
     });
   };
 
+
+
   const deleteItem = (id: number) => {
     if (!confirm("Delete this solution?")) return;
     router.delete(route("admin.solutions.destroy", id), { preserveScroll: true });
   };
 
   /* ── ARRAY HELPERS ── */
-  const addItem    = (key: keyof typeof data, item: any) => setData(key, [...(data[key] as any[]), item]);
+  const addItem = (key: keyof typeof data, item: any) => setData(key, [...(data[key] as any[]), item]);
   const updateItem = (key: keyof typeof data, i: number, field: string, value: string) => {
     const u = [...(data[key] as any[])]; u[i][field] = value; setData(key, u);
   };
@@ -158,10 +207,86 @@ export default function Index({ solutions }: { solutions: Solution[] }) {
   /* ── RENDER ── */
   return (
     <Authenticated header={<h2 className="font-bold text-xl">Solutions</h2>}>
-      <div className="mb-5 flex justify-between">
-        <h1 className="text-2xl font-bold">Solutions</h1>
-        <Button onClick={openAdd}><Plus className="w-4 h-4 mr-2" />Add Solution</Button>
-      </div>
+     <div className="mb-5 flex items-center justify-between">
+  <h1 className="text-2xl font-bold">Solutions</h1>
+  
+  {/* Buttons grouped on the right */}
+  <div className="flex items-center gap-3">
+    <Button variant="outline" onClick={openPageSettings}>
+      <Settings className="w-4 h-4 mr-2" /> 
+      Page Settings
+    </Button>
+    
+    <Button onClick={openAdd}>
+      <Plus className="w-4 h-4 mr-2" /> 
+      Add Solution
+    </Button>
+  </div>
+</div>
+
+      
+      <Sheet open={pageOpen} onOpenChange={setPageOpen}>
+  <SheetContent className="w-[90%] sm:max-w-2xl overflow-y-auto">
+    <SheetHeader>
+      <SheetTitle>Page Settings — Hero Section</SheetTitle>
+    </SheetHeader>
+
+    <div className="space-y-5 mt-6">
+      <Tabs value={pageLang} onValueChange={v => setPageLang(v as "en" | "ja")}>
+        <TabsList className="mb-2">
+          <TabsTrigger value="en" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+            English
+          </TabsTrigger>
+          <TabsTrigger value="ja" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+            Japanese
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="en" className="space-y-4">
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Hero Title (EN)</Label>
+            <Input
+              value={pageFields.hero_title}
+              onChange={e => setPageFields(prev => ({ ...prev, hero_title: e.target.value }))}
+              placeholder="Products"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Hero Subtitle (EN)</Label>
+            <Input
+              value={pageFields.hero_subtitle}
+              onChange={e => setPageFields(prev => ({ ...prev, hero_subtitle: e.target.value }))}
+              placeholder="Transform your business with innovative solutions"
+            />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="ja" className="space-y-4">
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Hero Title (JA)</Label>
+            <Input
+              value={pageFields.hero_title_ja}
+              onChange={e => setPageFields(prev => ({ ...prev, hero_title_ja: e.target.value }))}
+              placeholder="ソリューション"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Hero Subtitle (JA)</Label>
+            <Input
+              value={pageFields.hero_subtitle_ja}
+              onChange={e => setPageFields(prev => ({ ...prev, hero_subtitle_ja: e.target.value }))}
+              placeholder="革新的なソリューションでビジネスを変革します"
+            />
+          </div>
+        </TabsContent>
+      </Tabs>
+
+      <Button disabled={pageProcessing} className="w-full" onClick={submitPage}>
+        {pageProcessing ? "Saving..." : "Save Page Settings"}
+      </Button>
+    </div>
+  </SheetContent>
+</Sheet>
 
       {/* ── SHEET ── */}
       <Sheet open={open} onOpenChange={setOpen}>
@@ -235,13 +360,13 @@ export default function Index({ solutions }: { solutions: Solution[] }) {
               {/* ══ SEO SECTION ══ */}
               <SeoFields
                 data={{
-                  meta_title:          data.meta_title,
-                  meta_title_ja:       data.meta_title_ja,
-                  meta_description:    data.meta_description,
+                  meta_title: data.meta_title,
+                  meta_title_ja: data.meta_title_ja,
+                  meta_description: data.meta_description,
                   meta_description_ja: data.meta_description_ja,
-                  meta_keywords:       data.meta_keywords,
-                  meta_keywords_ja:    data.meta_keywords_ja,
-                  og_image:            data.og_image,
+                  meta_keywords: data.meta_keywords,
+                  meta_keywords_ja: data.meta_keywords_ja,
+                  og_image: data.og_image,
                 }}
                 setData={setSeoData}
                 activeLang={activeLang}
@@ -395,8 +520,8 @@ export default function Index({ solutions }: { solutions: Solution[] }) {
                   : <span className="text-xs text-muted-foreground">Not set</span>}
               </TableCell>
               <TableCell className="space-x-2 text-center">
-                <Button title="View"   size="icon" onClick={() => openView(s)}><Eye     className="w-4 h-4" /></Button>
-                <Button title="Edit"   size="icon" onClick={() => openEdit(s)}><Pencil  className="w-4 h-4" /></Button>
+                <Button title="View" size="icon" onClick={() => openView(s)}><Eye className="w-4 h-4" /></Button>
+                <Button title="Edit" size="icon" onClick={() => openEdit(s)}><Pencil className="w-4 h-4" /></Button>
                 <Button title="Delete" size="icon" variant="destructive" onClick={() => deleteItem(s.id)}><Trash2 className="w-4 h-4" /></Button>
               </TableCell>
             </TableRow>

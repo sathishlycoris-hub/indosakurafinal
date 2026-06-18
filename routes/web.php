@@ -300,6 +300,8 @@ Route::prefix('admin')
         Route::resource('/infographics', \App\Http\Controllers\Admin\InfographicController::class)
             ->names('infographics');
 
+        Route::post('infographics-page', [\App\Http\Controllers\Admin\InfographicController::class, 'updatePage'])->name('infographics.updatePage');
+
 
         Route::get('/corporate-info', [CorporateInfoController::class, 'index'])
             ->name('corporate.index');
@@ -313,8 +315,8 @@ Route::prefix('admin')
         Route::delete('/corporate-info/{corporateInfo}', [CorporateInfoController::class, 'destroy'])
             ->name('corporate.destroy');
 
-            // ← new
-Route::post('/corporate-info-page', [CorporateInfoController::class, 'updatePage'])->name('corporate.updatePage');
+        // ← new
+        Route::post('/corporate-info-page', [CorporateInfoController::class, 'updatePage'])->name('corporate.updatePage');
 
         Route::post('newsevent/{newsevent}', [NewseventController::class, 'update'])
             ->name('newsevent.update');
@@ -356,6 +358,8 @@ Route::post('/corporate-info-page', [CorporateInfoController::class, 'updatePage
 
         Route::resource('blogs', BlogController::class)
             ->except(['create', 'edit', 'show']);
+
+        Route::post('blogs-page', [BlogController::class, 'updatePage'])->name('blogs.updatePage');
 
         Route::resource('jobs', JobController::class)
             ->names('jobs');
@@ -406,6 +410,8 @@ Route::post('/corporate-info-page', [CorporateInfoController::class, 'updatePage
         Route::resource('solutions', SolutionController::class)
             ->names('solutions');
 
+        Route::post('solutions-page', [SolutionController::class, 'updatePage'])->name('solutions.updatePage');
+
         Route::resource('services', ServiceController::class)
             ->names('services');
 
@@ -429,7 +435,10 @@ Route::post('/corporate-info-page', [CorporateInfoController::class, 'updatePage
             'destroy'
         ])->name('service-industries.destroy');
 
+        Route::post('services-page', [ServiceController::class, 'updatePage'])->name('services.updatePage');
         // india desk industries
+
+        Route::post('seminars-page', [SeminarController::class, 'updatePage'])->name('seminars.updatePage');
         Route::resource('india-desks', IndiaDeskController::class)
             ->names('india_desks');
 
@@ -469,6 +478,8 @@ Route::post('/corporate-info-page', [CorporateInfoController::class, 'updatePage
 
         Route::delete('/case-studies/{caseStudy}', [AdminCaseStudyController::class, 'destroy'])
             ->name('casestudies.destroy');
+
+        Route::post('case-studies-page', [AdminCaseStudyController::class, 'updatePage'])->name('case_studies.updatePage');
 
         Route::get('/india-desk-page', [IndiaDeskPageController::class, 'indexTop'])
             ->name('india_desks_page.index');

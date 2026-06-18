@@ -8,6 +8,7 @@ use App\Models\Faq;
 use Inertia\Inertia;
 use App\Models\ServiceIndustry;
 use App\Models\Seo;
+use App\Models\ServicePage;
 
 class ServicePageController extends Controller
 {
@@ -17,7 +18,7 @@ class ServicePageController extends Controller
         return Inertia::render('Services', [
             'lang' => app()->getLocale(),
             'seo'  => Seo::where('page', 'services')->first(),
-
+            'pageData' => ServicePage::first(),
             'services' => Service::select(
                 'id', 'title', 'title_ja', 'slug',
                 'subtitle', 'subtitle_ja', 'hero_image'

@@ -7,6 +7,7 @@ use App\Models\Seo;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\CaseStudyPage;
 
 class CaseStudyController extends Controller
 {
@@ -14,9 +15,15 @@ class CaseStudyController extends Controller
     {
         return Inertia::render('Casestudies/Index', [
             'caseStudies' => CaseStudy::select(
-                'id', 'subtitle', 'subtitle_ja', 'slug', 'hero_image', 'tags'
+                'id',
+                'subtitle',
+                'subtitle_ja',
+                'slug',
+                'hero_image',
+                'tags'
             )->latest()->get(),
             'seo' => Seo::where('page', 'case-studies')->first(),
+            'pageData' => CaseStudyPage::first(), // ← add
         ]);
     }
 

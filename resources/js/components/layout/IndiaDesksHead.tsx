@@ -24,7 +24,7 @@ export default function IndiaDesksHead() {
 
   const tabs = [
     {
-      label: getValue("India Desks", "インドデスク"),
+      label: getValue("India Desk", "インドデスク"),
       path: "/india-desks",
       exact: true,
     },

@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { DatePicker } from "@/components/ui/date-picker";
+import { Settings } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -53,9 +55,25 @@ interface Blog {
   meta_keywords_ja?: string | null;
   page_faqs: PageFaq[];
 }
+interface PageData {
+  hero_title?: string | null;
+  hero_title_ja?: string | null;
+  hero_subtitle?: string | null;
+  hero_subtitle_ja?: string | null;
+}
 
 export default function AdminBlogIndex() {
-  const { blogs } = usePage<{ blogs: Blog[] }>().props;
+  const { blogs, pageData } = usePage<{ blogs: Blog[]; pageData: PageData | null }>().props;
+  const [pageOpen, setPageOpen] = useState(false);
+  const [pageLang, setPageLang] = useState<"en" | "ja">("en");
+  const [pageProcessing, setPageProcessing] = useState(false);
+  const [pageFields, setPageFields] = useState({
+    hero_title: "",
+    hero_title_ja: "",
+    hero_subtitle: "",
+    hero_subtitle_ja: "",
+  });
+
   const [activeLang, setActiveLang] = useState<"en" | "ja">("en");
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<"add" | "edit" | "view">("add");
@@ -79,6 +97,29 @@ export default function AdminBlogIndex() {
     meta_keywords: "", meta_keywords_ja: "",
     og_image: null as File | null,
   });
+
+  const openPageSettings = () => {
+    setPageFields({
+      hero_title: pageData?.hero_title ?? "",
+      hero_title_ja: pageData?.hero_title_ja ?? "",
+      hero_subtitle: pageData?.hero_subtitle ?? "",
+      hero_subtitle_ja: pageData?.hero_subtitle_ja ?? "",
+    });
+    setPageLang("en");
+    setPageOpen(true);
+  };
+
+  const submitPage = () => {
+    setPageProcessing(true);
+    router.post(
+      route("admin.blogs.updatePage"),
+      pageFields,
+      {
+        onSuccess: () => { setPageOpen(false); setPageProcessing(false); },
+        onError: () => setPageProcessing(false),
+      }
+    );
+  };
 
   const filteredBlogs = blogs.filter((b) => {
     if (!search) return true;
@@ -124,7 +165,7 @@ export default function AdminBlogIndex() {
 
   const openView = (blog: Blog) => { setMode("view"); setCurrent(blog); setOpen(true); };
 
-  const addItem    = (k: keyof typeof data, item: any) => setData(k, [...(data[k] as any[]), item]);
+  const addItem = (k: keyof typeof data, item: any) => setData(k, [...(data[k] as any[]), item]);
   const removeItem = (k: keyof typeof data, i: number) => {
     const a = [...(data[k] as any[])]; a.splice(i, 1); setData(k, a);
   };
@@ -139,7 +180,7 @@ export default function AdminBlogIndex() {
         formData.append(key, (data as any)[key] ?? "");
       }
     });
-    if (data.image)    formData.append("image", data.image);
+    if (data.image) formData.append("image", data.image);
     if (data.og_image) formData.append("og_image", data.og_image);
     formData.append("page_faqs", JSON.stringify(data.page_faqs));
     return formData;
@@ -175,7 +216,12 @@ export default function AdminBlogIndex() {
       <div className="mb-5">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-bold">Blogs</h1>
-          <Button onClick={openAdd}><Plus className="w-4 h-4 mr-2" />Add Blog</Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={openPageSettings}>
+              <Settings className="w-4 h-4 mr-2" /> Page Settings
+            </Button>
+            <Button onClick={openAdd}><Plus className="w-4 h-4 mr-2" />Add Blog</Button>
+          </div>
         </div>
         <div className="mb-4 max-w-sm relative">
           <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
@@ -186,7 +232,68 @@ export default function AdminBlogIndex() {
           />
         </div>
       </div>
+      <Sheet open={pageOpen} onOpenChange={setPageOpen}>
+        <SheetContent className="w-[90%] sm:max-w-2xl overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Page Settings — Hero Section</SheetTitle>
+          </SheetHeader>
 
+          <div className="space-y-5 mt-6">
+            <Tabs value={pageLang} onValueChange={v => setPageLang(v as "en" | "ja")}>
+              <TabsList className="mb-2">
+                <TabsTrigger value="en" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+                  English
+                </TabsTrigger>
+                <TabsTrigger value="ja" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+                  Japanese
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="en" className="space-y-4">
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Hero Title (EN)</Label>
+                  <Input
+                    value={pageFields.hero_title}
+                    onChange={e => setPageFields(prev => ({ ...prev, hero_title: e.target.value }))}
+                    placeholder="Blogs"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Hero Subtitle (EN)</Label>
+                  <Input
+                    value={pageFields.hero_subtitle}
+                    onChange={e => setPageFields(prev => ({ ...prev, hero_subtitle: e.target.value }))}
+                    placeholder="Insights, updates, and thought leadership from our experts"
+                  />
+                </div>
+              </TabsContent>
+
+              <TabsContent value="ja" className="space-y-4">
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Hero Title (JA)</Label>
+                  <Input
+                    value={pageFields.hero_title_ja}
+                    onChange={e => setPageFields(prev => ({ ...prev, hero_title_ja: e.target.value }))}
+                    placeholder="ブログ"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Hero Subtitle (JA)</Label>
+                  <Input
+                    value={pageFields.hero_subtitle_ja}
+                    onChange={e => setPageFields(prev => ({ ...prev, hero_subtitle_ja: e.target.value }))}
+                    placeholder="専門家によるインサイトと最新情報"
+                  />
+                </div>
+              </TabsContent>
+            </Tabs>
+
+            <Button disabled={pageProcessing} className="w-full" onClick={submitPage}>
+              {pageProcessing ? "Saving..." : "Save Page Settings"}
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent className="w-[90%] sm:max-w-3xl overflow-y-auto">
           <SheetHeader>

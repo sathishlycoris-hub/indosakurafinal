@@ -51,7 +51,7 @@ class IndiaDeskController extends Controller
             'cta_label_ja'        => 'nullable|string|max:255',
             'cta_url'             => 'nullable|string|max:255',
             'hero_image'          => 'nullable|image|max:4096',
-            // ★ SEO
+            // SEO
             'meta_title'          => 'nullable|string|max:255',
             'meta_title_ja'       => 'nullable|string|max:255',
             'meta_description'    => 'nullable|string|max:500',
@@ -59,6 +59,9 @@ class IndiaDeskController extends Controller
             'meta_keywords'       => 'nullable|string|max:500',
             'meta_keywords_ja'    => 'nullable|string|max:500',
             'og_image'            => 'nullable|image|max:4096',
+            // Case study logos — indexed file inputs
+            'case_study_logos'    => 'nullable|array',
+            'case_study_logos.*'  => 'nullable|image|max:2048',
             // JSON arrays
             'highlights'          => 'nullable',
             'benefits'            => 'nullable',
@@ -91,6 +94,41 @@ class IndiaDeskController extends Controller
         }
 
         return $decoded;
+    }
+
+    /* ─────────── PROCESS CASE STUDY LOGOS ─────────── */
+
+    /**
+     * For each case study in the decoded array:
+     *  - If a new file was uploaded at case_study_logos[i], store it and set logo URL.
+     *  - Otherwise preserve the existing logo URL from $existing[i]['logo'].
+     * Old logo files are deleted from storage when replaced.
+     */
+    private function processCaseStudyLogos(
+        Request $request,
+        array $caseStudies,
+        array $existing = []
+    ): array {
+        foreach ($caseStudies as $i => &$cs) {
+            if ($request->hasFile("case_study_logos.{$i}")) {
+                // Delete old logo if one exists for this slot
+                $oldLogo = $existing[$i]['logo'] ?? null;
+                if ($oldLogo) {
+                    $relative = ltrim(str_replace(asset('storage'), '', $oldLogo), '/');
+                    if ($relative && Storage::disk('public')->exists($relative)) {
+                        Storage::disk('public')->delete($relative);
+                    }
+                }
+                $stored     = $request->file("case_study_logos.{$i}")->store('indiadesks/cs_logos', 'public');
+                $cs['logo'] = asset('storage/' . $stored);
+            } else {
+                // No new upload — keep whatever URL is already stored
+                $cs['logo'] = $existing[$i]['logo'] ?? ($cs['logo'] ?? null);
+            }
+        }
+        unset($cs);
+
+        return $caseStudies;
     }
 
     /* ─────────── SYNC RELATIONS ─────────── */
@@ -148,13 +186,12 @@ class IndiaDeskController extends Controller
             'approach_steps' => $decoded['approach_steps'],
             'testimonials'   => $decoded['testimonials'],
             'tech_stack'     => $decoded['tech_stack'],
-            'case_studies'   => $decoded['case_studies'],
+            'case_studies'   => $decoded['case_studies'], // logos already baked in
         ]);
     }
 
     /* ─────────── BUILD MAIN PAYLOAD ─────────── */
 
-    // ★ Added $existingOgImage parameter for OG image persistence
     private function buildPayload(
         Request $request,
         ?string $existingImage = null,
@@ -185,7 +222,6 @@ class IndiaDeskController extends Controller
             'cta_label_ja'        => $request->cta_label_ja,
             'cta_url'             => $request->cta_url ?? '/contact',
             'hero_image'          => $existingImage,
-            // ★ SEO fields
             'meta_title'          => $request->meta_title,
             'meta_title_ja'       => $request->meta_title_ja,
             'meta_description'    => $request->meta_description,
@@ -202,12 +238,17 @@ class IndiaDeskController extends Controller
     {
         $decoded = $this->validated($request);
 
+        // Resolve logos before the DB transaction (file I/O outside transaction)
+        $decoded['case_studies'] = $this->processCaseStudyLogos(
+            $request,
+            $decoded['case_studies'] ?? []
+        );
+
         DB::transaction(function () use ($request, $decoded) {
             $heroImage = $request->hasFile('hero_image')
                 ? $request->file('hero_image')->store('indiadesks', 'public')
                 : null;
 
-            // ★ Handle OG image upload
             $ogImage = $request->hasFile('og_image')
                 ? $request->file('og_image')->store('indiadesks/og', 'public')
                 : null;
@@ -227,8 +268,14 @@ class IndiaDeskController extends Controller
     {
         $decoded = $this->validated($request, $indiaDesk->id);
 
+        // Pass existing case_studies so old logos survive when no new file is uploaded
+        $decoded['case_studies'] = $this->processCaseStudyLogos(
+            $request,
+            $decoded['case_studies'] ?? [],
+            $indiaDesk->case_studies ?? []
+        );
+
         DB::transaction(function () use ($request, $indiaDesk, $decoded) {
-            // Hero image
             $heroImage = $indiaDesk->hero_image;
             if ($request->hasFile('hero_image')) {
                 if ($indiaDesk->hero_image) {
@@ -237,7 +284,6 @@ class IndiaDeskController extends Controller
                 $heroImage = $request->file('hero_image')->store('indiadesks', 'public');
             }
 
-            // ★ OG image replace
             $ogImage = $indiaDesk->og_image;
             if ($request->hasFile('og_image')) {
                 if ($indiaDesk->og_image) {
@@ -270,12 +316,25 @@ class IndiaDeskController extends Controller
     public function destroy(IndiaDesk $indiaDesk)
     {
         DB::transaction(function () use ($indiaDesk) {
-            // ★ Also delete OG image on destroy
             foreach (['hero_image', 'og_image'] as $img) {
                 if ($indiaDesk->{$img}) {
                     Storage::disk('public')->delete($indiaDesk->{$img});
                 }
             }
+
+            // Delete all case study logos stored in JSON
+            if (is_array($indiaDesk->case_studies)) {
+                foreach ($indiaDesk->case_studies as $cs) {
+                    $logoUrl = $cs['logo'] ?? null;
+                    if ($logoUrl) {
+                        $relative = ltrim(str_replace(asset('storage'), '', $logoUrl), '/');
+                        if ($relative && Storage::disk('public')->exists($relative)) {
+                            Storage::disk('public')->delete($relative);
+                        }
+                    }
+                }
+            }
+
             $indiaDesk->highlights()->delete();
             $indiaDesk->benefits()->delete();
             $indiaDesk->pageFaqs()->delete();

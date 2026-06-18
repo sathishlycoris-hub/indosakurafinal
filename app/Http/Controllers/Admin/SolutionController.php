@@ -7,6 +7,7 @@ use Inertia\Inertia;
 use App\Models\Solution;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Models\SolutionPage; // add this import
 
 class SolutionController extends Controller
 {
@@ -15,6 +16,7 @@ class SolutionController extends Controller
         return Inertia::render('Admin/Solutions/Index', [
             'solutions' => Solution::with(['features', 'useCases', 'caseStudies', 'industries'])
                 ->latest()->get(),
+            'pageData' => SolutionPage::first(), // ← add this
         ]);
     }
 
@@ -222,5 +224,20 @@ class SolutionController extends Controller
                 'sort_order'     => $i,
             ]);
         }
+    }
+
+    // ── add this new method ──
+    public function updatePage(Request $request)
+    {
+        $data = $request->validate([
+            'hero_title'       => 'nullable|string|max:255',
+            'hero_title_ja'    => 'nullable|string|max:255',
+            'hero_subtitle'    => 'nullable|string|max:255',
+            'hero_subtitle_ja' => 'nullable|string|max:255',
+        ]);
+
+        SolutionPage::updateOrCreate(['id' => 1], $data);
+
+        return back()->with('success', 'Page settings saved');
     }
 }

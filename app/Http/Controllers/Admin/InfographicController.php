@@ -7,16 +7,17 @@ use App\Models\Infographic;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use App\Models\InfographicPage;
 
 class InfographicController extends Controller
 {
     public function index()
-    {
-        return Inertia::render('Admin/Infographics/Index', [
-            'infographics' => Infographic::orderBy('published_date', 'desc')->get(),
-        ]);
-    }
-
+{
+    return Inertia::render('Admin/Infographics/Index', [
+        'infographics' => Infographic::orderBy('published_date', 'desc')->get(),
+        'pageData'     => InfographicPage::first(), // ← add
+    ]);
+}
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -147,4 +148,18 @@ class InfographicController extends Controller
 
         return back()->with('success', 'Infographic deleted successfully');
     }
+
+    public function updatePage(Request $request)
+{
+    $data = $request->validate([
+        'hero_title'       => 'nullable|string|max:255',
+        'hero_title_ja'    => 'nullable|string|max:255',
+        'hero_subtitle'    => 'nullable|string|max:255',
+        'hero_subtitle_ja' => 'nullable|string|max:255',
+    ]);
+
+    InfographicPage::updateOrCreate(['id' => 1], $data);
+
+    return back()->with('success', 'Page settings saved');
+}
 }

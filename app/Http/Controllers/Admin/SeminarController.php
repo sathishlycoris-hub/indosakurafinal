@@ -7,30 +7,30 @@ use Inertia\Inertia;
 use App\Models\Seminar;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-
+use App\Models\SeminarPage; 
 class SeminarController extends Controller
 {
     public function index()
-    {
-        return Inertia::render('Admin/Seminar/Index', [
-            'seminars' => Seminar::select(
-                'id',
-                'title', 'title_ja',
-                'description', 'description_ja',
-                'location', 'location_ja',
-                'organizer', 'organizer_ja',
-                'participation_fee', 'participation_fee_ja',
-                'sponsorship', 'sponsorship_ja',
-                'cooperation', 'cooperation_ja',
-                'date', 'time', 'status', 'tags', 'image',
-                // SEO
-                'meta_title', 'meta_title_ja',
-                'meta_description', 'meta_description_ja',
-                'meta_keywords', 'meta_keywords_ja',
-                'og_image'
-            )->orderBy('date', 'desc')->get(),
-        ]);
-    }
+{
+    return Inertia::render('Admin/Seminar/Index', [
+        'seminars' => Seminar::select(
+            'id',
+            'title', 'title_ja',
+            'description', 'description_ja',
+            'location', 'location_ja',
+            'organizer', 'organizer_ja',
+            'participation_fee', 'participation_fee_ja',
+            'sponsorship', 'sponsorship_ja',
+            'cooperation', 'cooperation_ja',
+            'date', 'time', 'status', 'tags', 'image',
+            'meta_title', 'meta_title_ja',
+            'meta_description', 'meta_description_ja',
+            'meta_keywords', 'meta_keywords_ja',
+            'og_image'
+        )->orderBy('date', 'desc')->get(),
+        'pageData' => SeminarPage::first(), // ← add
+    ]);
+}
 
     public function create() {}
 
@@ -147,4 +147,17 @@ class SeminarController extends Controller
         $seminar->delete();
         return back()->with('success', 'Seminar deleted');
     }
+    public function updatePage(Request $request)
+{
+    $data = $request->validate([
+        'hero_title'       => 'nullable|string|max:255',
+        'hero_title_ja'    => 'nullable|string|max:255',
+        'hero_subtitle'    => 'nullable|string|max:255',
+        'hero_subtitle_ja' => 'nullable|string|max:255',
+    ]);
+
+    SeminarPage::updateOrCreate(['id' => 1], $data);
+
+    return back()->with('success', 'Page settings saved');
+}
 }

@@ -7,15 +7,18 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use App\Models\CaseStudyPage;
 
 class AdminCaseStudyController extends Controller
 {
     public function index()
-    {
-        return Inertia::render('Admin/CaseStudies/Index', [
-            'caseStudies' => CaseStudy::latest()->get(),
-        ]);
-    }
+{
+    return Inertia::render('Admin/CaseStudies/Index', [
+        'caseStudies' => CaseStudy::latest()->get(),
+        'pageData'    => CaseStudyPage::first(), 
+    ]);
+}
+
 
     public function store(Request $request)
     {
@@ -113,4 +116,18 @@ class AdminCaseStudyController extends Controller
         $caseStudy->delete();
         return back()->with('success', 'Case study deleted');
     }
+
+    public function updatePage(Request $request)
+{
+    $data = $request->validate([
+        'hero_title'       => 'nullable|string|max:255',
+        'hero_title_ja'    => 'nullable|string|max:255',
+        'hero_subtitle'    => 'nullable|string|max:255',
+        'hero_subtitle_ja' => 'nullable|string|max:255',
+    ]);
+
+    CaseStudyPage::updateOrCreate(['id' => 1], $data);
+
+    return back()->with('success', 'Page settings saved');
+}
 }

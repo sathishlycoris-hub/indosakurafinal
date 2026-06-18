@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use App\Models\ServicePage;
 
 class ServiceController extends Controller
 {
@@ -19,6 +20,7 @@ class ServiceController extends Controller
     {
         return Inertia::render('Admin/Services/Index', [
             'services' => Service::with(self::WITH)->latest()->get(),
+            'pageData' => ServicePage::first(),
         ]);
     }
 
@@ -70,10 +72,15 @@ class ServiceController extends Controller
         ]);
 
         $jsonKeys = [
-            'highlights', 'benefits',
-            'service_items', 'why_choose', 'approach_steps',
-            'testimonials', 'tech_stack',
-            'page_faqs', 'page_industries',
+            'highlights',
+            'benefits',
+            'service_items',
+            'why_choose',
+            'approach_steps',
+            'testimonials',
+            'tech_stack',
+            'page_faqs',
+            'page_industries',
         ];
 
         $decoded = [];
@@ -250,5 +257,20 @@ class ServiceController extends Controller
         });
 
         return redirect()->route('admin.services.index')->with('success', 'Service deleted successfully.');
+    }
+
+    // add this new method
+    public function updatePage(Request $request)
+    {
+        $data = $request->validate([
+            'hero_title'       => 'nullable|string|max:255',
+            'hero_title_ja'    => 'nullable|string|max:255',
+            'hero_subtitle'    => 'nullable|string|max:255',
+            'hero_subtitle_ja' => 'nullable|string|max:255',
+        ]);
+
+        ServicePage::updateOrCreate(['id' => 1], $data);
+
+        return back()->with('success', 'Page settings saved');
     }
 }

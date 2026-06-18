@@ -126,7 +126,8 @@ const Index = ({
         <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 md:py-14 lg:py-16">
           <div className="flex flex-col lg:flex-row items-center gap-6 sm:gap-8 lg:gap-12">
             <div className="flex-1 w-full lg:w-auto flex flex-col items-center lg:items-start mt-6 lg:mt-0">
-              <div className="relative rounded-xl p-4 sm:p-5 md:p-6 w-full sm:w-2/3 lg:w-1/3 max-w-sm shadow-2xl backdrop-blur-sm border border-white/30 bg-black/40">
+             <div className="relative rounded-xl p-6 sm:p-8 md:p-10 w-half max-w-2xl shadow-2xl backdrop-blur-sm border border-white/20 bg-black/30">
+
                 <div className="absolute inset-0 rounded-xl bg-black/30 pointer-events-none" />
                 <div className="relative z-10">
                   <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-2 sm:mb-3 text-white">

@@ -11,6 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { DatePicker } from "@/components/ui/date-picker";
+import { Settings } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -25,8 +28,14 @@ import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import SeoFields from "@/components/SeoFields"; // ← import
 
-interface TocItem { label: string; }
 
+interface TocItem { label: string; }
+interface PageData {
+  hero_title?: string | null;
+  hero_title_ja?: string | null;
+  hero_subtitle?: string | null;
+  hero_subtitle_ja?: string | null;
+}
 interface Infographic {
   id: number;
   title: string; title_ja?: string;
@@ -49,7 +58,20 @@ interface Infographic {
 }
 
 export default function AdminInfographicsIndex() {
-  const { infographics } = usePage<{ infographics: Infographic[] }>().props;
+  const { infographics, pageData } = usePage<{
+  infographics: Infographic[];
+  pageData: PageData | null;
+}>().props;
+
+  const [pageOpen, setPageOpen] = useState(false);
+  const [pageLang, setPageLang] = useState<"en" | "ja">("en");
+  const [pageProcessing, setPageProcessing] = useState(false);
+  const [pageFields, setPageFields] = useState({
+    hero_title: "",
+    hero_title_ja: "",
+    hero_subtitle: "",
+    hero_subtitle_ja: "",
+  });
   const [activeLang, setActiveLang] = useState<"en" | "ja">("en");
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<"add" | "edit" | "view">("add");
@@ -57,6 +79,29 @@ export default function AdminInfographicsIndex() {
   const [search, setSearch] = useState("");
   const [tocEn, setTocEn] = useState<string[]>([]);
   const [tocJa, setTocJa] = useState<string[]>([]);
+
+  const openPageSettings = () => {
+    setPageFields({
+      hero_title: pageData?.hero_title ?? "",
+      hero_title_ja: pageData?.hero_title_ja ?? "",
+      hero_subtitle: pageData?.hero_subtitle ?? "",
+      hero_subtitle_ja: pageData?.hero_subtitle_ja ?? "",
+    });
+    setPageLang("en");
+    setPageOpen(true);
+  };
+
+  const submitPage = () => {
+    setPageProcessing(true);
+    router.post(
+      route("admin.infographics.updatePage"),
+      pageFields,
+      {
+        onSuccess: () => { setPageOpen(false); setPageProcessing(false); },
+        onError: () => setPageProcessing(false),
+      }
+    );
+  };
 
   const { data, setData, post, reset, processing } = useForm({
     slug: "",
@@ -181,7 +226,14 @@ export default function AdminInfographicsIndex() {
       <div className="mb-5">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-bold">Infographics</h1>
-          <Button onClick={openAdd}><Plus className="w-4 h-4 mr-2" /> Add Infographic</Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={openPageSettings}>
+              <Settings className="w-4 h-4 mr-2" /> Page Settings
+            </Button>
+            <Button onClick={openAdd}>
+              <Plus className="w-4 h-4 mr-2" /> Add Infographic
+            </Button>
+          </div>
         </div>
         <div className="mb-4 max-w-sm relative">
           <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
@@ -191,6 +243,69 @@ export default function AdminInfographicsIndex() {
           />
         </div>
       </div>
+
+      <Sheet open={pageOpen} onOpenChange={setPageOpen}>
+  <SheetContent className="w-[90%] sm:max-w-2xl overflow-y-auto">
+    <SheetHeader>
+      <SheetTitle>Page Settings — Hero Section</SheetTitle>
+    </SheetHeader>
+
+    <div className="space-y-5 mt-6">
+      <Tabs value={pageLang} onValueChange={v => setPageLang(v as "en" | "ja")}>
+        <TabsList className="mb-2">
+          <TabsTrigger value="en" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+            English
+          </TabsTrigger>
+          <TabsTrigger value="ja" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+            Japanese
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="en" className="space-y-4">
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Hero Title (EN)</Label>
+            <Input
+              value={pageFields.hero_title}
+              onChange={e => setPageFields(prev => ({ ...prev, hero_title: e.target.value }))}
+              placeholder="Infographics"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Hero Subtitle (EN)</Label>
+            <Input
+              value={pageFields.hero_subtitle}
+              onChange={e => setPageFields(prev => ({ ...prev, hero_subtitle: e.target.value }))}
+              placeholder="Visual insights and data-driven stories from our experts"
+            />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="ja" className="space-y-4">
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Hero Title (JA)</Label>
+            <Input
+              value={pageFields.hero_title_ja}
+              onChange={e => setPageFields(prev => ({ ...prev, hero_title_ja: e.target.value }))}
+              placeholder="インフォグラフィックス"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Hero Subtitle (JA)</Label>
+            <Input
+              value={pageFields.hero_subtitle_ja}
+              onChange={e => setPageFields(prev => ({ ...prev, hero_subtitle_ja: e.target.value }))}
+              placeholder="専門家によるビジュアルインサイト"
+            />
+          </div>
+        </TabsContent>
+      </Tabs>
+
+      <Button disabled={pageProcessing} className="w-full" onClick={submitPage}>
+        {pageProcessing ? "Saving..." : "Save Page Settings"}
+      </Button>
+    </div>
+  </SheetContent>
+</Sheet>
 
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent className="w-[90%] sm:max-w-3xl overflow-y-auto">

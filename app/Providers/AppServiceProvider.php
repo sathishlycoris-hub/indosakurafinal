@@ -41,6 +41,10 @@ class AppServiceProvider extends ServiceProvider
 
             'footerSolutions' => fn() =>
             Solution::select('title', 'title_ja', 'slug')->orderBy('id')->get(),
+
+            'footerIndiaDesks' => fn() => \App\Models\IndiaDesk::select('title', 'title_ja', 'slug')
+                ->orderBy('id')
+                ->get(),
         ]);
     }
 }

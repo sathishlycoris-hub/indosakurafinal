@@ -232,13 +232,13 @@ function IndiaDesks({
               {safeHighlights.map((highlight, index) => (
                 <div
                   key={index}
-                  className="flex items-start gap-3 p-4 rounded-xl bg-white border border-border/30 hover:shadow-sm transition-all"
+                  className="flex items-start gap-3 p-4 rounded-xl bg-primary border border-border/30 hover:shadow-sm transition-all"
                   data-aos="fade-up"
                   data-aos-delay={index * 50}
                 >
-                  <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                  <CheckCircle2 className="w-5 h-5 text-white shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-semibold text-foreground/90">
+                    <p className="text-sm font-semibold text-white">
                       {v(highlight.title, highlight.title_ja)}
                     </p>
                     {(highlight.description || highlight.description_ja) && (

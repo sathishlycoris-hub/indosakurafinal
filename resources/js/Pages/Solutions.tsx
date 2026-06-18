@@ -35,9 +35,16 @@ interface Seo {
 const Solutions = ({
   solutions,
   seo,
+  pageData,  // ← add
 }: {
   solutions: Solution[];
   seo?: Seo | null;
+  pageData?: {           // ← add
+    hero_title?: string | null;
+    hero_title_ja?: string | null;
+    hero_subtitle?: string | null;
+    hero_subtitle_ja?: string | null;
+  } | null;
 }) => {
 
   const { lang } = usePage<{ lang: "en" | "ja" }>().props;
@@ -94,19 +101,21 @@ const Solutions = ({
 
       {/* Hero */}
       <section className="hero-gradient text-primary-foreground py-16 lg:py-16">
-        <div className="container mx-auto px-4 lg:px-8" data-aos="fade-right">
-          <h1 className="text-4xl lg:text-5xl font-bold mb-4">
-            {getValue("Products", "ソリューション")}
-          </h1>
-
-          <p className="text-lg text-primary-foreground/90">
-            {getValue(
-              "Transform your business with innovative solutions",
-              "革新的なソリューションでビジネスを変革します"
-            )}
-          </p>
-        </div>
-      </section>
+  <div className="container mx-auto px-4 lg:px-8" data-aos="fade-right">
+    <h1 className="text-4xl lg:text-5xl font-bold mb-4">
+      {getValue(
+        pageData?.hero_title    || "Products",
+        pageData?.hero_title_ja || "ソリューション"
+      )}
+    </h1>
+    <p className="text-lg text-primary-foreground/90">
+      {getValue(
+        pageData?.hero_subtitle    || "Transform your business with innovative solutions",
+        pageData?.hero_subtitle_ja || "革新的なソリューションでビジネスを変革します"
+      )}
+    </p>
+  </div>
+</section>
 
       {/* Solutions List */}
       <section className="py-16 bg-section-light text-gray-900">

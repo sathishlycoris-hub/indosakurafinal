@@ -6,7 +6,7 @@ use App\Models\Seminar;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Seo;
-
+use App\Models\SeminarPage; 
 class SeminarPageController extends Controller
 {
     //
@@ -21,6 +21,7 @@ class SeminarPageController extends Controller
                 ->orderBy('date', 'desc')
                 ->get(),
             'seo' => Seo::where('page', 'seminars')->first(),
+            'pageData' => SeminarPage::first(), // ← add
         ]);
     }
 

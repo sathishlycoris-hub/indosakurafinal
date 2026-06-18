@@ -1,5 +1,4 @@
 // resources/js/Pages/Admin/IndiaDesks/Index.tsx
-// ★ marks every change from the original. Everything else is identical.
 
 import { useState } from "react";
 import { router, useForm } from "@inertiajs/react";
@@ -17,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Eye, Pencil, Trash2, ChevronDown, ChevronUp, AlertCircle } from "lucide-react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
-import SeoFields from "@/components/SeoFields"; // ★ NEW
+import SeoFields from "@/components/SeoFields";
 
 /* ═══════════════════════════════════════  TYPES  ═══════════════════════════════════════ */
 
@@ -30,8 +29,11 @@ interface Testimonial  { quote: string; quote_ja?: string; author?: string; }
 interface TechStack    { category: string; category_ja?: string; items: string; }
 interface PageFaq      { question: string; question_ja?: string; answer: string; answer_ja?: string; }
 interface PageIndustry { title: string; title_ja?: string; description?: string; description_ja?: string; }
-interface CaseStudy    {
-  id: number; title: string; title_ja?: string;
+
+// ★ logo field added
+interface CaseStudy {
+  title: string; title_ja?: string;
+  logo?: string | null;                 // full asset URL stored in JSON
   challenge_title?: string; challenge_title_ja?: string;
   challenge_description?: string; challenge_description_ja?: string;
   solution_title?: string; solution_title_ja?: string;
@@ -51,12 +53,10 @@ interface IndiaDesk {
   about_indosakura?: string; about_indosakura_ja?: string;
   overview?: string; overview_ja?: string;
   cta_label?: string; cta_label_ja?: string; cta_url?: string;
-  // ★ NEW — SEO
   meta_title?: string; meta_title_ja?: string;
   meta_description?: string; meta_description_ja?: string;
   meta_keywords?: string; meta_keywords_ja?: string;
   og_image?: string | null;
-  // relations
   highlights: Highlight[];
   benefits: Benefit[];
   page_faqs: PageFaq[];
@@ -69,7 +69,7 @@ interface IndiaDesk {
   case_studies: CaseStudy[];
 }
 
-/* ═══════════════════════════════════════  STRIP HELPERS (unchanged)  ═══════════════════════════════════════ */
+/* ═══════════════════════════════════════  STRIP HELPERS  ═══════════════════════════════════════ */
 
 const toHighlight     = (r: any): Highlight     => ({ value: r.value ?? "", title: r.title ?? "", title_ja: r.title_ja ?? "", description: r.description ?? "", description_ja: r.description_ja ?? "" });
 const toBenefit       = (r: any): Benefit       => ({ title: r.title ?? "", title_ja: r.title_ja ?? "", description: r.description ?? "", description_ja: r.description_ja ?? "" });
@@ -80,7 +80,16 @@ const toWhyChooseItem = (r: any): WhyChooseItem => ({ title: r.title ?? "", titl
 const toApproachStep  = (r: any): ApproachStep  => ({ step_number: r.step_number ?? undefined, title: r.title ?? "", title_ja: r.title_ja ?? "", description: r.description ?? "", description_ja: r.description_ja ?? "" });
 const toTestimonial   = (r: any): Testimonial   => ({ quote: r.quote ?? "", quote_ja: r.quote_ja ?? "", author: r.author ?? "" });
 const toTechStack     = (r: any): TechStack     => ({ category: r.category ?? "", category_ja: r.category_ja ?? "", items: r.items ?? "" });
-const toCaseStudy     = (r: any): CaseStudy     => ({ id: r.id ?? undefined, title: r.title ?? "", title_ja: r.title_ja ?? "", challenge_title: r.challenge_title ?? "", challenge_title_ja: r.challenge_title_ja ?? "", challenge_description: r.challenge_description ?? "", challenge_description_ja: r.challenge_description_ja ?? "", solution_title: r.solution_title ?? "", solution_title_ja: r.solution_title_ja ?? "", solution_description: r.solution_description ?? "", solution_description_ja: r.solution_description_ja ?? "", results: r.results ?? "", results_ja: r.results_ja ?? "" });
+// ★ logo preserved when loading existing record
+const toCaseStudy     = (r: any): CaseStudy     => ({
+  title: r.title ?? "", title_ja: r.title_ja ?? "",
+  logo: r.logo ?? null,
+  challenge_title: r.challenge_title ?? "", challenge_title_ja: r.challenge_title_ja ?? "",
+  challenge_description: r.challenge_description ?? "", challenge_description_ja: r.challenge_description_ja ?? "",
+  solution_title: r.solution_title ?? "", solution_title_ja: r.solution_title_ja ?? "",
+  solution_description: r.solution_description ?? "", solution_description_ja: r.solution_description_ja ?? "",
+  results: r.results ?? "", results_ja: r.results_ja ?? "",
+});
 
 const slugify = (text: string) =>
   text.toLowerCase().trim()
@@ -97,6 +106,9 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
   const [langTab, setLangTab]       = useState<"en" | "ja">("en");
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
+  // ★ Separate state for case study logo File objects (not serialisable in useForm)
+  const [caseStudyLogoFiles, setCaseStudyLogoFiles] = useState<Map<number, File>>(new Map());
+
   const { data, setData, reset, processing } = useForm({
     title: "", title_ja: "",
     slug: "",
@@ -109,12 +121,10 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
     cta_label: "", cta_label_ja: "",
     cta_url: "/contact",
     hero_image: null as File | null,
-    // ★ NEW — SEO
     meta_title: "", meta_title_ja: "",
     meta_description: "", meta_description_ja: "",
     meta_keywords: "", meta_keywords_ja: "",
     og_image: null as File | null,
-    // relations
     highlights:      [] as Highlight[],
     benefits:        [] as Benefit[],
     service_items:   [] as IndiaDeskItem[],
@@ -129,12 +139,15 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
 
   /* ── open helpers ── */
   const openAdd = () => {
-    reset(); setFormErrors({});
+    reset();
+    setCaseStudyLogoFiles(new Map());
+    setFormErrors({});
     setMode("add"); setCurrent(null); setLangTab("en"); setOpen(true);
   };
 
   const openEdit = (s: IndiaDesk) => {
     setMode("edit"); setCurrent(s); setLangTab("en"); setFormErrors({});
+    setCaseStudyLogoFiles(new Map()); // clear pending files on open
     setData({
       title: s.title ?? "", title_ja: s.title_ja ?? "",
       slug: s.slug ?? "",
@@ -147,12 +160,10 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
       cta_label: s.cta_label ?? "", cta_label_ja: s.cta_label_ja ?? "",
       cta_url: s.cta_url ?? "/contact",
       hero_image: null,
-      // ★ NEW — SEO prefill
       meta_title: s.meta_title ?? "", meta_title_ja: s.meta_title_ja ?? "",
       meta_description: s.meta_description ?? "", meta_description_ja: s.meta_description_ja ?? "",
       meta_keywords: s.meta_keywords ?? "", meta_keywords_ja: s.meta_keywords_ja ?? "",
       og_image: null,
-      // relations
       highlights:      Array.isArray(s.highlights)      ? s.highlights.map(toHighlight)         : [],
       benefits:        Array.isArray(s.benefits)        ? s.benefits.map(toBenefit)             : [],
       page_faqs:       Array.isArray(s.page_faqs)       ? s.page_faqs.map(toPageFaq)            : [],
@@ -205,7 +216,6 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
     app("overview",            data.overview);     app("overview_ja",         data.overview_ja);
     app("cta_label",           data.cta_label);    app("cta_label_ja",        data.cta_label_ja);
     app("cta_url",             data.cta_url);
-    // ★ NEW — SEO fields
     app("meta_title",          data.meta_title);   app("meta_title_ja",       data.meta_title_ja);
     app("meta_description",    data.meta_description);
     app("meta_description_ja", data.meta_description_ja);
@@ -213,13 +223,25 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
     app("meta_keywords_ja",    data.meta_keywords_ja);
 
     if (data.hero_image) form.append("hero_image", data.hero_image);
-    if (data.og_image)   form.append("og_image",   data.og_image); // ★ NEW
+    if (data.og_image)   form.append("og_image",   data.og_image);
+
+    // ★ Append case study logo files keyed by index
+    caseStudyLogoFiles.forEach((file, index) => {
+      form.append(`case_study_logos[${index}]`, file);
+    });
 
     (["highlights","benefits","service_items","why_choose","approach_steps",
       "testimonials","tech_stack","page_faqs","page_industries","case_studies"] as const)
       .forEach(k => form.append(k, JSON.stringify(data[k])));
 
-    const opts = { onSuccess: () => { reset(); setFormErrors({}); setOpen(false); } };
+    const opts = {
+      onSuccess: () => {
+        reset();
+        setCaseStudyLogoFiles(new Map());
+        setFormErrors({});
+        setOpen(false);
+      },
+    };
 
     if (mode === "edit" && current) {
       form.append("_method", "PUT");
@@ -240,10 +262,36 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
 
   /* ── array helpers ── */
   const addItem    = (k: keyof typeof data, item: any) => setData(k, [...(data[k] as any[]), item]);
-  const removeItem = (k: keyof typeof data, i: number) => { const a = [...(data[k] as any[])]; a.splice(i, 1); setData(k, a); };
-  const updateItem = (k: keyof typeof data, i: number, field: string, val: string) => { const a = [...(data[k] as any[])]; a[i][field] = val; setData(k, a); };
+  const removeItem = (k: keyof typeof data, i: number) => {
+    const a = [...(data[k] as any[])];
+    a.splice(i, 1);
+    setData(k, a);
+    // ★ Also remove the logo file for this slot and re-index remaining slots
+    setCaseStudyLogoFiles(prev => {
+      const next = new Map<number, File>();
+      prev.forEach((file, idx) => {
+        if (idx < i) next.set(idx, file);
+        else if (idx > i) next.set(idx - 1, file); // shift down
+      });
+      return next;
+    });
+  };
+  const updateItem = (k: keyof typeof data, i: number, field: string, val: string) => {
+    const a = [...(data[k] as any[])];
+    a[i][field] = val;
+    setData(k, a);
+  };
 
-  /* ★ SEO setData bridge */
+  // ★ Handle logo file selection for a specific case study index
+  const handleCaseStudyLogoChange = (index: number, file: File | null) => {
+    setCaseStudyLogoFiles(prev => {
+      const next = new Map(prev);
+      if (file) next.set(index, file);
+      else next.delete(index);
+      return next;
+    });
+  };
+
   const setSeoData = (key: string, value: any) => setData(key as any, value);
 
   /* ═══════════════════ RENDER ═══════════════════ */
@@ -282,7 +330,6 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
                   <p>{current.cta_label}{current.cta_label_ja ? ` / ${current.cta_label_ja}` : ""} → {current.cta_url}</p>
                 </div>
               )}
-              {/* ★ NEW — SEO preview in view mode */}
               {(current.meta_title || current.meta_description) && (
                 <div className="border rounded-xl p-4 bg-muted/20 space-y-2">
                   <p className="font-semibold text-sm flex items-center gap-2">
@@ -296,16 +343,15 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
                   )}
                 </div>
               )}
-              <ViewList label="Our Services"    items={current.service_items} />
-              <ViewList label="Highlights"      items={current.highlights}    showValue />
-              <ViewList label="Benefits"        items={current.benefits} />
-              <ViewList label="Why Choose Us"   items={current.why_choose} />
-              <ViewList label="Approach Steps"  items={current.approach_steps} showStep />
-              <ViewList label="Testimonials"    items={current.testimonials}   isQuote />
-              <ViewList label="Tech Stack"      items={current.tech_stack}     isTech />
-              <ViewList label="Case Studies"    items={current.case_studies} />
-              <ViewList label="Page FAQs"       items={current.page_faqs}      isFaq />
-              <ViewList label="Page Industries" items={current.page_industries} />
+              <ViewList label="Our Services"   items={current.service_items} />
+              <ViewList label="Highlights"     items={current.highlights}    showValue />
+              <ViewList label="Benefits"       items={current.benefits} />
+              <ViewList label="Why Choose Us"  items={current.why_choose} />
+              <ViewList label="Approach Steps" items={current.approach_steps} showStep />
+              <ViewList label="Testimonials"   items={current.testimonials}   isQuote />
+              <ViewList label="Tech Stack"     items={current.tech_stack}     isTech />
+              <ViewList label="Case Studies"   items={current.case_studies}   isCaseStudy />
+              <ViewList label="Page FAQs"      items={current.page_faqs}      isFaq />
             </div>
           )}
 
@@ -398,7 +444,7 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
                 </Field>
               </SectionBox>
 
-              {/* ★ NEW — SEO Section */}
+              {/* SEO Section */}
               <SeoFields
                 data={{
                   meta_title:          data.meta_title,
@@ -472,12 +518,53 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
                 )}
               />
 
-              {/* Case Studies */}
+              {/* ★ Case Studies — with logo upload per item */}
               <SectionBlock title="Case Studies" hint="Client success stories" items={data.case_studies}
-                onAdd={() => addItem("case_studies", { title: "", title_ja: "", challenge_title: "", challenge_title_ja: "", challenge_description: "", challenge_description_ja: "", solution_title: "", solution_title_ja: "", solution_description: "", solution_description_ja: "", results: "", results_ja: "" })}
+                onAdd={() => addItem("case_studies", {
+                  title: "", title_ja: "", logo: null,
+                  challenge_title: "", challenge_title_ja: "",
+                  challenge_description: "", challenge_description_ja: "",
+                  solution_title: "", solution_title_ja: "",
+                  solution_description: "", solution_description_ja: "",
+                  results: "", results_ja: "",
+                })}
                 onRemove={i => removeItem("case_studies", i)}
                 render={(item, i) => (
-                  <div className="space-y-2">
+                  <div className="space-y-3">
+                    {/* ★ Logo upload block */}
+                    <div className="border border-dashed border-primary/30 rounded-lg p-3 bg-primary/5">
+                      <p className="text-xs font-semibold text-primary mb-2">Company Logo (optional)</p>
+                      <div className="flex items-center gap-3">
+                        {/* Show preview: pending file takes priority over stored URL */}
+                        {caseStudyLogoFiles.has(i) ? (
+                          <img
+                            src={URL.createObjectURL(caseStudyLogoFiles.get(i)!)}
+                            alt="logo preview"
+                            className="w-12 h-12 object-contain rounded-lg border bg-white p-1"
+                          />
+                        ) : item.logo ? (
+                          <img
+                            src={item.logo}
+                            alt="current logo"
+                            className="w-12 h-12 object-contain rounded-lg border bg-white p-1"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 rounded-lg border bg-white flex items-center justify-center text-muted-foreground text-xs text-center leading-tight p-1">
+                            No logo
+                          </div>
+                        )}
+                        <div className="flex-1">
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            className="text-xs"
+                            onChange={e => handleCaseStudyLogoChange(i, e.target.files?.[0] ?? null)}
+                          />
+                          <p className="text-xs text-muted-foreground mt-1">PNG/JPG/SVG · Max 2 MB</p>
+                        </div>
+                      </div>
+                    </div>
+
                     <div className="grid grid-cols-2 gap-2">
                       <Field label="Title (EN)"><Input value={item.title} onChange={e => updateItem("case_studies", i, "title", e.target.value)} /></Field>
                       <Field label="Title (JA)"><Input value={item.title_ja || ""} onChange={e => updateItem("case_studies", i, "title_ja", e.target.value)} /></Field>
@@ -495,26 +582,9 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
                       <Field label="Solution Description (JA)"><ReactQuill theme="snow" value={item.solution_description_ja || ""} onChange={v => updateItem("case_studies", i, "solution_description_ja", v)} /></Field>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
-                      <Field label="Results (EN)"><Input value={item.results || ""} onChange={e => updateItem("case_studies", i, "results", e.target.value)} /></Field>
-                      <Field label="Results (JA)"><Input value={item.results_ja || ""} onChange={e => updateItem("case_studies", i, "results_ja", e.target.value)} /></Field>
+                      <Field label="Results (EN)"><ReactQuill theme="snow" value={item.results || ""} onChange={v => updateItem("case_studies", i, "results", v)} /></Field>
+                      <Field label="Results (JA)"><ReactQuill theme="snow" value={item.results_ja || ""} onChange={v => updateItem("case_studies", i, "results_ja", v)} /></Field>
                     </div>
-                  </div>
-                )}
-              />
-
-              {/* Per-india-desk Industries */}
-              <SectionBlock title="Industries We Serve (per-india-desk)" hint="Leave empty → falls back to global"
-                items={data.page_industries}
-                onAdd={() => addItem("page_industries", { title: "", title_ja: "", description: "", description_ja: "" })}
-                onRemove={i => removeItem("page_industries", i)}
-                render={(item, i) => (
-                  <div className="space-y-2">
-                    <div className="grid grid-cols-2 gap-2">
-                      <Field label="Title (EN)"><Input value={item.title} onChange={e => updateItem("page_industries", i, "title", e.target.value)} /></Field>
-                      <Field label="Title (JA)"><Input value={item.title_ja || ""} onChange={e => updateItem("page_industries", i, "title_ja", e.target.value)} /></Field>
-                    </div>
-                    <Field label="Description (EN)"><Input value={item.description || ""} onChange={e => updateItem("page_industries", i, "description", e.target.value)} /></Field>
-                    <Field label="Description (JA)"><Input value={item.description_ja || ""} onChange={e => updateItem("page_industries", i, "description_ja", e.target.value)} /></Field>
                   </div>
                 )}
               />
@@ -551,9 +621,8 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
             <TableHead className="text-white">#</TableHead>
             <TableHead className="text-white">Title</TableHead>
             <TableHead className="text-white">Slug</TableHead>
-            <TableHead className="text-white">SEO</TableHead>{/* ★ NEW column */}
+            <TableHead className="text-white">SEO</TableHead>
             <TableHead className="text-white">FAQs</TableHead>
-            <TableHead className="text-white">Industries</TableHead>
             <TableHead className="text-white">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -563,7 +632,6 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
               <TableCell>{i + 1}</TableCell>
               <TableCell className="font-medium">{s.title}</TableCell>
               <TableCell className="text-muted-foreground text-xs">{s.slug}</TableCell>
-              {/* ★ NEW — SEO status badge */}
               <TableCell>
                 {s.meta_title
                   ? <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Set</span>
@@ -572,11 +640,6 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
               <TableCell>
                 {(s.page_faqs?.length ?? 0) > 0
                   ? <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">{s.page_faqs.length} custom</span>
-                  : <span className="text-xs text-muted-foreground">Global</span>}
-              </TableCell>
-              <TableCell>
-                {(s.page_industries?.length ?? 0) > 0
-                  ? <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">{s.page_industries.length} custom</span>
                   : <span className="text-xs text-muted-foreground">Global</span>}
               </TableCell>
               <TableCell className="space-x-2">
@@ -592,7 +655,7 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
   );
 }
 
-/* ═══════════════════ HELPER COMPONENTS (unchanged) ═══════════════════ */
+/* ═══════════════════ HELPER COMPONENTS ═══════════════════ */
 
 function Field({ label, children, error, hint }: { label: string; children: React.ReactNode; error?: string; hint?: string }) {
   return (
@@ -681,9 +744,9 @@ function ViewField({ label, en, ja, html = false }: { label: string; en?: string
   );
 }
 
-function ViewList({ label, items, showValue = false, showStep = false, isQuote = false, isTech = false, isFaq = false }: {
+function ViewList({ label, items, showValue = false, showStep = false, isQuote = false, isTech = false, isFaq = false, isCaseStudy = false }: {
   label: string; items?: any[]; showValue?: boolean; showStep?: boolean;
-  isQuote?: boolean; isTech?: boolean; isFaq?: boolean;
+  isQuote?: boolean; isTech?: boolean; isFaq?: boolean; isCaseStudy?: boolean;
 }) {
   if (!items?.length) return null;
   return (
@@ -694,6 +757,11 @@ function ViewList({ label, items, showValue = false, showStep = false, isQuote =
           <li key={i} className="border rounded p-3 text-sm">
             {isFaq
               ? <><p className="font-medium">Q: {item.question}</p><p className="text-muted-foreground mt-1 text-xs">A: {item.answer?.replace(/<[^>]+>/g, "").slice(0, 120)}…</p></>
+              : isCaseStudy
+              ? <div className="flex items-center gap-3">
+                  {item.logo && <img src={item.logo} alt="logo" className="w-10 h-10 object-contain rounded border bg-white p-0.5" />}
+                  <span className="font-medium">{item.title}</span>
+                </div>
               : showValue && item.value ? <><span className="text-primary font-bold mr-2">{item.value}</span>{item.title}</>
               : showStep              ? <><span className="text-primary font-bold mr-2">Step {item.step_number ?? i + 1}.</span>{item.title}</>
               : isTech               ? <><span className="font-semibold text-primary">{item.category}:</span> {item.items}</>
