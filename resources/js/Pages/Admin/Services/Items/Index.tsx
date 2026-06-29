@@ -215,12 +215,12 @@ export default function Index({
               </TabsContent>
             </Tabs>
 
-            <SectionBox title="Hero Image">
+            {/* <SectionBox title="Hero Image">
               {mode === "edit" && current?.hero_image && (
                 <img src={`/storage/${current.hero_image}`} alt="" className="h-28 rounded border object-cover mb-2" />
               )}
               <Input type="file" accept="image/*" onChange={e => setData("hero_image", e.target.files?.[0] || null)} />
-            </SectionBox>
+            </SectionBox> */}
 
             <SectionBox title="CTA Button">
               <div className="grid grid-cols-2 gap-3">

@@ -29,15 +29,21 @@ interface CorpProfileSettings {
   strengths_para2: string; strengths_para2_ja: string;
   strengths_cta: string; strengths_cta_ja: string;
 
-  str_stat1_value: string; str_stat1_label: string; str_stat1_label_ja: string; str_stat1_sub: string; str_stat1_sub_ja: string;
-  str_stat2_value: string; str_stat2_label: string; str_stat2_label_ja: string; str_stat2_sub: string; str_stat2_sub_ja: string;
-  str_stat3_value: string; str_stat3_label: string; str_stat3_label_ja: string; str_stat3_sub: string; str_stat3_sub_ja: string;
-  str_stat4_value: string; str_stat4_label: string; str_stat4_label_ja: string; str_stat4_sub: string; str_stat4_sub_ja: string;
+  str_stat1_value: string; str_stat1_value_ja: string; str_stat1_label: string; str_stat1_label_ja: string; str_stat1_sub: string; str_stat1_sub_ja: string;
+  str_stat2_value: string; str_stat2_value_ja: string; str_stat2_label: string; str_stat2_label_ja: string; str_stat2_sub: string; str_stat2_sub_ja: string;
+  str_stat3_value: string; str_stat3_value_ja: string; str_stat3_label: string; str_stat3_label_ja: string; str_stat3_sub: string; str_stat3_sub_ja: string;
+  str_stat4_value: string; str_stat4_value_ja: string; str_stat4_label: string; str_stat4_label_ja: string; str_stat4_sub: string; str_stat4_sub_ja: string;
 
   str_feat1_title: string; str_feat1_title_ja: string; str_feat1_sub: string; str_feat1_sub_ja: string; str_feat1_desc: string; str_feat1_desc_ja: string;
   str_feat2_title: string; str_feat2_title_ja: string; str_feat2_sub: string; str_feat2_sub_ja: string; str_feat2_desc: string; str_feat2_desc_ja: string;
   str_feat3_title: string; str_feat3_title_ja: string; str_feat3_sub: string; str_feat3_sub_ja: string; str_feat3_desc: string; str_feat3_desc_ja: string;
   str_feat4_title: string; str_feat4_title_ja: string; str_feat4_sub: string; str_feat4_sub_ja: string; str_feat4_desc: string; str_feat4_desc_ja: string;
+
+  loc1_name: string; loc1_name_ja: string; loc1_address: string; loc1_address_ja: string;
+  loc2_name: string; loc2_name_ja: string; loc2_address: string; loc2_address_ja: string;
+  loc3_name: string; loc3_name_ja: string; loc3_address: string; loc3_address_ja: string;
+  loc4_name: string; loc4_name_ja: string; loc4_address: string; loc4_address_ja: string;
+  loc5_name: string; loc5_name_ja: string; loc5_address: string; loc5_address_ja: string;
 }
 
 interface CorpProfileSettings {
@@ -82,11 +88,11 @@ const Profile = ({
 
   // Build stats array from CMS
   const strStats = [
-    { value: cs.str_stat1_value, label: t(cs.str_stat1_label, cs.str_stat1_label_ja), sub: t(cs.str_stat1_sub, cs.str_stat1_sub_ja) },
-    { value: cs.str_stat2_value, label: t(cs.str_stat2_label, cs.str_stat2_label_ja), sub: t(cs.str_stat2_sub, cs.str_stat2_sub_ja) },
-    { value: cs.str_stat3_value, label: t(cs.str_stat3_label, cs.str_stat3_label_ja), sub: t(cs.str_stat3_sub, cs.str_stat3_sub_ja) },
-    { value: cs.str_stat4_value, label: t(cs.str_stat4_label, cs.str_stat4_label_ja), sub: t(cs.str_stat4_sub, cs.str_stat4_sub_ja) },
-  ];
+  { value: t(cs.str_stat1_value, cs.str_stat1_value_ja), label: t(cs.str_stat1_label, cs.str_stat1_label_ja), sub: t(cs.str_stat1_sub, cs.str_stat1_sub_ja) },
+  { value: t(cs.str_stat2_value, cs.str_stat2_value_ja), label: t(cs.str_stat2_label, cs.str_stat2_label_ja), sub: t(cs.str_stat2_sub, cs.str_stat2_sub_ja) },
+  { value: t(cs.str_stat3_value, cs.str_stat3_value_ja), label: t(cs.str_stat3_label, cs.str_stat3_label_ja), sub: t(cs.str_stat3_sub, cs.str_stat3_sub_ja) },
+  { value: t(cs.str_stat4_value, cs.str_stat4_value_ja), label: t(cs.str_stat4_label, cs.str_stat4_label_ja), sub: t(cs.str_stat4_sub, cs.str_stat4_sub_ja) },
+];
 
   // Build feature cards array from CMS
   const strFeats = [

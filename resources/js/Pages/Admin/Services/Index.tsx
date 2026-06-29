@@ -353,9 +353,9 @@ export default function Index({
                 {current.title_ja && <p className="text-muted-foreground">{current.title_ja}</p>}
                 <p className="text-xs text-gray-400 mt-1">/{current.slug}</p>
               </div>
-              {current.hero_image && (
+              {/* {current.hero_image && (
                 <img src={`/storage/${current.hero_image}`} alt="" className="max-h-48 rounded border object-cover" />
-              )}
+              )} */}
               {/* ★ NEW — SEO preview block */}
               {(current.meta_title || current.meta_description) && (
                 <div className="border rounded-xl p-4 bg-muted/20 space-y-2">

@@ -10,15 +10,17 @@ import { CheckCircle } from "lucide-react";
 type Tab = "strengths" | "stats" | "features" | "locations";
 
 interface CorpProfileSettings {
-  strengths_heading: string;    strengths_heading_ja: string;
-  strengths_para1: string;      strengths_para1_ja: string;
-  strengths_para2: string;      strengths_para2_ja: string;
-  strengths_cta: string;        strengths_cta_ja: string;
+  strengths_heading: string; strengths_heading_ja: string;
+  strengths_para1: string; strengths_para1_ja: string;
+  strengths_para2: string; strengths_para2_ja: string;
+  strengths_cta: string; strengths_cta_ja: string;
 
-  str_stat1_value: string; str_stat1_label: string; str_stat1_label_ja: string; str_stat1_sub: string; str_stat1_sub_ja: string;
-  str_stat2_value: string; str_stat2_label: string; str_stat2_label_ja: string; str_stat2_sub: string; str_stat2_sub_ja: string;
-  str_stat3_value: string; str_stat3_label: string; str_stat3_label_ja: string; str_stat3_sub: string; str_stat3_sub_ja: string;
-  str_stat4_value: string; str_stat4_label: string; str_stat4_label_ja: string; str_stat4_sub: string; str_stat4_sub_ja: string;
+  str_stat1_value: string; str_stat1_value_ja: string; str_stat1_label: string; str_stat1_label_ja: string; str_stat1_sub: string; str_stat1_sub_ja: string;
+  str_stat2_value: string; str_stat2_value_ja: string; str_stat2_label: string; str_stat2_label_ja: string; str_stat2_sub: string; str_stat2_sub_ja: string;
+  str_stat3_value: string; str_stat3_value_ja: string; str_stat3_label: string; str_stat3_label_ja: string; str_stat3_sub: string; str_stat3_sub_ja: string;
+  str_stat4_value: string; str_stat4_value_ja: string; str_stat4_label: string; str_stat4_label_ja: string; str_stat4_sub: string; str_stat4_sub_ja: string;
+
+
 
   str_feat1_title: string; str_feat1_title_ja: string; str_feat1_sub: string; str_feat1_sub_ja: string; str_feat1_desc: string; str_feat1_desc_ja: string;
   str_feat2_title: string; str_feat2_title_ja: string; str_feat2_sub: string; str_feat2_sub_ja: string; str_feat2_desc: string; str_feat2_desc_ja: string;
@@ -31,6 +33,7 @@ interface CorpProfileSettings {
   loc3_name: string; loc3_name_ja: string; loc3_address: string; loc3_address_ja: string;
   loc4_name: string; loc4_name_ja: string; loc4_address: string; loc4_address_ja: string;
   loc5_name: string; loc5_name_ja: string; loc5_address: string; loc5_address_ja: string;
+
 }
 
 type FormData = CorpProfileSettings;
@@ -72,6 +75,7 @@ interface StatGroupProps {
 
 function StatGroup({ num, label, lang, data, setData }: StatGroupProps) {
   const vk  = `str_stat${num}_value`    as keyof FormData;
+  const vjk = `str_stat${num}_value_ja` as keyof FormData; // ← ADD
   const lk  = `str_stat${num}_label`    as keyof FormData;
   const ljk = `str_stat${num}_label_ja` as keyof FormData;
   const sk  = `str_stat${num}_sub`      as keyof FormData;
@@ -81,11 +85,12 @@ function StatGroup({ num, label, lang, data, setData }: StatGroupProps) {
     <div className="border rounded-lg p-4 space-y-3">
       <p className="font-semibold text-sm text-foreground">{label}</p>
 
+      {/* ← UPDATED: now lang-aware */}
       <div className="space-y-1">
-        <label className="text-xs text-muted-foreground">Value (shown large)</label>
+        <label className="text-xs text-muted-foreground">Value (shown large) ({lang.toUpperCase()})</label>
         <Input
-          value={(data[vk] as string) ?? ""}
-          onChange={(e) => setData(vk, e.target.value)}
+          value={(data[lang === "en" ? vk : vjk] as string) ?? ""}
+          onChange={(e) => setData(lang === "en" ? vk : vjk, e.target.value)}
         />
       </div>
 
@@ -117,12 +122,12 @@ interface FeatGroupProps {
 }
 
 function FeatGroup({ num, label, lang, data, setData }: FeatGroupProps) {
-  const tk  = `str_feat${num}_title`    as keyof FormData;
+  const tk = `str_feat${num}_title` as keyof FormData;
   const tjk = `str_feat${num}_title_ja` as keyof FormData;
-  const sk  = `str_feat${num}_sub`      as keyof FormData;
-  const sjk = `str_feat${num}_sub_ja`   as keyof FormData;
-  const dk  = `str_feat${num}_desc`     as keyof FormData;
-  const djk = `str_feat${num}_desc_ja`  as keyof FormData;
+  const sk = `str_feat${num}_sub` as keyof FormData;
+  const sjk = `str_feat${num}_sub_ja` as keyof FormData;
+  const dk = `str_feat${num}_desc` as keyof FormData;
+  const djk = `str_feat${num}_desc_ja` as keyof FormData;
 
   return (
     <div className="border rounded-lg p-4 space-y-3">
@@ -165,9 +170,9 @@ interface LocGroupProps {
 }
 
 function LocGroup({ num, label, lang, data, setData }: LocGroupProps) {
-  const nk  = `loc${num}_name`       as keyof FormData;
-  const njk = `loc${num}_name_ja`    as keyof FormData;
-  const ak  = `loc${num}_address`    as keyof FormData;
+  const nk = `loc${num}_name` as keyof FormData;
+  const njk = `loc${num}_name_ja` as keyof FormData;
+  const ak = `loc${num}_address` as keyof FormData;
   const ajk = `loc${num}_address_ja` as keyof FormData;
 
   return (
@@ -209,8 +214,8 @@ export default function CorpProfileIndex() {
 
   const tabs: { key: Tab; label: string }[] = [
     { key: "strengths", label: "Our Strengths Text" },
-    { key: "stats",     label: "Stat Boxes" },
-    { key: "features",  label: "Feature Cards" },
+    { key: "stats", label: "Stat Boxes" },
+    { key: "features", label: "Feature Cards" },
     { key: "locations", label: "Locations" },
   ];
 
@@ -252,11 +257,10 @@ export default function CorpProfileIndex() {
           <button
             key={t.key}
             onClick={() => setActiveTab(t.key)}
-            className={`px-4 py-2 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
-              activeTab === t.key
+            className={`px-4 py-2 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${activeTab === t.key
                 ? "border-primary text-primary"
                 : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
+              }`}
           >
             {t.label}
           </button>
@@ -267,40 +271,40 @@ export default function CorpProfileIndex() {
       {activeTab === "strengths" && (
         <div className="space-y-5 max-w-2xl">
           <Field label="Section Heading" value={data[activeLang === "en" ? "strengths_heading" : "strengths_heading_ja"]} onChange={(v) => set(activeLang === "en" ? "strengths_heading" : "strengths_heading_ja", v)} lang={activeLang} />
-          <Field label="Paragraph 1"     value={data[activeLang === "en" ? "strengths_para1"   : "strengths_para1_ja"]}   onChange={(v) => set(activeLang === "en" ? "strengths_para1"   : "strengths_para1_ja",   v)} lang={activeLang} textarea />
-          <Field label="Paragraph 2"     value={data[activeLang === "en" ? "strengths_para2"   : "strengths_para2_ja"]}   onChange={(v) => set(activeLang === "en" ? "strengths_para2"   : "strengths_para2_ja",   v)} lang={activeLang} textarea />
-          <Field label="CTA Button Text" value={data[activeLang === "en" ? "strengths_cta"     : "strengths_cta_ja"]}     onChange={(v) => set(activeLang === "en" ? "strengths_cta"     : "strengths_cta_ja",     v)} lang={activeLang} />
+          <Field label="Paragraph 1" value={data[activeLang === "en" ? "strengths_para1" : "strengths_para1_ja"]} onChange={(v) => set(activeLang === "en" ? "strengths_para1" : "strengths_para1_ja", v)} lang={activeLang} textarea />
+          <Field label="Paragraph 2" value={data[activeLang === "en" ? "strengths_para2" : "strengths_para2_ja"]} onChange={(v) => set(activeLang === "en" ? "strengths_para2" : "strengths_para2_ja", v)} lang={activeLang} textarea />
+          <Field label="CTA Button Text" value={data[activeLang === "en" ? "strengths_cta" : "strengths_cta_ja"]} onChange={(v) => set(activeLang === "en" ? "strengths_cta" : "strengths_cta_ja", v)} lang={activeLang} />
         </div>
       )}
 
       {/* ── STAT BOXES ───────────────────────────────────── */}
       {activeTab === "stats" && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <StatGroup num={1} label="Stat Box 1 (e.g. 19+ Years)"        lang={activeLang} data={data} setData={set} />
+          <StatGroup num={1} label="Stat Box 1 (e.g. 19+ Years)" lang={activeLang} data={data} setData={set} />
           <StatGroup num={2} label="Stat Box 2 (e.g. 150+ IT Engineers)" lang={activeLang} data={data} setData={set} />
-          <StatGroup num={3} label="Stat Box 3 (e.g. 2 Languages)"       lang={activeLang} data={data} setData={set} />
-          <StatGroup num={4} label="Stat Box 4 (e.g. Hybrid)"            lang={activeLang} data={data} setData={set} />
+          <StatGroup num={3} label="Stat Box 3 (e.g. 2 Languages)" lang={activeLang} data={data} setData={set} />
+          <StatGroup num={4} label="Stat Box 4 (e.g. Hybrid)" lang={activeLang} data={data} setData={set} />
         </div>
       )}
 
       {/* ── FEATURE CARDS ────────────────────────────────── */}
       {activeTab === "features" && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FeatGroup num={1} label="Feature Card 1 (Proven Excellence)"  lang={activeLang} data={data} setData={set} />
-          <FeatGroup num={2} label="Feature Card 2 (Bilingual Team)"     lang={activeLang} data={data} setData={set} />
-          <FeatGroup num={3} label="Feature Card 3 (Cutting-Edge Tech)"  lang={activeLang} data={data} setData={set} />
-          <FeatGroup num={4} label="Feature Card 4 (Hybrid Model)"       lang={activeLang} data={data} setData={set} />
+          <FeatGroup num={1} label="Feature Card 1 (Proven Excellence)" lang={activeLang} data={data} setData={set} />
+          <FeatGroup num={2} label="Feature Card 2 (Bilingual Team)" lang={activeLang} data={data} setData={set} />
+          <FeatGroup num={3} label="Feature Card 3 (Cutting-Edge Tech)" lang={activeLang} data={data} setData={set} />
+          <FeatGroup num={4} label="Feature Card 4 (Hybrid Model)" lang={activeLang} data={data} setData={set} />
         </div>
       )}
 
       {/* ── LOCATIONS ────────────────────────────────────── */}
       {activeTab === "locations" && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <LocGroup num={1} label="Office 1 (Tokyo Headquarters)"    lang={activeLang} data={data} setData={set} />
-          <LocGroup num={2} label="Office 2 (Osaka Sales Office)"    lang={activeLang} data={data} setData={set} />
-          <LocGroup num={3} label="Office 3 (India Dev Center)"      lang={activeLang} data={data} setData={set} />
-          <LocGroup num={4} label="Office 4 (U.S. Sales Office)"     lang={activeLang} data={data} setData={set} />
-          <LocGroup num={5} label="Office 5 (Dubai Sales Office)"    lang={activeLang} data={data} setData={set} />
+          <LocGroup num={1} label="Office 1 (Tokyo Headquarters)" lang={activeLang} data={data} setData={set} />
+          <LocGroup num={2} label="Office 2 (Osaka Sales Office)" lang={activeLang} data={data} setData={set} />
+          <LocGroup num={3} label="Office 3 (India Dev Center)" lang={activeLang} data={data} setData={set} />
+          <LocGroup num={4} label="Office 4 (U.S. Sales Office)" lang={activeLang} data={data} setData={set} />
+          <LocGroup num={5} label="Office 5 (Dubai Sales Office)" lang={activeLang} data={data} setData={set} />
         </div>
       )}
 
