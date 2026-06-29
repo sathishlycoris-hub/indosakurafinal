@@ -9,7 +9,6 @@ use Inertia\Inertia;
 
 class JobApplicationController extends Controller
 {
-    //
     public function index(Request $request, $job = null)
     {
         $query = JobApplication::with('job')->latest();
@@ -18,8 +17,23 @@ class JobApplicationController extends Controller
             $query->where('job_id', $job);
         }
 
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('full_name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhereHas('job', function ($q2) use ($search) {
+                      $q2->where('title', 'like', "%{$search}%")
+                         ->orWhere('department', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $paginated = $query->paginate(10);
+
         return Inertia::render('Admin/JobApplication/Index', [
-            'applications' => $query->get(),
+            'applications' => $paginated->appends($request->query()),
+            'filters'      => $request->only('search'),
         ]);
     }
 

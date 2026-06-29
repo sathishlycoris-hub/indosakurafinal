@@ -1,16 +1,15 @@
-import { useState, useMemo } from 'react';
-import { router } from '@inertiajs/react';
-import Authenticated from '@/Layouts/AuthenticatedLayout';
-import { Button } from '@/components/ui/button';
-import { Eye, Trash2, Search } from "lucide-react";
-
+import { useState, useCallback } from "react";
+import { router } from "@inertiajs/react";
+import Authenticated from "@/Layouts/AuthenticatedLayout";
+import { Button } from "@/components/ui/button";
+import { Eye, Trash2, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetClose,
-} from '@/components/ui/sheet';
+} from "@/components/ui/sheet";
 
 const formatDate = (d: string) => {
   const date = new Date(d);
@@ -20,50 +19,79 @@ const formatDate = (d: string) => {
   return `${y}-${m}-${day}`;
 };
 
-export default function Index({ contacts }: any) {
-  const [viewContact, setViewContact] = useState<any>(null);
-  const [search, setSearch] = useState("");
+interface Contact {
+  id: number;
+  name_en: string;
+  email: string;
+  telephone: string;
+  address: string;
+  product_service: string;
+  classification: string[] | null;
+  created_at: string;
+  [key: string]: any;
+}
+
+interface PaginationLink {
+  url: string | null;
+  label: string;
+  active: boolean;
+}
+
+interface Paginated<T> {
+  data: T[];
+  current_page: number;
+  last_page: number;
+  per_page: number;
+  total: number;
+  from: number | null;
+  to: number | null;
+  links: PaginationLink[];
+}
+
+interface Props {
+  contacts: Paginated<Contact>;
+  filters: { search?: string };
+}
+
+export default function Index({ contacts, filters }: Props) {
+  const [viewContact, setViewContact] = useState<Contact | null>(null);
+  const [search, setSearch] = useState(filters?.search ?? "");
 
   const deleteContact = (id: number) => {
-    if (confirm('Delete this enquiry?')) {
-      router.delete(route('admin.contacts.destroy', id));
+    if (confirm("Delete this enquiry?")) {
+      router.delete(route("admin.contacts.destroy", id));
     }
   };
 
-  //  FILTER LOGIC
-  const filteredContacts = useMemo(() => {
-    if (!search) return contacts;
-
-    const q = search.toLowerCase();
-
-    return contacts.filter((c: any) =>
-      [
-        c.name_en,
-        c.email,
-        c.telephone,
-        c.address,
-        c.product_service,
-      ]
-        .filter(Boolean)
-        .some((field: string) =>
-          field.toLowerCase().includes(q)
-        )
+  // Server-side search
+  const handleSearch = useCallback((value: string) => {
+    setSearch(value);
+    router.get(
+      route("admin.contacts.index"),
+      { search: value || undefined },
+      { preserveState: true, replace: true }
     );
-  }, [search, contacts]);
+  }, []);
+
+  const goToPage = (url: string | null) => {
+    if (!url) return;
+    router.get(url, {}, { preserveState: true });
+  };
+
+  const { data, current_page, last_page, total, from, to } = contacts;
 
   return (
     <Authenticated header={<h2 className="text-xl font-bold">Contact List</h2>}>
-
       <h1 className="text-2xl font-bold mb-4">Contact Inquiries</h1>
 
-      {/*  SEARCH */}
+      {/* Search */}
       <div className="mb-4 max-w-sm relative">
         <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
         <input
           type="text"
           placeholder="Search name, email, company..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => handleSearch(e.target.value)}
           className="w-full pl-9 pr-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary"
         />
       </div>
@@ -83,190 +111,123 @@ export default function Index({ contacts }: any) {
         </thead>
 
         <tbody>
-          {filteredContacts.length === 0 && (
+          {data.length === 0 ? (
             <tr>
-              <td colSpan={7} className="p-4 text-center text-gray-500">
-                No matching records found
+              <td colSpan={8} className="p-4 text-center text-gray-500">
+                No matching records found.
               </td>
             </tr>
+          ) : (
+            data.map((c, i) => (
+              <tr key={c.id} className="border-b">
+                <td className="p-2">{(from ?? 0) + i}</td>
+                <td>{c.name_en}</td>
+                <td>{c.email}</td>
+                <td>{c.telephone}</td>
+                <td className="max-w-[150px] truncate whitespace-nowrap overflow-hidden text-ellipsis">
+                  {c.address}
+                </td>
+                <td>{c.product_service}</td>
+                <td className="text-sm text-gray-600">{formatDate(c.created_at)}</td>
+                <td className="flex gap-3 p-2 justify-center">
+                  <Button title="View" size="icon" onClick={() => setViewContact(c)}>
+                    <Eye className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    title="Delete"
+                    size="icon"
+                    variant="destructive"
+                    onClick={() => deleteContact(c.id)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </td>
+              </tr>
+            ))
           )}
-
-          {filteredContacts.map((c: any, i: number) => (
-            <tr key={c.id} className="border-b">
-              <td className="p-2">{i + 1}</td>
-              <td>{c.name_en}</td>
-              <td>{c.email}</td>
-              <td>{c.telephone}</td>
-              <td className="max-w-[150px] truncate whitespace-nowrap overflow-hidden text-ellipsis">
-  {c.address}
-</td>
-              <td>{c.product_service}</td>
-              <td className="text-sm text-gray-600">
-                {formatDate(c.created_at)}
-              </td>
-              <td className="flex gap-3 p-2 justify-center">
-
-                <Button
-                  title="View"
-                  size="icon"
-                 
-                  onClick={() => setViewContact(c)}
-                >
-                  <Eye className="w-4 h-4" />
-                </Button>
-
-                <Button
-                  title="Delete"
-                  size="icon"
-                  variant="destructive"
-                  onClick={() => deleteContact(c.id)}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-
-              </td>
-            </tr>
-          ))}
         </tbody>
       </table>
 
-      {/* SHEET */}
-    <Sheet open={!!viewContact} onOpenChange={() => setViewContact(null)}>
-  <SheetContent side="right" className="w-[90%] sm:max-w-3xl overflow-y-auto">
-    {viewContact && (
-      <>
-        <SheetHeader className="mb-6">
-          <SheetTitle></SheetTitle>
-        </SheetHeader>
+      {/* Pagination */}
+      {last_page > 1 && (
+        <div className="flex items-center justify-between mt-4 text-sm text-gray-600">
+          <p>
+            Showing <span className="font-medium">{from}</span>–
+            <span className="font-medium">{to}</span> of{" "}
+            <span className="font-medium">{total}</span> enquiries
+          </p>
 
-      {/* =========================
-    Inquiry Details
-========================== */}
-<div className="space-y-4 mt-6">
- 
+          <div className="flex items-center gap-1">
+            <Button
+              size="icon"
+              variant="outline"
+              disabled={current_page === 1}
+              onClick={() =>
+                goToPage(contacts.links.find((l) => l.label === "&laquo; Previous")?.url ?? null)
+              }
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
 
-  {/* <p>
-    <strong>Classification:</strong>{" "}
-    {Array.isArray(viewContact.classification)
-      ? viewContact.classification.join(", ")
-      : JSON.parse(viewContact.classification || "[]").join(", ")}
-  </p> */}
+            {contacts.links
+              .filter((l) => !["&laquo; Previous", "Next &raquo;"].includes(l.label))
+              .map((link) => (
+                <Button
+                  key={link.label}
+                  size="icon"
+                  variant={link.active ? "default" : "outline"}
+                  disabled={!link.url}
+                  onClick={() => goToPage(link.url)}
+                  className="min-w-[2rem]"
+                >
+                  {link.label}
+                </Button>
+              ))}
 
-  {/* <p>
-    <strong>Message:</strong>
-    <span className="block mt-1">
-      {viewContact.requests || "-"}
-    </span>
-  </p> */}
-
-  {/* <p>
-    <strong>Expected Date:</strong>{" "}
-    {viewContact.expected_date || "-"}
-  </p> */}
-</div>
-
-{/* =========================
-    Contact Information
-========================== */}
-<div className="space-y-4 mt-8">
-  {/* <p>
-    <strong>Company:</strong>{" "}
-    {viewContact.product_service || "-"}
-  </p>
-
-  <p>
-    <strong>Department:</strong>{" "}
-    {viewContact.department || "-"}
-  </p>
-
-  <p>
-    <strong>Customer Position:</strong>{" "}
-    {viewContact.customer_position || "-"}
-  </p>
-
-  <p>
-    <strong>Post:</strong>{" "}
-    {viewContact.post || "-"}
-  </p> */}
-
-  <p>
-    <strong>Name:</strong>{" "}
-    {viewContact.name_en || "-"}
-  </p>
-
-  {/* <p>
-    <strong>Name (JP):</strong>{" "}
-    {viewContact.name_ja || "-"}
-  </p>
-
-  <p>
-    <strong>Prefecture:</strong>{" "}
-    {viewContact.prefecture || "-"}
-  </p>
-
-  <p>
-    <strong>Post Code:</strong>{" "}
-    {viewContact.zip_code || "-"}
-  </p> */}
-
- 
-
-  
-
-  <p>
-    <strong>Email:</strong>{" "}
-    {viewContact.email || "-"}
-  </p>
-  <p>
-    <strong>Mobile:</strong>{" "}
-    {viewContact.telephone || "-"}
-  </p>
-
-   <p>
-    <strong>Address:</strong>
-    
-      {viewContact.address || "-"}
-    
-  </p>
-
-   <p>
-    <strong>Project Details:</strong>{" "}
-    {viewContact.product_service || "-"}
-  </p>
-</div>
-
-
-
-{/* =========================
-    Meta
-========================== */}
-<div className="space-y-4 mt-8">
-  <p>
-    <strong>Enquiry Date:</strong>{" "}
-    {formatDate(viewContact.created_at)}
-  </p>
-</div>
-
-
-        <div className="mt-6">
-          <SheetClose className="text-blue-600">
-            Close
-          </SheetClose>
+            <Button
+              size="icon"
+              variant="outline"
+              disabled={current_page === last_page}
+              onClick={() =>
+                goToPage(contacts.links.find((l) => l.label === "Next &raquo;")?.url ?? null)
+              }
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
-      </>
-    )}
-  </SheetContent>
-</Sheet>
+      )}
 
+      {/* Sheet */}
+      <Sheet open={!!viewContact} onOpenChange={() => setViewContact(null)}>
+        <SheetContent side="right" className="w-[90%] sm:max-w-3xl overflow-y-auto">
+          {viewContact && (
+            <>
+              <SheetHeader className="mb-6">
+                <SheetTitle>Enquiry Details</SheetTitle>
+              </SheetHeader>
+
+              <div className="space-y-4 mt-6">
+                <p><strong>Name:</strong> {viewContact.name_en || "-"}</p>
+                <p><strong>Email:</strong> {viewContact.email || "-"}</p>
+                <p><strong>Mobile:</strong> {viewContact.telephone || "-"}</p>
+                <p><strong>Address:</strong> {viewContact.address || "-"}</p>
+                <p><strong>Project Details:</strong> {viewContact.product_service || "-"}</p>
+              </div>
+
+              <div className="space-y-4 mt-8">
+                <p>
+                  <strong>Enquiry Date:</strong> {formatDate(viewContact.created_at)}
+                </p>
+              </div>
+
+              <div className="mt-6">
+                <SheetClose className="text-blue-600 cursor-pointer">Close</SheetClose>
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
     </Authenticated>
-  );
-}
-
-function Field({ label, value }: any) {
-  return (
-    <div className="mb-3">
-      <div className="text-gray-500">{label}</div>
-      <div className="">{value || '-'}</div>
-    </div>
   );
 }

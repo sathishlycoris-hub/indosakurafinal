@@ -15,14 +15,14 @@ import {
 // ── Types ────────────────────────────────────────────────────────────────────
 
 interface HomepageSettings {
-  hero_heading: string;      hero_heading_ja: string;
-  hero_subtext: string;      hero_subtext_ja: string;
-  hero_tagline: string;      hero_tagline_ja: string;
+  hero_heading: string; hero_heading_ja: string;
+  hero_subtext: string; hero_subtext_ja: string;
+  hero_tagline: string; hero_tagline_ja: string;
   hero_image: string | null;
 
-  corp_heading: string;      corp_heading_ja: string;
-  corp_para1: string;        corp_para1_ja: string;
-  corp_para2: string;        corp_para2_ja: string;
+  corp_heading: string; corp_heading_ja: string;
+  corp_para1: string; corp_para1_ja: string;
+  corp_para2: string; corp_para2_ja: string;
 
   stat1_value: string; stat1_label: string; stat1_label_ja: string; stat1_sub: string; stat1_sub_ja: string;
   stat2_value: string; stat2_label: string; stat2_label_ja: string; stat2_sub: string; stat2_sub_ja: string;
@@ -34,9 +34,9 @@ interface HomepageSettings {
   feat3_label: string; feat3_label_ja: string; feat3_sub: string; feat3_sub_ja: string;
   feat4_label: string; feat4_label_ja: string; feat4_sub: string; feat4_sub_ja: string;
 
-  services_intro: string;    services_intro_ja: string;
-  solutions_intro: string;   solutions_intro_ja: string;
-  updates_intro: string;     updates_intro_ja: string;
+  services_intro: string; services_intro_ja: string;
+  solutions_intro: string; solutions_intro_ja: string;
+  updates_intro: string; updates_intro_ja: string;
 }
 
 interface Seo { meta_title?: string; meta_description?: string; meta_keywords?: string; }
@@ -85,7 +85,7 @@ const Index = ({
   const h = homepage;
 
   const safeServices = Array.isArray(services) ? services : [];
-  const safeUpdates  = Array.isArray(updates)  ? updates  : [];
+  const safeUpdates = Array.isArray(updates) ? updates : [];
   const safeSolutions = Array.isArray(solutions) ? solutions : [];
 
   const heroImage = h.hero_image
@@ -126,7 +126,7 @@ const Index = ({
         <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 md:py-14 lg:py-16">
           <div className="flex flex-col lg:flex-row items-center gap-6 sm:gap-8 lg:gap-12">
             <div className="flex-1 w-full lg:w-auto flex flex-col items-center lg:items-start mt-6 lg:mt-0">
-             <div className="relative rounded-xl p-6 sm:p-8 md:p-10 w-half max-w-2xl shadow-2xl backdrop-blur-sm border border-white/20 bg-black/30">
+              <div className="relative rounded-xl p-6 sm:p-8 md:p-10 w-half max-w-2xl shadow-2xl backdrop-blur-sm border border-white/20 bg-black/30">
 
                 <div className="absolute inset-0 rounded-xl bg-black/30 pointer-events-none" />
                 <div className="relative z-10">
@@ -136,9 +136,10 @@ const Index = ({
                   <p className="text-sm sm:text-base md:text-lg text-white/90 mb-3 sm:mb-4 leading-relaxed">
                     {t(h.hero_subtext, h.hero_subtext_ja)}
                   </p>
-                  <p className="text-sm sm:text-base md:text-lg lg:text-xl font-semibold text-white">
-                    {t(h.hero_tagline, h.hero_tagline_ja)}
-                  </p>
+                  <div
+                    className="text-sm sm:text-base md:text-lg lg:text-xl font-semibold text-white prose prose-invert prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ __html: t(h.hero_tagline, h.hero_tagline_ja) }}
+                  />
                 </div>
               </div>
             </div>

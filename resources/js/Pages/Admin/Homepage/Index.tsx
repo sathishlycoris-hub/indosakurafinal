@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle } from "lucide-react";
-
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 // ── Types ──────────────────────────────────────────────────
 type Tab = "hero" | "corporate" | "stats" | "features" | "sections";
 
@@ -223,22 +224,36 @@ export default function HomepageIndex() {
       </div>
 
       {/* ── HERO ─────────────────────────────────────────── */}
-      {activeTab === "hero" && (
-        <div className="space-y-5 max-w-2xl">
-          <Field label="Heading"  value={data[activeLang === "en" ? "hero_heading" : "hero_heading_ja"]}  onChange={(v) => set(activeLang === "en" ? "hero_heading"  : "hero_heading_ja",  v)} lang={activeLang} />
-          <Field label="Sub-text" value={data[activeLang === "en" ? "hero_subtext" : "hero_subtext_ja"]}  onChange={(v) => set(activeLang === "en" ? "hero_subtext"  : "hero_subtext_ja",  v)} lang={activeLang} textarea />
-          <Field label="Tagline"  value={data[activeLang === "en" ? "hero_tagline" : "hero_tagline_ja"]}  onChange={(v) => set(activeLang === "en" ? "hero_tagline"  : "hero_tagline_ja",  v)} lang={activeLang} />
+      {/* ── HERO ─────────────────────────────────────────── */}
+{activeTab === "hero" && (
+  <div className="space-y-5 max-w-2xl">
+    <Field label="Heading"  value={data[activeLang === "en" ? "hero_heading" : "hero_heading_ja"]}  onChange={(v) => set(activeLang === "en" ? "hero_heading"  : "hero_heading_ja",  v)} lang={activeLang} />
+    <Field label="Sub-text" value={data[activeLang === "en" ? "hero_subtext" : "hero_subtext_ja"]}  onChange={(v) => set(activeLang === "en" ? "hero_subtext"  : "hero_subtext_ja",  v)} lang={activeLang} textarea />
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-muted-foreground">Background Image</label>
-            {settings.hero_image && (
-              <img src={`/storage/${settings.hero_image}`} className="h-32 rounded-md border object-cover w-full" alt="current hero" />
-            )}
-            <Input type="file" accept="image/*" onChange={(e) => setData("hero_image", e.target.files?.[0] || null)} />
-            <p className="text-xs text-muted-foreground">Current: {settings.hero_image ?? "osaka.jpg (default)"}</p>
-          </div>
-        </div>
+    {/* ── Tagline replaced with ReactQuill ── */}
+    <div className="space-y-1">
+      <label className="text-sm font-medium text-muted-foreground">
+        Tagline <span className="text-xs text-primary">({activeLang.toUpperCase()})</span>
+      </label>
+      <ReactQuill
+        key={activeLang}
+        theme="snow"
+        style={{ height: "140px", marginBottom: "50px" }}
+        value={data[activeLang === "en" ? "hero_tagline" : "hero_tagline_ja"]}
+        onChange={(v) => set(activeLang === "en" ? "hero_tagline" : "hero_tagline_ja", v)}
+      />
+    </div>
+
+    <div className="space-y-2">
+      <label className="text-sm font-medium text-muted-foreground">Background Image</label>
+      {settings.hero_image && (
+        <img src={`/storage/${settings.hero_image}`} className="h-32 rounded-md border object-cover w-full" alt="current hero" />
       )}
+      <Input type="file" accept="image/*" onChange={(e) => setData("hero_image", e.target.files?.[0] || null)} />
+      <p className="text-xs text-muted-foreground">Current: {settings.hero_image ?? "osaka.jpg (default)"}</p>
+    </div>
+  </div>
+)}
 
       {/* ── CORPORATE INFO ───────────────────────────────── */}
       {activeTab === "corporate" && (

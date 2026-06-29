@@ -12,23 +12,34 @@ class ContactController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        //
+    public function index(Request $request)
+{
+    $query = Contact::orderBy('id', 'desc');
 
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function ($q) use ($search) {
+            $q->where('name_en', 'like', "%{$search}%")
+              ->orWhere('email', 'like', "%{$search}%")
+              ->orWhere('telephone', 'like', "%{$search}%")
+              ->orWhere('address', 'like', "%{$search}%")
+              ->orWhere('product_service', 'like', "%{$search}%");
+        });
+    }
 
-        $contacts = Contact::orderBy('id', 'desc')->get();
+    $contacts = $query->paginate(10)->withQueryString();
 
-    //  Decode classification here
-    $contacts->transform(function ($contact) {
+    // Decode classification for each item
+    $contacts->getCollection()->transform(function ($contact) {
         $contact->classification = json_decode($contact->classification, true);
         return $contact;
     });
 
     return Inertia::render('Admin/Contacts/Index', [
-        'contacts' => $contacts->values(),
+        'contacts' => $contacts,
+        'filters'  => $request->only('search'),
     ]);
-    }
+}
 
     /**
      * Show the form for creating a new resource.
