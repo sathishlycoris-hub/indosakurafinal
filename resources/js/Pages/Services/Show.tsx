@@ -3,7 +3,7 @@ import Layout from "@/components/layout/Layout";
 import Serviceshead from "@/components/layout/Serviceshead";
 import ContactCTA from "@/components/layout/Contact";
 import ContactPopup from "@/components/ContactPopup";
-import PageSeo, { PageSeoProps } from "@/components/PageSeo"; // ★ NEW
+import PageSeo, { PageSeoProps } from "@/components/PageSeo";
 import {
   CheckCircle, TrendingUp, Award, Users, Clock, Zap, ShieldCheck, BarChart3,
   Heart, Wallet, GraduationCap, Factory, ShoppingCart, Building2, Cpu, Shield, Globe, Cloud,
@@ -15,16 +15,21 @@ import AOS from "aos";
 import "aos/dist/aos.css";
 import { usePage } from "@inertiajs/react";
 
-/* ─── TYPES (unchanged) ─── */
 interface Highlight     { id: number; title: string; title_ja?: string; value?: string; description?: string; description_ja?: string; }
 interface Benefit       { id: number; title: string; title_ja?: string; description?: string; description_ja?: string; }
-interface ServiceItem   { id: number; title: string; title_ja?: string; description?: string; description_ja?: string; }
 interface WhyChooseItem { id: number; title: string; title_ja?: string; description?: string; description_ja?: string; }
 interface ApproachStep  { id: number; step_number?: number; title: string; title_ja?: string; description?: string; description_ja?: string; }
 interface Testimonial   { quote: string; quote_ja?: string; author?: string; }
 interface TechStack     { category: string; category_ja?: string; items: string; }
 interface Faq           { id: number; question: string; question_ja?: string; answer: string; answer_ja?: string; }
 interface Industry      { id: number; title: string; title_ja?: string; description: string; description_ja?: string; }
+
+interface ServiceItemLink {
+  id: number;
+  title: string; title_ja?: string;
+  description?: string; description_ja?: string;
+  slug?: string;
+}
 
 interface Service {
   id: number;
@@ -37,7 +42,7 @@ interface Service {
   overview?: string; overview_ja?: string;
   cta_label?: string; cta_label_ja?: string;
   cta_url?: string;
-  service_items?: ServiceItem[];
+  service_items?: ServiceItemLink[];
   why_choose?: WhyChooseItem[];
   approach_steps?: ApproachStep[];
   testimonials?: Testimonial[];
@@ -52,14 +57,14 @@ interface Props {
   industries: Industry[];
   faqSource?: string;
   industrySource?: string;
-  pageSeo?: PageSeoProps; // ★ NEW
+  pageSeo?: PageSeoProps;
+  serviceItems?: ServiceItemLink[];
 }
 
-/* ─── ICON POOLS (unchanged) ─── */
-const BENEFIT_ICONS    = [CheckCircle, TrendingUp, Award, Users, Clock, Zap, ShieldCheck, BarChart3];
+const BENEFIT_ICONS      = [CheckCircle, TrendingUp, Award, Users, Clock, Zap, ShieldCheck, BarChart3];
 const SERVICE_ITEM_ICONS = [Bot, Sparkles, Network, BrainCircuit, Database, MessageCircle, Workflow, Layers];
-const WHY_ICONS        = [CheckCircle2, Star, Layers, Lock, Target, BadgeCheck, Lightbulb, TrendingUp];
-const INDUSTRY_ICONS   = [Heart, Wallet, GraduationCap, Factory, ShoppingCart, Building2, Cpu, Shield, Globe, Cloud];
+const WHY_ICONS          = [CheckCircle2, Star, Layers, Lock, Target, BadgeCheck, Lightbulb, TrendingUp];
+const INDUSTRY_ICONS     = [Heart, Wallet, GraduationCap, Factory, ShoppingCart, Building2, Cpu, Shield, Globe, Cloud];
 
 const icon = (pool: any[], i: number) => pool[i % pool.length];
 
@@ -78,10 +83,9 @@ function SectionHeading({ title, subtitle, align = "center" }: { title: string; 
   );
 }
 
-/* ─── COMPONENT ─── */
-export default function Show({ service, faqs = [], industries = [], pageSeo }: Props) {
+export default function Show({ service, faqs = [], industries = [], serviceItems, pageSeo }: Props) {
   const { lang } = usePage<{ lang: "en" | "ja" }>().props;
-  const [popup, setPopup]     = useState(false);
+  const [popup, setPopup] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   useEffect(() => {
@@ -92,23 +96,25 @@ export default function Show({ service, faqs = [], industries = [], pageSeo }: P
   const v = (en?: string | null, ja?: string | null) =>
     ((lang === "ja" ? ja || en : en) || "").trim();
 
-  const highlights    = Array.isArray(service.highlights)    ? service.highlights    : [];
-  const benefits      = Array.isArray(service.benefits)      ? service.benefits      : [];
-  const serviceItems  = Array.isArray(service.service_items) ? service.service_items : [];
-  const whyChoose     = Array.isArray(service.why_choose)    ? service.why_choose    : [];
-  const approachSteps = Array.isArray(service.approach_steps)? service.approach_steps: [];
-  const testimonials  = Array.isArray(service.testimonials)  ? service.testimonials  : [];
-  const techStack     = Array.isArray(service.tech_stack)    ? service.tech_stack    : [];
-  const safeFaqs      = Array.isArray(faqs)       ? faqs       : [];
+  const benefits = Array.isArray(service.benefits) ? service.benefits : [];
+  const whyChoose = Array.isArray(service.why_choose) ? service.why_choose : [];
+  const approachSteps = Array.isArray(service.approach_steps) ? service.approach_steps : [];
+  const testimonials = Array.isArray(service.testimonials) ? service.testimonials : [];
+  const techStack = Array.isArray(service.tech_stack) ? service.tech_stack : [];
+  const safeFaqs = Array.isArray(faqs) ? faqs : [];
   const safeIndustries = Array.isArray(industries) ? industries : [];
 
-  const ctaUrl   = service.cta_url || "/contact";
+  // Use the prop if the controller sends it; otherwise fall back to the JSON column.
+  const items: ServiceItemLink[] = Array.isArray(serviceItems) && serviceItems.length > 0
+    ? serviceItems
+    : Array.isArray(service.service_items) ? service.service_items : [];
+
+  const ctaUrl = service.cta_url || "/contact";
   const ctaLabel = v(service.cta_label, service.cta_label_ja) || (lang === "ja" ? "無料相談を予約する" : "Book a Free Consultation");
   const svcTitle = v(service.title, service.title_ja);
 
   return (
     <Layout>
-      {/* ★ NEW — inject per-page SEO meta tags */}
       {pageSeo && <PageSeo {...pageSeo} />}
 
       <div className="sticky top-16 lg:top-[101px] z-40 bg-white">
@@ -117,37 +123,34 @@ export default function Show({ service, faqs = [], industries = [], pageSeo }: P
 
       {/* 1. HERO */}
       <section className="hero-gradient text-primary-foreground py-16 lg:py-16 relative overflow-hidden">
-  <div className="container mx-auto px-6 max-w-7xl relative z-10">
-    
-    <div data-aos="fade-right" className="w-full">
-      <span className="inline-flex items-center gap-2 text-white/60 text-sm font-medium mb-5 tracking-wide uppercase">
-        <span className="w-5 h-px bg-white/60" />
-        {lang === "ja" ? "サービス" : "Services"}
-      </span>
-      
-      <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-5 text-white">{svcTitle}</h1>
-      
-      {v(service.subtitle, service.subtitle_ja) && (
-        <p className="text-xl font-medium text-white/80 mb-4 leading-snug">{v(service.subtitle, service.subtitle_ja)}</p>
-      )}
-      
-      {v(service.overview, service.overview_ja) && (
-        /* Removed 'max-w-xl' and added 'max-w-full' to let the prose text expand completely */
-        <div className="prose max-w-full mb-8 text-base leading-relaxed [&_*]:!text-white"
-          dangerouslySetInnerHTML={{ __html: v(service.overview, service.overview_ja) }} />
-      )}
-      
-      <a href={ctaUrl}
-        className="inline-flex items-center gap-2 bg-white text-primary font-semibold px-8 py-3.5 rounded-xl hover:opacity-90 transition-colors shadow-lg text-sm">
-        {ctaLabel} <ArrowRight className="w-4 h-4" />
-      </a>
-    </div>
-    
-  </div>
-</section>
+        <div className="container mx-auto px-6 max-w-7xl relative z-10">
+          <div data-aos="fade-right" className="w-full">
+            <span className="inline-flex items-center gap-2 text-white/60 text-sm font-medium mb-5 tracking-wide uppercase">
+              <span className="w-5 h-px bg-white/60" />
+              {lang === "ja" ? "サービス" : "Services"}
+            </span>
 
-      {/* 2. OUR SERVICES */}
-      {serviceItems.length > 0 && (
+            <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-5 text-white">{svcTitle}</h1>
+
+            {v(service.subtitle, service.subtitle_ja) && (
+              <p className="text-xl font-medium text-white/80 mb-4 leading-snug">{v(service.subtitle, service.subtitle_ja)}</p>
+            )}
+
+            {v(service.overview, service.overview_ja) && (
+              <div className="prose max-w-full mb-8 text-base leading-relaxed [&_*]:!text-white"
+                dangerouslySetInnerHTML={{ __html: v(service.overview, service.overview_ja) }} />
+            )}
+
+            <a href={ctaUrl}
+              className="inline-flex items-center gap-2 bg-white text-primary font-semibold px-8 py-3.5 rounded-xl hover:opacity-90 transition-colors shadow-lg text-sm">
+              {ctaLabel} <ArrowRight className="w-4 h-4" />
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* 2. OUR SERVICES — links when item.slug exists */}
+      {items.length > 0 && (
         <section className="py-20 bg-background">
           <div className="container mx-auto px-6 max-w-7xl">
             <SectionHeading
@@ -155,11 +158,10 @@ export default function Show({ service, faqs = [], industries = [], pageSeo }: P
               subtitle={lang === "ja" ? "ビジネスの目標を加速するための包括的なサービス一覧です。" : "A comprehensive suite of services tailored to accelerate your business goals."}
             />
             <div className="space-y-6">
-              {serviceItems.map((item, i) => {
+              {items.map((item, i) => {
                 const Icon = icon(SERVICE_ITEM_ICONS, i);
-                return (
-                  <div key={item.id} data-aos={i % 2 === 0 ? "fade-right" : "fade-left"} data-aos-delay={i * 50}
-                    className="flex flex-col md:flex-row items-start gap-6 p-6 rounded-2xl border border-border bg-card hover:shadow-lg transition-all duration-300 group">
+                const inner = (
+                  <>
                     <div className="flex-shrink-0 w-14 h-14 bg-primary text-white rounded-xl flex items-center justify-center">
                       <Icon className="w-7 h-7" />
                     </div>
@@ -171,6 +173,19 @@ export default function Show({ service, faqs = [], industries = [], pageSeo }: P
                       )}
                     </div>
                     <ArrowRight className="hidden md:block flex-shrink-0 w-5 h-5 text-primary/30 group-hover:text-primary group-hover:translate-x-1 transition-all duration-300 mt-1" />
+                  </>
+                );
+                const cls = "flex flex-col md:flex-row items-start gap-6 p-6 rounded-2xl border border-border bg-card hover:shadow-lg transition-all duration-300 group";
+
+                return item.slug ? (
+                  <a key={item.id} href={`/services/${service.slug}/${item.slug}`}
+                    data-aos={i % 2 === 0 ? "fade-right" : "fade-left"} data-aos-delay={i * 50} className={cls}>
+                    {inner}
+                  </a>
+                ) : (
+                  <div key={item.id}
+                    data-aos={i % 2 === 0 ? "fade-right" : "fade-left"} data-aos-delay={i * 50} className={cls}>
+                    {inner}
                   </div>
                 );
               })}

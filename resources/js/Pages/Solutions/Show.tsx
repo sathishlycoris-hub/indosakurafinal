@@ -56,23 +56,23 @@ export default function Show({
       </div>
 
       {/* HERO */}
-      <section className="py-12 lg:py-20 bg-section-light">
-        <div className="container mx-auto grid lg:grid-cols-2 gap-12 items-center" data-aos="fade-left">
+      <section className="hero-gradient text-primary-foreground py-16 lg:py-16 relative overflow-hidden">
+        <div className="container mx-auto px-6 max-w-7xl relative z-10" data-aos="fade-left">
           <div>
             <h1 className="text-4xl font-bold mb-3">
               {getValue(solution.title, solution.title_ja)}
             </h1>
             {solution.subtitle && (
-              <p className="text-lg text-primary mb-4">
+              <p className="text-lg text-white mb-4">
                 {getValue(solution.subtitle, solution.subtitle_ja)}
               </p>
             )}
             <div
-              className="text-muted-foreground mb-8 leading-relaxed prose max-w-none"
+              className="text-white mb-8 leading-relaxed prose max-w-none"
               dangerouslySetInnerHTML={{ __html: getValue(solution.hero_description, solution.hero_description_ja) }}
             />
             <Button
-              size="lg"
+              size="lg" className="inline-flex items-center gap-2 bg-white text-primary font-semibold px-8 py-3.5 rounded-xl hover:opacity-90 transition-colors shadow-lg text-sm"
               onClick={() => {
                 if (solution.link) {
                   solution.link.startsWith("http")
@@ -85,13 +85,13 @@ export default function Show({
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
-          {solution.hero_image && (
+          {/* {solution.hero_image && (
             <img
               src={`/storage/${solution.hero_image}`}
               className="w-full max-w-2xl rounded-2xl shadow border"
               alt={getValue(solution.title, solution.title_ja)}
             />
-          )}
+          )} */}
         </div>
       </section>
 

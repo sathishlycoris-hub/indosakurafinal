@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
+use Illuminate\Database\Eloquent\Relations\HasMany;
 class Service extends Model
 {
     use HasFactory;
@@ -82,4 +82,9 @@ class Service extends Model
         $field = $lang === 'ja' ? 'meta_description_ja' : 'meta_description';
         return $this->{$field} ?? '';
     }
+
+    public function items(): HasMany
+{
+    return $this->hasMany(ServiceItem::class)->orderBy('sort_order');
+}
 }

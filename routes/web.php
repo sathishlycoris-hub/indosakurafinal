@@ -55,7 +55,7 @@ use App\Http\Controllers\Admin\EventTypeController;
 use App\Http\Controllers\Admin\IndiaDeskController;
 use App\Http\Controllers\IndiaDeskPageController;
 use App\Http\Controllers\Admin\IndiaDeskFaqController;
-
+use App\Http\Controllers\Admin\ServiceItemController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -258,6 +258,16 @@ Route::get('/services', [ServicePageController::class, 'index'])
 
 Route::get('/services/{slug}', [ServicePageController::class, 'show'])
     ->name('services.show');
+
+// ── Public ──
+Route::get('/services', [ServicePageController::class, 'index'])->name('services.index');
+
+Route::get('/services/{slug}', [ServicePageController::class, 'show'])->name('services.show');
+// Child detail page (nested)
+
+Route::get('/services/{serviceSlug}/{itemSlug}', [ServicePageController::class, 'showItem'])
+    ->name('services.item.show');
+
 
 Route::get('/corporate-info', [CorporateInfoPageController::class, 'index'])
     ->name('corporate.index');
@@ -486,6 +496,13 @@ Route::prefix('admin')
 
         Route::put('/india-desk-page', [IndiaDeskPageController::class, 'update'])
             ->name('india_desks_page.update');
+
+        // Service Items (nested under a service)
+        Route::get('services/{service}/items', [ServiceItemController::class, 'index'])->name('services.items.index');
+        Route::post('services/{service}/items', [ServiceItemController::class, 'store'])->name('services.items.store');
+        Route::put('services/{service}/items/{item}', [ServiceItemController::class, 'update'])->name('services.items.update');
+        Route::delete('services/{service}/items/{item}', [ServiceItemController::class, 'destroy'])->name('services.items.destroy');
+        
     });
 
 Route::get('/storage/{path}', function (string $path) {
