@@ -1,17 +1,19 @@
 // resources/js/Pages/Casestudies/Show.tsx
-// Changes vs original: import PageSeo, read pageSeo from usePage, render <PageSeo>
 
 import Layout from "@/components/layout/Layout";
 import { Link, usePage } from "@inertiajs/react";
 import { AlertCircle, CheckCircle } from "lucide-react";
 import { getLangValue } from "@/utils/lang";
 import Insightshead from "@/components/layout/InsightsHead";
-import PageSeo, { type PageSeoProps } from "@/components/PageSeo"; // ← import
+import PageSeo, { type PageSeoProps } from "@/components/PageSeo";
 
 interface CaseStudy {
+  slug: string;
   title: string; title_ja?: string;
   subtitle?: string; subtitle_ja?: string;
-  slug: string;
+  company_name?: string; company_name_ja?: string;
+  ceo_name?: string; ceo_name_ja?: string;
+  logo?: string | null;
   tags?: string; tags_ja?: string;
   hero_description?: string; hero_description_ja?: string;
   content?: string; content_ja?: string;
@@ -19,6 +21,9 @@ interface CaseStudy {
   implementation?: string; implementation_ja?: string;
   hero_image?: string | null;
   secondary_image?: string | null;
+  india_desk_slug: string;
+  india_desk_title: string;
+  india_desk_title_ja?: string;
 }
 
 export default function Show({
@@ -28,15 +33,16 @@ export default function Show({
   caseStudy: CaseStudy;
   relatedCases: CaseStudy[];
 }) {
-  // ← Read pageSeo from server props
   const { lang, pageSeo } = usePage<{
     lang: "en" | "ja";
     pageSeo: PageSeoProps;
   }>().props;
 
+  const companyName = getLangValue(lang, caseStudy.company_name || "", caseStudy.company_name_ja || "");
+  const ceoName = getLangValue(lang, caseStudy.ceo_name || "", caseStudy.ceo_name_ja || "");
+
   return (
     <Layout>
-      {/* ← Inject SEO meta tags */}
       <PageSeo {...pageSeo} />
 
       <div className="sticky top-16 lg:top-[101px] z-40 bg-white">
@@ -46,6 +52,28 @@ export default function Show({
       {/* HERO */}
       <section className="relative bg-primary py-10">
         <div className="container mx-auto px-4 text-white">
+          <Link
+            href={`/india-desks/${caseStudy.india_desk_slug}`}
+            className="text-white/60 text-xs inline-flex items-center gap-1 mb-4 hover:text-white transition-colors"
+          >
+            {getLangValue(lang, caseStudy.india_desk_title, caseStudy.india_desk_title_ja)}
+          </Link>
+
+          {/* Company + CEO header */}
+          {(companyName || ceoName || caseStudy.logo) && (
+            <div className="flex items-center gap-3 mb-4">
+              {caseStudy.logo && (
+                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-white overflow-hidden flex items-center justify-center shadow-md ring-2 ring-white/30">
+                  <img src={caseStudy.logo} alt="" className="w-full h-full object-contain p-1" />
+                </div>
+              )}
+              <div>
+                {companyName && <p className="font-semibold text-white leading-snug">{companyName}</p>}
+                {ceoName && <p className="text-white/70 text-sm leading-snug">{ceoName}</p>}
+              </div>
+            </div>
+          )}
+
           <h1 className="text-2xl md:text-3xl font-bold mb-2 leading-tight">
             {getLangValue(lang, caseStudy.title, caseStudy.title_ja)}
           </h1>
@@ -122,36 +150,44 @@ export default function Show({
       </article>
 
       {/* RELATED */}
-      <div className="bg-section-light">
-        <section className="py-10 container mx-auto px-4 max-w-7xl">
-          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-            <span className="w-1 h-6 bg-primary rounded"></span>
-            {getLangValue(lang, "Refer other case studies", "他の事例を見る")}
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {relatedCases.map((item) => (
-              <Link key={item.slug} href={`/blogs/casestudies/${item.slug}`} className="group">
-                <div className="aspect-video rounded-lg overflow-hidden mb-3">
-                  <img
-                    src={`/storage/${item.hero_image}`}
-                    alt={getLangValue(lang, item.title, item.title_ja)}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                  />
-                </div>
-                <h3 className="text-sm font-medium group-hover:text-primary transition-colors line-clamp-2">
-                  {getLangValue(lang, item.title, item.title_ja)}
-                </h3>
+      {relatedCases.length > 0 && (
+        <div className="bg-section-light">
+          <section className="py-10 container mx-auto px-4 max-w-7xl">
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <span className="w-1 h-6 bg-primary rounded"></span>
+              {getLangValue(lang, "Refer other case studies", "他の事例を見る")}
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {relatedCases.map((item: any) => (
+                <Link
+                  key={`${item.india_desk_slug}-${item.slug}`}
+                  href={`/india-desks/${item.india_desk_slug}/case-studies/${item.slug}`}
+                  className="group"
+                >
+                  <div className="aspect-video rounded-lg overflow-hidden mb-3 bg-muted">
+                    {item.hero_image && (
+                      <img
+                        src={`/storage/${item.hero_image}`}
+                        alt={getLangValue(lang, item.title, item.title_ja)}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                      />
+                    )}
+                  </div>
+                  <h3 className="text-sm font-medium group-hover:text-primary transition-colors line-clamp-2">
+                    {getLangValue(lang, item.title, item.title_ja)}
+                  </h3>
+                </Link>
+              ))}
+            </div>
+            <div className="text-center mt-12">
+              <Link href="/blogs/casestudies"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded hover:bg-primary/90 transition-colors">
+                {getLangValue(lang, "List of Case Studies", "事例一覧")}
               </Link>
-            ))}
-          </div>
-          <div className="text-center mt-12">
-            <Link href="/blogs/casestudies"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded hover:bg-primary/90 transition-colors">
-              {getLangValue(lang, "List of Case Studies", "事例一覧")}
-            </Link>
-          </div>
-        </section>
-      </div>
+            </div>
+          </section>
+        </div>
+      )}
     </Layout>
   );
 }

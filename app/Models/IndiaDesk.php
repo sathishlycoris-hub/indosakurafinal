@@ -101,4 +101,58 @@ class IndiaDesk extends Model
         $field = $lang === 'ja' ? 'meta_description_ja' : 'meta_description';
         return $this->{$field} ?? '';
     }
+
+    /**
+     * Find one embedded case study by slug.
+     */
+    public function findCaseStudyBySlug(string $slug): ?array
+    {
+        foreach ((array) $this->case_studies as $cs) {
+            if (($cs['slug'] ?? null) === $slug) {
+                return $cs;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * All case studies across all desks, each annotated with its parent desk info.
+     * Pass $excludeDeskId + $excludeSlug to exclude "this" case study (e.g. for related lists).
+     */
+    public static function allCaseStudiesFlattened(?int $excludeDeskId = null, ?string $excludeSlug = null)
+    {
+        return static::query()
+            ->select('id', 'slug', 'title', 'title_ja', 'case_studies')
+            ->get()
+            ->flatMap(function ($desk) use ($excludeDeskId, $excludeSlug) {
+                return collect((array) $desk->case_studies)
+                    ->filter(fn($cs) => !($desk->id === $excludeDeskId && ($cs['slug'] ?? null) === $excludeSlug))
+                    ->map(function ($cs) use ($desk) {
+                        $cs['india_desk_id']       = $desk->id;
+                        $cs['india_desk_slug']     = $desk->slug;
+                        $cs['india_desk_title']    = $desk->title;
+                        $cs['india_desk_title_ja'] = $desk->title_ja;
+                        return $cs;
+                    });
+            })
+            ->values();
+    }
+
+   public static function effectiveCaseStudyMetaTitle(array $cs, string $lang = 'en'): string
+    {
+        $titleField = $lang === 'ja' ? 'title_ja' : 'title';
+        $metaField  = $lang === 'ja' ? 'meta_title_ja' : 'meta_title';
+
+        return $cs[$metaField] ?? $cs[$titleField] ?? $cs['title'] ?? '';
+    }
+
+    public static function effectiveCaseStudyMetaDescription(array $cs, string $lang = 'en'): string
+    {
+        $metaField = $lang === 'ja' ? 'meta_description_ja' : 'meta_description';
+        $fallback  = $lang === 'ja'
+            ? ($cs['hero_description_ja'] ?? $cs['hero_description'] ?? '')
+            : ($cs['hero_description'] ?? '');
+
+        return $cs[$metaField] ?? (strip_tags($fallback) ?: '');
+    }
 }

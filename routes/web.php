@@ -157,9 +157,9 @@ Route::get('/usage', fn() => Inertia::render('Usage'));
 //     };
 // });
 
-Route::get('/blogs/casestudies', [CaseStudyController::class, 'index']);
-
-Route::get('/blogs/casestudies/{slug}', [CaseStudyController::class, 'show']);
+Route::get('/blogs/casestudies', [CaseStudyController::class, 'index'])->name('casestudies.index');
+Route::get('/india-desks/{indiaDeskSlug}/case-studies/{caseSlug}', [CaseStudyController::class, 'show'])->name('casestudies.show');
+// Route::get('/blogs/casestudies/{slug}', [CaseStudyController::class, 'show']);
 
 Route::get('/blogs/infographics/', [InfographicPageController::class, 'index']);
 
@@ -480,14 +480,15 @@ Route::prefix('admin')
         Route::get('/case-studies', [AdminCaseStudyController::class, 'index'])
             ->name('casestudies.index');
 
-        Route::post('/case-studies', [AdminCaseStudyController::class, 'store'])
-            ->name('casestudies.store');
 
-        Route::put('/case-studies/{caseStudy}', [AdminCaseStudyController::class, 'update'])
-            ->name('casestudies.update');
+        // Route::post('/case-studies', [AdminCaseStudyController::class, 'store'])
+        //     ->name('casestudies.store');
 
-        Route::delete('/case-studies/{caseStudy}', [AdminCaseStudyController::class, 'destroy'])
-            ->name('casestudies.destroy');
+        // Route::put('/case-studies/{caseStudy}', [AdminCaseStudyController::class, 'update'])
+        //     ->name('casestudies.update');
+
+        // Route::delete('/case-studies/{caseStudy}', [AdminCaseStudyController::class, 'destroy'])
+        //     ->name('casestudies.destroy');
 
         Route::post('case-studies-page', [AdminCaseStudyController::class, 'updatePage'])->name('case_studies.updatePage');
 

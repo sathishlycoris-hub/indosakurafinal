@@ -62,6 +62,8 @@ class IndiaDeskController extends Controller
             // Case study logos — indexed file inputs
             'case_study_logos'    => 'nullable|array',
             'case_study_logos.*'  => 'nullable|image|max:2048',
+            'case_study_hero_images'       => 'nullable|array',
+            'case_study_hero_images.*'     => 'nullable|image|max:4096',
             // JSON arrays
             'highlights'          => 'nullable',
             'benefits'            => 'nullable',
@@ -73,6 +75,8 @@ class IndiaDeskController extends Controller
             'case_studies'        => 'nullable',
             'page_faqs'           => 'nullable',
             'page_industries'     => 'nullable',
+            'case_study_secondary_images'  => 'nullable|array',
+            'case_study_secondary_images.*' => 'nullable|image|max:4096',
         ], [
             'title.required' => 'The India Desk title is required.',
             'slug.required'  => 'The slug is required. It is used in the URL.',
@@ -80,10 +84,16 @@ class IndiaDeskController extends Controller
         ]);
 
         $jsonKeys = [
-            'highlights', 'benefits',
-            'service_items', 'why_choose', 'approach_steps',
-            'testimonials', 'tech_stack', 'case_studies',
-            'page_faqs', 'page_industries',
+            'highlights',
+            'benefits',
+            'service_items',
+            'why_choose',
+            'approach_steps',
+            'testimonials',
+            'tech_stack',
+            'case_studies',
+            'page_faqs',
+            'page_industries',
         ];
 
         $decoded = [];
@@ -104,31 +114,64 @@ class IndiaDeskController extends Controller
      *  - Otherwise preserve the existing logo URL from $existing[i]['logo'].
      * Old logo files are deleted from storage when replaced.
      */
-    private function processCaseStudyLogos(
+     private function processCaseStudyMedia(
         Request $request,
         array $caseStudies,
         array $existing = []
     ): array {
+        $usedSlugs = array_filter(array_column($caseStudies, 'slug'));
+
         foreach ($caseStudies as $i => &$cs) {
+            // Logo (stored as full asset() URL — legacy behavior)
             if ($request->hasFile("case_study_logos.{$i}")) {
-                // Delete old logo if one exists for this slot
-                $oldLogo = $existing[$i]['logo'] ?? null;
-                if ($oldLogo) {
-                    $relative = ltrim(str_replace(asset('storage'), '', $oldLogo), '/');
-                    if ($relative && Storage::disk('public')->exists($relative)) {
-                        Storage::disk('public')->delete($relative);
-                    }
-                }
+                $this->deleteOldCaseStudyFile($existing[$i]['logo'] ?? null, true);
                 $stored     = $request->file("case_study_logos.{$i}")->store('indiadesks/cs_logos', 'public');
                 $cs['logo'] = asset('storage/' . $stored);
             } else {
-                // No new upload — keep whatever URL is already stored
                 $cs['logo'] = $existing[$i]['logo'] ?? ($cs['logo'] ?? null);
             }
+
+            // Hero image (stored as relative path, like the desk's own hero_image)
+            if ($request->hasFile("case_study_hero_images.{$i}")) {
+                $this->deleteOldCaseStudyFile($existing[$i]['hero_image'] ?? null, false);
+                $cs['hero_image'] = $request->file("case_study_hero_images.{$i}")->store('indiadesks/cs_hero', 'public');
+            } else {
+                $cs['hero_image'] = $existing[$i]['hero_image'] ?? ($cs['hero_image'] ?? null);
+            }
+
+            // Secondary image
+            if ($request->hasFile("case_study_secondary_images.{$i}")) {
+                $this->deleteOldCaseStudyFile($existing[$i]['secondary_image'] ?? null, false);
+                $cs['secondary_image'] = $request->file("case_study_secondary_images.{$i}")->store('indiadesks/cs_secondary', 'public');
+            } else {
+                $cs['secondary_image'] = $existing[$i]['secondary_image'] ?? ($cs['secondary_image'] ?? null);
+            }
+
+            // Slug — preserve on edit (keeps public URLs stable), derive from title otherwise
+            $preserved = $existing[$i]['slug'] ?? ($cs['slug'] ?? null);
+            $base      = $preserved ?: (Str::slug($cs['title'] ?? '') ?: 'case-study-' . ($i + 1));
+            $slug      = $base;
+            $n         = 2;
+            while (in_array($slug, array_diff($usedSlugs, [$preserved]), true) || (isset($cs['slug']) === false && in_array($slug, $usedSlugs, true))) {
+                $slug = $base . '-' . $n++;
+            }
+            $cs['slug']  = $slug;
+            $usedSlugs[$i] = $slug;
         }
         unset($cs);
 
         return $caseStudies;
+    }
+
+     private function deleteOldCaseStudyFile(?string $value, bool $isAssetUrl): void
+    {
+        if (!$value) return;
+        $relative = $isAssetUrl
+            ? ltrim(str_replace(asset('storage'), '', $value), '/')
+            : $value;
+        if ($relative && Storage::disk('public')->exists($relative)) {
+            Storage::disk('public')->delete($relative);
+        }
     }
 
     /* ─────────── SYNC RELATIONS ─────────── */
@@ -234,12 +277,11 @@ class IndiaDeskController extends Controller
 
     /* ─────────── STORE ─────────── */
 
-    public function store(Request $request)
+  public function store(Request $request)
     {
         $decoded = $this->validated($request);
 
-        // Resolve logos before the DB transaction (file I/O outside transaction)
-        $decoded['case_studies'] = $this->processCaseStudyLogos(
+        $decoded['case_studies'] = $this->processCaseStudyMedia(
             $request,
             $decoded['case_studies'] ?? []
         );
@@ -264,18 +306,18 @@ class IndiaDeskController extends Controller
 
     /* ─────────── UPDATE ─────────── */
 
-    public function update(Request $request, IndiaDesk $indiaDesk)
+  public function update(Request $request, IndiaDesk $indiaDesk)
     {
         $decoded = $this->validated($request, $indiaDesk->id);
 
-        // Pass existing case_studies so old logos survive when no new file is uploaded
-        $decoded['case_studies'] = $this->processCaseStudyLogos(
+        $decoded['case_studies'] = $this->processCaseStudyMedia(
             $request,
             $decoded['case_studies'] ?? [],
             $indiaDesk->case_studies ?? []
         );
 
         DB::transaction(function () use ($request, $indiaDesk, $decoded) {
+            // ...unchanged hero/og image handling...
             $heroImage = $indiaDesk->hero_image;
             if ($request->hasFile('hero_image')) {
                 if ($indiaDesk->hero_image) {
@@ -332,6 +374,13 @@ class IndiaDeskController extends Controller
                             Storage::disk('public')->delete($relative);
                         }
                     }
+                }
+            }
+            if (is_array($indiaDesk->case_studies)) {
+                foreach ($indiaDesk->case_studies as $cs) {
+                    $this->deleteOldCaseStudyFile($cs['logo'] ?? null, true);
+                    $this->deleteOldCaseStudyFile($cs['hero_image'] ?? null, false);
+                    $this->deleteOldCaseStudyFile($cs['secondary_image'] ?? null, false);
                 }
             }
 

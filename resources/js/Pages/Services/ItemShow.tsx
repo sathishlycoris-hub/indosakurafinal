@@ -96,11 +96,11 @@ export default function ItemShow({ service, item, pageSeo }: Props) {
     <Layout>
       {pageSeo && <PageSeo {...pageSeo} />}
 
-      <div className="sticky top-16 lg:top-[101px] z-40 bg-white">
-        <Serviceshead />
+     <div className="sticky top-16 lg:top-[101px] z-40 bg-white">
+        <Serviceshead activeItem={{ title: item.title, title_ja: item.title_ja, slug: service.slug }} />
       </div>
 
-      {/* Breadcrumb */}
+      {/* Breadcrumb — now shown as a hover dropdown on the matching tab in Serviceshead instead
       <div className="bg-[#F6F6F6] border-b border-border">
         <div className="container mx-auto px-6 max-w-7xl py-3 text-xs text-muted-foreground">
           <a href="/services" className="hover:text-primary">{lang === "ja" ? "サービス" : "Services"}</a>
@@ -110,6 +110,7 @@ export default function ItemShow({ service, item, pageSeo }: Props) {
           <span className="text-primary font-medium">{title}</span>
         </div>
       </div>
+      */}
 
       {/* HERO */}
       <section className="hero-gradient text-primary-foreground py-16 relative overflow-hidden">

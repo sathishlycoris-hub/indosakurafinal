@@ -111,7 +111,7 @@ export default function Index({ contacts, filters }: Props) {
         </thead>
 
         <tbody>
-          {data.length === 0 ? (
+          {data?.length === 0 ? (
             <tr>
               <td colSpan={8} className="p-4 text-center text-gray-500">
                 No matching records found.

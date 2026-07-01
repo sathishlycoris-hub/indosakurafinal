@@ -20,25 +20,31 @@ import SeoFields from "@/components/SeoFields";
 
 /* ═══════════════════════════════════════  TYPES  ═══════════════════════════════════════ */
 
-interface Highlight    { value: string; title: string; title_ja?: string; description?: string; description_ja?: string; }
-interface Benefit      { title: string; title_ja?: string; description?: string; description_ja?: string; }
+interface Highlight { value: string; title: string; title_ja?: string; description?: string; description_ja?: string; }
+interface Benefit { title: string; title_ja?: string; description?: string; description_ja?: string; }
 interface IndiaDeskItem { title: string; title_ja?: string; description?: string; description_ja?: string; }
 interface WhyChooseItem { title: string; title_ja?: string; description?: string; description_ja?: string; }
 interface ApproachStep { step_number?: number; title: string; title_ja?: string; description?: string; description_ja?: string; }
-interface Testimonial  { quote: string; quote_ja?: string; author?: string; }
-interface TechStack    { category: string; category_ja?: string; items: string; }
-interface PageFaq      { question: string; question_ja?: string; answer: string; answer_ja?: string; }
+interface Testimonial { quote: string; quote_ja?: string; author?: string; }
+interface TechStack { category: string; category_ja?: string; items: string; }
+interface PageFaq { question: string; question_ja?: string; answer: string; answer_ja?: string; }
 interface PageIndustry { title: string; title_ja?: string; description?: string; description_ja?: string; }
 
-// ★ logo field added
+// ★ Restored to match the original standalone Case Study schema + company_name/ceo_name
 interface CaseStudy {
   title: string; title_ja?: string;
-  logo?: string | null;                 // full asset URL stored in JSON
-  challenge_title?: string; challenge_title_ja?: string;
-  challenge_description?: string; challenge_description_ja?: string;
-  solution_title?: string; solution_title_ja?: string;
-  solution_description?: string; solution_description_ja?: string;
-  results?: string; results_ja?: string;
+  slug?: string;
+  subtitle?: string; subtitle_ja?: string;
+  company_name?: string; company_name_ja?: string;
+  ceo_name?: string; ceo_name_ja?: string;
+  logo?: string | null;
+  hero_image?: string | null;       // relative path — render as /storage/${hero_image}
+  secondary_image?: string | null;  // relative path
+  tags?: string; tags_ja?: string;
+  hero_description?: string; hero_description_ja?: string;
+  benefit?: string; benefit_ja?: string;               // "Subject" box on the show page
+  implementation?: string; implementation_ja?: string; // "Implementation Effect" box on the show page
+  content?: string; content_ja?: string;               // long-form body at bottom of show page
 }
 
 interface IndiaDesk {
@@ -71,24 +77,30 @@ interface IndiaDesk {
 
 /* ═══════════════════════════════════════  STRIP HELPERS  ═══════════════════════════════════════ */
 
-const toHighlight     = (r: any): Highlight     => ({ value: r.value ?? "", title: r.title ?? "", title_ja: r.title_ja ?? "", description: r.description ?? "", description_ja: r.description_ja ?? "" });
-const toBenefit       = (r: any): Benefit       => ({ title: r.title ?? "", title_ja: r.title_ja ?? "", description: r.description ?? "", description_ja: r.description_ja ?? "" });
-const toPageFaq       = (r: any): PageFaq       => ({ question: r.question ?? "", question_ja: r.question_ja ?? "", answer: r.answer ?? "", answer_ja: r.answer_ja ?? "" });
-const toPageIndustry  = (r: any): PageIndustry  => ({ title: r.title ?? "", title_ja: r.title_ja ?? "", description: r.description ?? "", description_ja: r.description_ja ?? "" });
-const toServiceItem   = (r: any): IndiaDeskItem => ({ title: r.title ?? "", title_ja: r.title_ja ?? "", description: r.description ?? "", description_ja: r.description_ja ?? "" });
+const toHighlight = (r: any): Highlight => ({ value: r.value ?? "", title: r.title ?? "", title_ja: r.title_ja ?? "", description: r.description ?? "", description_ja: r.description_ja ?? "" });
+const toBenefit = (r: any): Benefit => ({ title: r.title ?? "", title_ja: r.title_ja ?? "", description: r.description ?? "", description_ja: r.description_ja ?? "" });
+const toPageFaq = (r: any): PageFaq => ({ question: r.question ?? "", question_ja: r.question_ja ?? "", answer: r.answer ?? "", answer_ja: r.answer_ja ?? "" });
+const toPageIndustry = (r: any): PageIndustry => ({ title: r.title ?? "", title_ja: r.title_ja ?? "", description: r.description ?? "", description_ja: r.description_ja ?? "" });
+const toServiceItem = (r: any): IndiaDeskItem => ({ title: r.title ?? "", title_ja: r.title_ja ?? "", description: r.description ?? "", description_ja: r.description_ja ?? "" });
 const toWhyChooseItem = (r: any): WhyChooseItem => ({ title: r.title ?? "", title_ja: r.title_ja ?? "", description: r.description ?? "", description_ja: r.description_ja ?? "" });
-const toApproachStep  = (r: any): ApproachStep  => ({ step_number: r.step_number ?? undefined, title: r.title ?? "", title_ja: r.title_ja ?? "", description: r.description ?? "", description_ja: r.description_ja ?? "" });
-const toTestimonial   = (r: any): Testimonial   => ({ quote: r.quote ?? "", quote_ja: r.quote_ja ?? "", author: r.author ?? "" });
-const toTechStack     = (r: any): TechStack     => ({ category: r.category ?? "", category_ja: r.category_ja ?? "", items: r.items ?? "" });
-// ★ logo preserved when loading existing record
-const toCaseStudy     = (r: any): CaseStudy     => ({
+const toApproachStep = (r: any): ApproachStep => ({ step_number: r.step_number ?? undefined, title: r.title ?? "", title_ja: r.title_ja ?? "", description: r.description ?? "", description_ja: r.description_ja ?? "" });
+const toTestimonial = (r: any): Testimonial => ({ quote: r.quote ?? "", quote_ja: r.quote_ja ?? "", author: r.author ?? "" });
+const toTechStack = (r: any): TechStack => ({ category: r.category ?? "", category_ja: r.category_ja ?? "", items: r.items ?? "" });
+// ★ Restored schema fields preserved when loading an existing record
+const toCaseStudy = (r: any): CaseStudy => ({
   title: r.title ?? "", title_ja: r.title_ja ?? "",
+  slug: r.slug ?? "",
+  subtitle: r.subtitle ?? "", subtitle_ja: r.subtitle_ja ?? "",
+  company_name: r.company_name ?? "", company_name_ja: r.company_name_ja ?? "",
+  ceo_name: r.ceo_name ?? "", ceo_name_ja: r.ceo_name_ja ?? "",
   logo: r.logo ?? null,
-  challenge_title: r.challenge_title ?? "", challenge_title_ja: r.challenge_title_ja ?? "",
-  challenge_description: r.challenge_description ?? "", challenge_description_ja: r.challenge_description_ja ?? "",
-  solution_title: r.solution_title ?? "", solution_title_ja: r.solution_title_ja ?? "",
-  solution_description: r.solution_description ?? "", solution_description_ja: r.solution_description_ja ?? "",
-  results: r.results ?? "", results_ja: r.results_ja ?? "",
+  hero_image: r.hero_image ?? null,
+  secondary_image: r.secondary_image ?? null,
+  tags: r.tags ?? "", tags_ja: r.tags_ja ?? "",
+  hero_description: r.hero_description ?? "", hero_description_ja: r.hero_description_ja ?? "",
+  benefit: r.benefit ?? "", benefit_ja: r.benefit_ja ?? "",
+  implementation: r.implementation ?? "", implementation_ja: r.implementation_ja ?? "",
+  content: r.content ?? "", content_ja: r.content_ja ?? "",
 });
 
 const slugify = (text: string) =>
@@ -100,14 +112,16 @@ const slugify = (text: string) =>
 /* ═══════════════════════════════════════  COMPONENT  ═══════════════════════════════════════ */
 
 export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
-  const [mode, setMode]             = useState<"add" | "edit" | "view">("add");
-  const [current, setCurrent]       = useState<IndiaDesk | null>(null);
-  const [open, setOpen]             = useState(false);
-  const [langTab, setLangTab]       = useState<"en" | "ja">("en");
+  const [mode, setMode] = useState<"add" | "edit" | "view">("add");
+  const [current, setCurrent] = useState<IndiaDesk | null>(null);
+  const [open, setOpen] = useState(false);
+  const [langTab, setLangTab] = useState<"en" | "ja">("en");
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
-  // ★ Separate state for case study logo File objects (not serialisable in useForm)
+  // ★ Separate state for case study File objects (not serialisable in useForm) — one map per upload slot
   const [caseStudyLogoFiles, setCaseStudyLogoFiles] = useState<Map<number, File>>(new Map());
+  const [caseStudyHeroFiles, setCaseStudyHeroFiles] = useState<Map<number, File>>(new Map());
+  const [caseStudySecondaryFiles, setCaseStudySecondaryFiles] = useState<Map<number, File>>(new Map());
 
   const { data, setData, reset, processing } = useForm({
     title: "", title_ja: "",
@@ -125,29 +139,34 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
     meta_description: "", meta_description_ja: "",
     meta_keywords: "", meta_keywords_ja: "",
     og_image: null as File | null,
-    highlights:      [] as Highlight[],
-    benefits:        [] as Benefit[],
-    service_items:   [] as IndiaDeskItem[],
-    why_choose:      [] as WhyChooseItem[],
-    approach_steps:  [] as ApproachStep[],
-    testimonials:    [] as Testimonial[],
-    tech_stack:      [] as TechStack[],
-    page_faqs:       [] as PageFaq[],
+    highlights: [] as Highlight[],
+    benefits: [] as Benefit[],
+    service_items: [] as IndiaDeskItem[],
+    why_choose: [] as WhyChooseItem[],
+    approach_steps: [] as ApproachStep[],
+    testimonials: [] as Testimonial[],
+    tech_stack: [] as TechStack[],
+    page_faqs: [] as PageFaq[],
     page_industries: [] as PageIndustry[],
-    case_studies:    [] as CaseStudy[],
+    case_studies: [] as CaseStudy[],
   });
 
   /* ── open helpers ── */
   const openAdd = () => {
     reset();
     setCaseStudyLogoFiles(new Map());
+    setCaseStudyHeroFiles(new Map());
+    setCaseStudySecondaryFiles(new Map());
     setFormErrors({});
     setMode("add"); setCurrent(null); setLangTab("en"); setOpen(true);
   };
 
   const openEdit = (s: IndiaDesk) => {
     setMode("edit"); setCurrent(s); setLangTab("en"); setFormErrors({});
-    setCaseStudyLogoFiles(new Map()); // clear pending files on open
+    // clear pending files on open
+    setCaseStudyLogoFiles(new Map());
+    setCaseStudyHeroFiles(new Map());
+    setCaseStudySecondaryFiles(new Map());
     setData({
       title: s.title ?? "", title_ja: s.title_ja ?? "",
       slug: s.slug ?? "",
@@ -164,16 +183,16 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
       meta_description: s.meta_description ?? "", meta_description_ja: s.meta_description_ja ?? "",
       meta_keywords: s.meta_keywords ?? "", meta_keywords_ja: s.meta_keywords_ja ?? "",
       og_image: null,
-      highlights:      Array.isArray(s.highlights)      ? s.highlights.map(toHighlight)         : [],
-      benefits:        Array.isArray(s.benefits)        ? s.benefits.map(toBenefit)             : [],
-      page_faqs:       Array.isArray(s.page_faqs)       ? s.page_faqs.map(toPageFaq)            : [],
+      highlights: Array.isArray(s.highlights) ? s.highlights.map(toHighlight) : [],
+      benefits: Array.isArray(s.benefits) ? s.benefits.map(toBenefit) : [],
+      page_faqs: Array.isArray(s.page_faqs) ? s.page_faqs.map(toPageFaq) : [],
       page_industries: Array.isArray(s.page_industries) ? s.page_industries.map(toPageIndustry) : [],
-      service_items:   Array.isArray(s.service_items)   ? s.service_items.map(toServiceItem)    : [],
-      why_choose:      Array.isArray(s.why_choose)      ? s.why_choose.map(toWhyChooseItem)     : [],
-      approach_steps:  Array.isArray(s.approach_steps)  ? s.approach_steps.map(toApproachStep)  : [],
-      testimonials:    Array.isArray(s.testimonials)    ? s.testimonials.map(toTestimonial)     : [],
-      tech_stack:      Array.isArray(s.tech_stack)      ? s.tech_stack.map(toTechStack)         : [],
-      case_studies:    Array.isArray(s.case_studies)    ? s.case_studies.map(toCaseStudy)       : [],
+      service_items: Array.isArray(s.service_items) ? s.service_items.map(toServiceItem) : [],
+      why_choose: Array.isArray(s.why_choose) ? s.why_choose.map(toWhyChooseItem) : [],
+      approach_steps: Array.isArray(s.approach_steps) ? s.approach_steps.map(toApproachStep) : [],
+      testimonials: Array.isArray(s.testimonials) ? s.testimonials.map(toTestimonial) : [],
+      tech_stack: Array.isArray(s.tech_stack) ? s.tech_stack.map(toTechStack) : [],
+      case_studies: Array.isArray(s.case_studies) ? s.case_studies.map(toCaseStudy) : [],
     });
     setOpen(true);
   };
@@ -190,7 +209,7 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
   const validate = (): boolean => {
     const errors: Record<string, string> = {};
     if (!data.title.trim()) errors.title = "Title is required.";
-    if (!data.slug.trim())  errors.slug  = "Slug is required (used in the URL).";
+    if (!data.slug.trim()) errors.slug = "Slug is required (used in the URL).";
     setFormErrors(errors);
     if (Object.keys(errors).length) setLangTab("en");
     return Object.keys(errors).length === 0;
@@ -201,43 +220,45 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
     if (!validate()) return;
 
     const form = new FormData();
-    const app  = (k: string, v: string) => form.append(k, v ?? "");
+    const app = (k: string, v: string) => form.append(k, v ?? "");
 
-    app("title",               data.title);        app("title_ja",            data.title_ja);
-    app("slug",                data.slug.trim());
-    app("subtitle",            data.subtitle);     app("subtitle_ja",         data.subtitle_ja);
-    app("hero_description",    data.hero_description);
+    app("title", data.title); app("title_ja", data.title_ja);
+    app("slug", data.slug.trim());
+    app("subtitle", data.subtitle); app("subtitle_ja", data.subtitle_ja);
+    app("hero_description", data.hero_description);
     app("hero_description_ja", data.hero_description_ja);
-    app("supporting_growth",   data.supporting_growth);
+    app("supporting_growth", data.supporting_growth);
     app("supporting_growth_ja", data.supporting_growth_ja);
-    app("about",               data.about);        app("about_ja",            data.about_ja);
-    app("about_indosakura",    data.about_indosakura);
+    app("about", data.about); app("about_ja", data.about_ja);
+    app("about_indosakura", data.about_indosakura);
     app("about_indosakura_ja", data.about_indosakura_ja);
-    app("overview",            data.overview);     app("overview_ja",         data.overview_ja);
-    app("cta_label",           data.cta_label);    app("cta_label_ja",        data.cta_label_ja);
-    app("cta_url",             data.cta_url);
-    app("meta_title",          data.meta_title);   app("meta_title_ja",       data.meta_title_ja);
-    app("meta_description",    data.meta_description);
+    app("overview", data.overview); app("overview_ja", data.overview_ja);
+    app("cta_label", data.cta_label); app("cta_label_ja", data.cta_label_ja);
+    app("cta_url", data.cta_url);
+    app("meta_title", data.meta_title); app("meta_title_ja", data.meta_title_ja);
+    app("meta_description", data.meta_description);
     app("meta_description_ja", data.meta_description_ja);
-    app("meta_keywords",       data.meta_keywords);
-    app("meta_keywords_ja",    data.meta_keywords_ja);
+    app("meta_keywords", data.meta_keywords);
+    app("meta_keywords_ja", data.meta_keywords_ja);
 
     if (data.hero_image) form.append("hero_image", data.hero_image);
-    if (data.og_image)   form.append("og_image",   data.og_image);
+    if (data.og_image) form.append("og_image", data.og_image);
 
-    // ★ Append case study logo files keyed by index
-    caseStudyLogoFiles.forEach((file, index) => {
-      form.append(`case_study_logos[${index}]`, file);
-    });
+    // ★ Append case study files keyed by index — one field name per upload slot
+    caseStudyLogoFiles.forEach((file, index) => form.append(`case_study_logos[${index}]`, file));
+    caseStudyHeroFiles.forEach((file, index) => form.append(`case_study_hero_images[${index}]`, file));
+    caseStudySecondaryFiles.forEach((file, index) => form.append(`case_study_secondary_images[${index}]`, file));
 
-    (["highlights","benefits","service_items","why_choose","approach_steps",
-      "testimonials","tech_stack","page_faqs","page_industries","case_studies"] as const)
+    (["highlights", "benefits", "service_items", "why_choose", "approach_steps",
+      "testimonials", "tech_stack", "page_faqs", "page_industries", "case_studies"] as const)
       .forEach(k => form.append(k, JSON.stringify(data[k])));
 
     const opts = {
       onSuccess: () => {
         reset();
         setCaseStudyLogoFiles(new Map());
+        setCaseStudyHeroFiles(new Map());
+        setCaseStudySecondaryFiles(new Map());
         setFormErrors({});
         setOpen(false);
       },
@@ -261,21 +282,32 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
   };
 
   /* ── array helpers ── */
-  const addItem    = (k: keyof typeof data, item: any) => setData(k, [...(data[k] as any[]), item]);
+  const addItem = (k: keyof typeof data, item: any) => setData(k, [...(data[k] as any[]), item]);
+
+  // Re-index a single file map after an item at `removedIndex` is spliced out
+  const reindexFileMap = (map: Map<number, File>, removedIndex: number): Map<number, File> => {
+    const next = new Map<number, File>();
+    map.forEach((file, idx) => {
+      if (idx < removedIndex) next.set(idx, file);
+      else if (idx > removedIndex) next.set(idx - 1, file); // shift down
+      // idx === removedIndex → dropped
+    });
+    return next;
+  };
+
   const removeItem = (k: keyof typeof data, i: number) => {
     const a = [...(data[k] as any[])];
     a.splice(i, 1);
     setData(k, a);
-    // ★ Also remove the logo file for this slot and re-index remaining slots
-    setCaseStudyLogoFiles(prev => {
-      const next = new Map<number, File>();
-      prev.forEach((file, idx) => {
-        if (idx < i) next.set(idx, file);
-        else if (idx > i) next.set(idx - 1, file); // shift down
-      });
-      return next;
-    });
+
+    // ★ Case studies have three independent file slots — keep all three in sync
+    if (k === "case_studies") {
+      setCaseStudyLogoFiles(prev => reindexFileMap(prev, i));
+      setCaseStudyHeroFiles(prev => reindexFileMap(prev, i));
+      setCaseStudySecondaryFiles(prev => reindexFileMap(prev, i));
+    }
   };
+
   const updateItem = (k: keyof typeof data, i: number, field: string, val: string) => {
     const a = [...(data[k] as any[])];
     a[i][field] = val;
@@ -288,6 +320,19 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
       const next = new Map(prev);
       if (file) next.set(index, file);
       else next.delete(index);
+      return next;
+    });
+  };
+
+  // ★ Generic handler for hero / secondary image slots
+  const handleCaseStudyFileChange = (
+    setter: React.Dispatch<React.SetStateAction<Map<number, File>>>,
+    index: number,
+    file: File | null,
+  ) => {
+    setter(prev => {
+      const next = new Map(prev);
+      if (file) next.set(index, file); else next.delete(index);
       return next;
     });
   };
@@ -335,23 +380,23 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
                   <p className="font-semibold text-sm flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-primary inline-block" /> SEO
                   </p>
-                  {current.meta_title       && <p className="text-sm"><span className="text-muted-foreground">Title:</span> {current.meta_title}</p>}
+                  {current.meta_title && <p className="text-sm"><span className="text-muted-foreground">Title:</span> {current.meta_title}</p>}
                   {current.meta_description && <p className="text-sm"><span className="text-muted-foreground">Desc:</span> {current.meta_description}</p>}
-                  {current.meta_keywords    && <p className="text-sm"><span className="text-muted-foreground">Keywords:</span> {current.meta_keywords}</p>}
+                  {current.meta_keywords && <p className="text-sm"><span className="text-muted-foreground">Keywords:</span> {current.meta_keywords}</p>}
                   {current.og_image && (
                     <img src={`/storage/${current.og_image}`} className="h-20 rounded border object-cover mt-2" alt="OG" />
                   )}
                 </div>
               )}
-              <ViewList label="Our Services"   items={current.service_items} />
-              <ViewList label="Highlights"     items={current.highlights}    showValue />
-              <ViewList label="Benefits"       items={current.benefits} />
-              <ViewList label="Why Choose Us"  items={current.why_choose} />
+              <ViewList label="Our Services" items={current.service_items} />
+              <ViewList label="Highlights" items={current.highlights} showValue />
+              <ViewList label="Benefits" items={current.benefits} />
+              <ViewList label="Why Choose Us" items={current.why_choose} />
               <ViewList label="Approach Steps" items={current.approach_steps} showStep />
-              <ViewList label="Testimonials"   items={current.testimonials}   isQuote />
-              <ViewList label="Tech Stack"     items={current.tech_stack}     isTech />
-              <ViewList label="Case Studies"   items={current.case_studies}   isCaseStudy />
-              <ViewList label="Page FAQs"      items={current.page_faqs}      isFaq />
+              <ViewList label="Testimonials" items={current.testimonials} isQuote />
+              <ViewList label="Tech Stack" items={current.tech_stack} isTech />
+              <ViewList label="Case Studies" items={current.case_studies} isCaseStudy />
+              <ViewList label="Page FAQs" items={current.page_faqs} isFaq />
             </div>
           )}
 
@@ -447,13 +492,13 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
               {/* SEO Section */}
               <SeoFields
                 data={{
-                  meta_title:          data.meta_title,
-                  meta_title_ja:       data.meta_title_ja,
-                  meta_description:    data.meta_description,
+                  meta_title: data.meta_title,
+                  meta_title_ja: data.meta_title_ja,
+                  meta_description: data.meta_description,
                   meta_description_ja: data.meta_description_ja,
-                  meta_keywords:       data.meta_keywords,
-                  meta_keywords_ja:    data.meta_keywords_ja,
-                  og_image:            data.og_image,
+                  meta_keywords: data.meta_keywords,
+                  meta_keywords_ja: data.meta_keywords_ja,
+                  og_image: data.og_image,
                 }}
                 setData={setSeoData}
                 activeLang={langTab}
@@ -518,15 +563,20 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
                 )}
               />
 
-              {/* ★ Case Studies — with logo upload per item */}
+              {/* ★ Case Studies — restored to original schema + company/CEO fields */}
               <SectionBlock title="Case Studies" hint="Client success stories" items={data.case_studies}
                 onAdd={() => addItem("case_studies", {
-                  title: "", title_ja: "", logo: null,
-                  challenge_title: "", challenge_title_ja: "",
-                  challenge_description: "", challenge_description_ja: "",
-                  solution_title: "", solution_title_ja: "",
-                  solution_description: "", solution_description_ja: "",
-                  results: "", results_ja: "",
+                  title: "", title_ja: "",
+                  slug: "",
+                  subtitle: "", subtitle_ja: "",
+                  company_name: "", company_name_ja: "",
+                  ceo_name: "", ceo_name_ja: "",
+                  tags: "", tags_ja: "",
+                  logo: null, hero_image: null, secondary_image: null,
+                  hero_description: "", hero_description_ja: "",
+                  benefit: "", benefit_ja: "",
+                  implementation: "", implementation_ja: "",
+                  content: "", content_ja: "",
                 })}
                 onRemove={i => removeItem("case_studies", i)}
                 render={(item, i) => (
@@ -565,25 +615,94 @@ export default function Index({ india_desks }: { india_desks: IndiaDesk[] }) {
                       </div>
                     </div>
 
+                    {/* Title */}
                     <div className="grid grid-cols-2 gap-2">
                       <Field label="Title (EN)"><Input value={item.title} onChange={e => updateItem("case_studies", i, "title", e.target.value)} /></Field>
                       <Field label="Title (JA)"><Input value={item.title_ja || ""} onChange={e => updateItem("case_studies", i, "title_ja", e.target.value)} /></Field>
                     </div>
+
+                    {/* Subtitle */}
                     <div className="grid grid-cols-2 gap-2">
-                      <Field label="Challenge Title (EN)"><Input value={item.challenge_title} onChange={e => updateItem("case_studies", i, "challenge_title", e.target.value)} /></Field>
-                      <Field label="Challenge Title (JA)"><Input value={item.challenge_title_ja || ""} onChange={e => updateItem("case_studies", i, "challenge_title_ja", e.target.value)} /></Field>
-                      <Field label="Challenge Description (EN)"><ReactQuill theme="snow" value={item.challenge_description || ""} onChange={v => updateItem("case_studies", i, "challenge_description", v)} /></Field>
-                      <Field label="Challenge Description (JA)"><ReactQuill theme="snow" value={item.challenge_description_ja || ""} onChange={v => updateItem("case_studies", i, "challenge_description_ja", v)} /></Field>
+                      <Field label="Subtitle (EN)"><Input value={item.subtitle || ""} onChange={e => updateItem("case_studies", i, "subtitle", e.target.value)} /></Field>
+                      <Field label="Subtitle (JA)"><Input value={item.subtitle_ja || ""} onChange={e => updateItem("case_studies", i, "subtitle_ja", e.target.value)} /></Field>
                     </div>
+
+                    {/* Company + CEO name */}
                     <div className="grid grid-cols-2 gap-2">
-                      <Field label="Solution Title (EN)"><Input value={item.solution_title} onChange={e => updateItem("case_studies", i, "solution_title", e.target.value)} /></Field>
-                      <Field label="Solution Title (JA)"><Input value={item.solution_title_ja || ""} onChange={e => updateItem("case_studies", i, "solution_title_ja", e.target.value)} /></Field>
-                      <Field label="Solution Description (EN)"><ReactQuill theme="snow" value={item.solution_description || ""} onChange={v => updateItem("case_studies", i, "solution_description", v)} /></Field>
-                      <Field label="Solution Description (JA)"><ReactQuill theme="snow" value={item.solution_description_ja || ""} onChange={v => updateItem("case_studies", i, "solution_description_ja", v)} /></Field>
+                      <Field label="Company Name (EN)"><Input value={item.company_name || ""} onChange={e => updateItem("case_studies", i, "company_name", e.target.value)} placeholder="Acme Corp" /></Field>
+                      <Field label="Company Name (JA)"><Input value={item.company_name_ja || ""} onChange={e => updateItem("case_studies", i, "company_name_ja", e.target.value)} placeholder="株式会社アクメ" /></Field>
+                      <Field label="CEO Name (EN)"><Input value={item.ceo_name || ""} onChange={e => updateItem("case_studies", i, "ceo_name", e.target.value)} placeholder="Jane Smith, CEO" /></Field>
+                      <Field label="CEO Name (JA)"><Input value={item.ceo_name_ja || ""} onChange={e => updateItem("case_studies", i, "ceo_name_ja", e.target.value)} placeholder="ジェーン・スミス, CEO" /></Field>
                     </div>
+
+                    {/* Slug + Tags */}
                     <div className="grid grid-cols-2 gap-2">
-                      <Field label="Results (EN)"><ReactQuill theme="snow" value={item.results || ""} onChange={v => updateItem("case_studies", i, "results", v)} /></Field>
-                      <Field label="Results (JA)"><ReactQuill theme="snow" value={item.results_ja || ""} onChange={v => updateItem("case_studies", i, "results_ja", v)} /></Field>
+                      <Field label="Slug (auto from title if left blank)">
+                        <Input value={item.slug || ""} onChange={e => updateItem("case_studies", i, "slug", e.target.value)} placeholder="acme-corp-expansion" />
+                      </Field>
+                      <Field label="Tags (comma-separated)">
+                        <Input value={item.tags || ""} onChange={e => updateItem("case_studies", i, "tags", e.target.value)} placeholder="DX, Fintech" />
+                      </Field>
+                    </div>
+
+                    {/* Hero image */}
+                    <div className="border border-dashed rounded-lg p-3 bg-muted/10">
+                      <p className="text-xs font-semibold mb-2">Hero Image (case study detail page)</p>
+                      <div className="flex items-center gap-3">
+                        {caseStudyHeroFiles.has(i) ? (
+                          <img src={URL.createObjectURL(caseStudyHeroFiles.get(i)!)} className="w-16 h-10 object-cover rounded border" />
+                        ) : item.hero_image ? (
+                          <img src={`/storage/${item.hero_image}`} className="w-16 h-10 object-cover rounded border" />
+                        ) : (
+                          <div className="w-16 h-10 rounded border bg-white flex items-center justify-center text-muted-foreground text-[10px]">None</div>
+                        )}
+                        <Input type="file" accept="image/*" className="text-xs flex-1"
+                          onChange={e => handleCaseStudyFileChange(setCaseStudyHeroFiles, i, e.target.files?.[0] ?? null)} />
+                      </div>
+                    </div>
+
+                    {/* Main description shown below the title */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <Field label="Description (EN)"><ReactQuill theme="snow" value={item.hero_description || ""} onChange={v => updateItem("case_studies", i, "hero_description", v)} /></Field>
+                      <Field label="Description (JA)"><ReactQuill theme="snow" value={item.hero_description_ja || ""} onChange={v => updateItem("case_studies", i, "hero_description_ja", v)} /></Field>
+                    </div>
+
+                    {/* Subject / Implementation Effect boxes */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <Field label="Subject (EN)" hint='Shown as the "Subject" box on the detail page'>
+                        <ReactQuill theme="snow" value={item.benefit || ""} onChange={v => updateItem("case_studies", i, "benefit", v)} />
+                      </Field>
+                      <Field label="Subject (JA)">
+                        <ReactQuill theme="snow" value={item.benefit_ja || ""} onChange={v => updateItem("case_studies", i, "benefit_ja", v)} />
+                      </Field>
+                      <Field label="Implementation Effect (EN)">
+                        <ReactQuill theme="snow" value={item.implementation || ""} onChange={v => updateItem("case_studies", i, "implementation", v)} />
+                      </Field>
+                      <Field label="Implementation Effect (JA)">
+                        <ReactQuill theme="snow" value={item.implementation_ja || ""} onChange={v => updateItem("case_studies", i, "implementation_ja", v)} />
+                      </Field>
+                    </div>
+
+                    {/* Secondary image */}
+                    <div className="border border-dashed rounded-lg p-3 bg-muted/10">
+                      <p className="text-xs font-semibold mb-2">Secondary Image (optional, shown in-body)</p>
+                      <div className="flex items-center gap-3">
+                        {caseStudySecondaryFiles.has(i) ? (
+                          <img src={URL.createObjectURL(caseStudySecondaryFiles.get(i)!)} className="w-16 h-10 object-cover rounded border" />
+                        ) : item.secondary_image ? (
+                          <img src={`/storage/${item.secondary_image}`} className="w-16 h-10 object-cover rounded border" />
+                        ) : (
+                          <div className="w-16 h-10 rounded border bg-white flex items-center justify-center text-muted-foreground text-[10px]">None</div>
+                        )}
+                        <Input type="file" accept="image/*" className="text-xs flex-1"
+                          onChange={e => handleCaseStudyFileChange(setCaseStudySecondaryFiles, i, e.target.files?.[0] ?? null)} />
+                      </div>
+                    </div>
+
+                    {/* Long-form content at the bottom of the detail page */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <Field label="Content (EN)"><ReactQuill theme="snow" value={item.content || ""} onChange={v => updateItem("case_studies", i, "content", v)} /></Field>
+                      <Field label="Content (JA)"><ReactQuill theme="snow" value={item.content_ja || ""} onChange={v => updateItem("case_studies", i, "content_ja", v)} /></Field>
                     </div>
                   </div>
                 )}
@@ -758,19 +877,19 @@ function ViewList({ label, items, showValue = false, showStep = false, isQuote =
             {isFaq
               ? <><p className="font-medium">Q: {item.question}</p><p className="text-muted-foreground mt-1 text-xs">A: {item.answer?.replace(/<[^>]+>/g, "").slice(0, 120)}…</p></>
               : isCaseStudy
-              ? <div className="flex items-center gap-3">
+                ? <div className="flex items-center gap-3">
                   {item.logo && <img src={item.logo} alt="logo" className="w-10 h-10 object-contain rounded border bg-white p-0.5" />}
                   <span className="font-medium">{item.title}</span>
                 </div>
-              : showValue && item.value ? <><span className="text-primary font-bold mr-2">{item.value}</span>{item.title}</>
-              : showStep              ? <><span className="text-primary font-bold mr-2">Step {item.step_number ?? i + 1}.</span>{item.title}</>
-              : isTech               ? <><span className="font-semibold text-primary">{item.category}:</span> {item.items}</>
-              : isQuote              ? <><span className="italic">"{item.quote}"</span>{item.author && <span className="ml-2 font-semibold">— {item.author}</span>}</>
-              : <span className="font-medium">{item.title}</span>
+                : showValue && item.value ? <><span className="text-primary font-bold mr-2">{item.value}</span>{item.title}</>
+                  : showStep ? <><span className="text-primary font-bold mr-2">Step {item.step_number ?? i + 1}.</span>{item.title}</>
+                    : isTech ? <><span className="font-semibold text-primary">{item.category}:</span> {item.items}</>
+                      : isQuote ? <><span className="italic">"{item.quote}"</span>{item.author && <span className="ml-2 font-semibold">— {item.author}</span>}</>
+                        : <span className="font-medium">{item.title}</span>
             }
           </li>
         ))}
       </ul>
     </div>
   );
-}
+} 

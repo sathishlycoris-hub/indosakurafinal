@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import AOS from "aos";
 import "aos/dist/aos.css";
-import { usePage } from "@inertiajs/react";
+import { usePage, Link } from "@inertiajs/react"; 
 
 /* ─── TYPES (unchanged) ─── */
 interface Highlight { id: number; title: string; title_ja?: string; value?: string; description?: string; description_ja?: string; }
@@ -30,13 +30,19 @@ interface TechStack { category: string; category_ja?: string; items: string; }
 interface Faq { id: number; question: string; question_ja?: string; answer: string; answer_ja?: string; }
 interface Industry { id: number; title: string; title_ja?: string; description: string; description_ja?: string; }
 interface CaseStudy {
-  id: number; title: string; title_ja?: string;
+  slug: string;
+  title: string; title_ja?: string;
+  subtitle?: string; subtitle_ja?: string;
+  company_name?: string; company_name_ja?: string;
+  ceo_name?: string; ceo_name_ja?: string;
   logo?: string | null;
-  challenge_title?: string; challenge_title_ja?: string;
-  challenge_description?: string; challenge_description_ja?: string;
-  solution_title?: string; solution_title_ja?: string;
-  solution_description?: string; solution_description_ja?: string;
-  results?: string; results_ja?: string;
+  hero_image?: string | null;
+  secondary_image?: string | null;
+  tags?: string; tags_ja?: string;
+  hero_description?: string; hero_description_ja?: string;
+  benefit?: string; benefit_ja?: string;
+  implementation?: string; implementation_ja?: string;
+  content?: string; content_ja?: string;
 }
 
 interface IndiaDesk {
@@ -396,132 +402,67 @@ export default function Show({ indiaDesk, faqs = [], industries = [], pageSeo }:
       )} */}
 
       {/* 9. CASE STUDIES */}
-      {safeCaseStudies.length > 0 && (
-        <section className="py-20 bg-background">
-          <div className="container mx-auto px-6 max-w-7xl">
-            <SectionHeading
-              title={lang === "ja" ? "ケーススタディ" : "Case Studies"}
-              subtitle={lang === "ja"
-                ? "インドデスクが支援したプロジェクトの成功事例をご紹介します。"
-                : "Explore success stories from our supported projects that demonstrate our impact and expertise."}
-            />
-            <div className="space-y-10">
-              {safeCaseStudies.map((cs, i) => (
-                <div
-                  key={cs.id}
-                  data-aos="fade-up"
-                  data-aos-delay={i * 80}
-                  className="rounded-2xl border border-border overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
-                >
-                  {/* Card Header */}
-                  {/* Card Header */}
-                  <div className="bg-primary px-6 py-4 flex items-center gap-4">
-                    {cs.logo && (
-                      <div className="flex-shrink-0 w-11 h-11 rounded-full bg-white overflow-hidden flex items-center justify-center shadow-md ring-2 ring-white/30">
-                        <img
-                          src={cs.logo}
-                          alt={v(cs.title, cs.title_ja)}
-                          className="w-full h-full object-contain p-1"
-                        />
-                      </div>
-                    )}
-                    <h3 className="text-lg font-bold text-white tracking-tight leading-snug">
-                      {v(cs.title, cs.title_ja)}
-                    </h3>
+     {/* 9. CASE STUDIES */}
+{/* 9. CASE STUDIES */}
+{/* 9. CASE STUDIES */}
+{safeCaseStudies.length > 0 && (
+  <section className="py-16 bg-section-light">
+    <div className="container mx-auto px-6 max-w-7xl space-y-6">
+      <div className="section-divider mb-8" data-aos="fade-left">
+        <h2 className="text-2xl font-semibold">
+          {lang === "ja" ? "導入事例" : "Case Studies"}
+        </h2>
+      </div>
+
+      {safeCaseStudies.map((cs, i) => {
+        const companyName = v(cs.company_name, cs.company_name_ja);
+        const ceoName = v(cs.ceo_name, cs.ceo_name_ja);
+        const description = v(cs.hero_description, cs.hero_description_ja);
+
+        return (
+          <Link
+            key={cs.slug ?? i}
+            href={`/india-desks/${indiaDesk.slug}/case-studies/${cs.slug}`}
+            data-aos="fade-right"
+            data-aos-delay={i * 90}
+            className="block bg-card border rounded-lg p-6 hover:shadow-md transition-shadow"
+          >
+            {(companyName || ceoName || cs.logo) && (
+              <div className="flex items-center gap-3 mb-1">
+                {cs.logo && (
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full border bg-white overflow-hidden flex items-center justify-center">
+                    <img src={cs.logo} alt="" className="w-full h-full object-contain p-0.5" />
                   </div>
+                )}
+                {(companyName || ceoName) && (
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                    {companyName}
+                    {ceoName && <span className="normal-case font-normal"> · {ceoName}</span>}
+                  </p>
+                )}
+              </div>
+            )}
 
-                  {/* Card Body */}
-                  <div className="divide-y divide-border">
+            <h3 className="font-semibold text-primary">
+              {v(cs.title, cs.title_ja)}
+            </h3>
 
-                    {/* Challenge */}
-                    {cs.challenge_title && (
-                      <div className="flex flex-col md:flex-row">
-                        {/* Left Label */}
-                        <div className="md:w-48 shrink-0 flex items-stretch">
-                          <div className="w-1 bg-pink-400 rounded-l" />
-                          <div className="flex items-center justify-center px-5 py-5 bg-pink-50 w-full">
-                            <div className="text-center">
-                              <div className="w-9 h-9 rounded-full bg-pink-100 border-2 border-pink-400 flex items-center justify-center mx-auto mb-2">
-                                <span className="text-pink-500 font-bold text-sm">01</span>
-                              </div>
-                              <span className="text-xs font-bold text-pink-600 uppercase tracking-widest block">
-                                {lang === "ja" ? "課題" : "Challenge"}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        {/* Right Content */}
-                        <div className="flex-1 px-6 py-5 bg-white">
-                          <div
-                            className="text-sm text-muted-foreground leading-relaxed prose prose-sm max-w-none"
-                            dangerouslySetInnerHTML={{ __html: v(cs.challenge_description, cs.challenge_description_ja) }}
-                          />
-                        </div>
-                      </div>
-                    )}
+            {description && (
+              <div
+                className="prose mt-2"
+                dangerouslySetInnerHTML={{ __html: description }}
+              />
+            )}
 
-                    {/* Solution */}
-                    {cs.solution_title && (
-                      <div className="flex flex-col md:flex-row">
-                        {/* Left Label */}
-                        <div className="md:w-48 shrink-0 flex items-stretch">
-                          <div className="w-1 bg-pink-500 rounded-l" />
-                          <div className="flex items-center justify-center px-5 py-5 bg-pink-50 w-full">
-                            <div className="text-center">
-                              <div className="w-9 h-9 rounded-full bg-pink-100 border-2 border-pink-500 flex items-center justify-center mx-auto mb-2">
-                                <span className="text-pink-600 font-bold text-sm">02</span>
-                              </div>
-                              <span className="text-xs font-bold text-pink-600 uppercase tracking-widest block">
-                                {lang === "ja" ? "ソリューション" : "Solution"}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        {/* Right Content */}
-                        <div className="flex-1 px-6 py-5 bg-white">
-                          <div
-                            className="text-sm text-muted-foreground leading-relaxed prose prose-sm max-w-none"
-                            dangerouslySetInnerHTML={{ __html: v(cs.solution_description, cs.solution_description_ja) }}
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Results */}
-                    {cs.results && (
-                      <div className="flex flex-col md:flex-row">
-                        {/* Left Label */}
-                        <div className="md:w-48 shrink-0 flex items-stretch">
-                          <div className="w-1 bg-pink-500 rounded-l" />
-                          <div className="flex items-center justify-center px-5 py-5 bg-pink-50 w-full">
-                            <div className="text-center">
-                              <div className="w-9 h-9 rounded-full bg-pink-100 border-2 border-pink-500 flex items-center justify-center mx-auto mb-2">
-                                <span className="text-pink-600 font-bold text-sm">03</span>
-                              </div>
-                              <span className="text-xs font-bold text-pink-600 uppercase tracking-widest block">
-                                {lang === "ja" ? "結果" : "Results"}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        {/* Right Content */}
-                        <div className="flex-1 px-6 py-5 bg-pink-50/30">
-                          <div
-                            className="text-sm leading-relaxed prose prose-sm max-w-none font-medium text-foreground/90"
-                            dangerouslySetInnerHTML={{ __html: v(cs.results, cs.results_ja) }}
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
+            {/* <p className="text-primary mt-3 font-medium">
+              {lang === "ja" ? "詳細を見る →" : "Read full case study →"}
+            </p> */}
+          </Link>
+        );
+      })}
+    </div>
+  </section>
+)}
       {/* 10. FAQ */}
       {safeFaqs.length > 0 && (
         <section className="py-16 bg-[#F6F6F6]">
