@@ -14,7 +14,7 @@ class SolutionController extends Controller
     public function index()
     {
         return Inertia::render('Admin/Solutions/Index', [
-            'solutions' => Solution::with(['features', 'useCases', 'caseStudies', 'industries'])
+            'solutions' => Solution::with(['features', 'useCases', 'caseStudies', 'industries', 'faqs'])
                 ->latest()->get(),
             'pageData' => SolutionPage::first(), // ← add this
         ]);
@@ -46,6 +46,7 @@ class SolutionController extends Controller
             'use_cases'           => 'nullable',
             'case_studies'        => 'nullable',
             'industries'          => 'nullable',
+            'faqs'                => 'nullable',
         ]);
 
         $decoded = $this->decodeRelations($request);
@@ -109,6 +110,7 @@ class SolutionController extends Controller
             'use_cases'           => 'nullable',
             'case_studies'        => 'nullable',
             'industries'          => 'nullable',
+            'faqs'                => 'nullable',
         ]);
 
         $decoded = $this->decodeRelations($request);
@@ -161,6 +163,7 @@ class SolutionController extends Controller
         $solution->useCases()->delete();
         $solution->caseStudies()->delete();
         $solution->industries()->delete();
+        $solution->faqs()->delete();
         $solution->delete();
 
         return redirect()->route('admin.solutions.index')->with('success', 'Solution deleted successfully');
@@ -171,7 +174,7 @@ class SolutionController extends Controller
     private function decodeRelations(Request $request): array
     {
         $decoded = [];
-        foreach (['features', 'use_cases', 'case_studies', 'industries'] as $key) {
+        foreach (['features', 'use_cases', 'case_studies', 'industries', 'faqs'] as $key) {
             $decoded[$key] = $request->filled($key)
                 ? json_decode($request->input($key), true) ?? []
                 : [];
@@ -222,6 +225,17 @@ class SolutionController extends Controller
                 'description'    => $ind['description'] ?? null,
                 'description_ja' => $ind['description_ja'] ?? null,
                 'sort_order'     => $i,
+            ]);
+        }
+
+        $solution->faqs()->delete();
+        foreach ($decoded['faqs'] as $i => $f) {
+            $solution->faqs()->create([
+                'question'    => $f['question'] ?? '',
+                'question_ja' => $f['question_ja'] ?? null,
+                'answer'      => $f['answer'] ?? '',
+                'answer_ja'   => $f['answer_ja'] ?? null,
+                'sort_order'  => $i,
             ]);
         }
     }

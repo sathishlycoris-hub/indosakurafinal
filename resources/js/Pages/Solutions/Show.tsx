@@ -1,11 +1,11 @@
 // resources/js/Pages/Solutions/Show.tsx
-// ★ marks the only changes vs your original — everything else is identical.
+// ★ marks the changes vs your original: FAQ section added, matching the accordion design from IndiaDesks.tsx
 
 import { usePage } from "@inertiajs/react";
 import Layout from "@/components/layout/Layout";
 import Solutionhead from "@/components/layout/Solutionhead";
 import ContactCTA from "@/components/layout/Contact";
-import PageSeo, { PageSeoProps } from "@/components/PageSeo"; // ★ NEW
+import PageSeo, { PageSeoProps } from "@/components/PageSeo";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import AOS from "aos";
@@ -14,8 +14,22 @@ import {
   Sparkles, Zap, BarChart, Brain, MessageSquare, Shield,
   Briefcase, Factory, Package, ShoppingCart, Laptop, Cpu, Database, Globe,
 } from "lucide-react";
+// ★ NEW — accordion for FAQs
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const ICONS = [Sparkles, Zap, BarChart, Brain, MessageSquare, Shield, Briefcase, Factory, Package, ShoppingCart, Laptop, Cpu, Database, Globe];
+
+// ★ NEW
+interface Faq {
+  id?: number;
+  question: string; question_ja?: string;
+  answer: string; answer_ja?: string;
+}
 
 interface Solution {
   id: number;
@@ -28,16 +42,17 @@ interface Solution {
   use_cases: any[];
   industries: any[];
   case_studies: any[];
+  faqs?: Faq[]; // ★ NEW
 }
 
 AOS.init({ duration: 1000, easing: "ease-in-out", once: true, offset: 120, delay: 80 });
 
 export default function Show({
   solution,
-  pageSeo, // ★ NEW
+  pageSeo,
 }: {
   solution: Solution;
-  pageSeo?: PageSeoProps; // ★ NEW
+  pageSeo?: PageSeoProps;
 }) {
   const { lang } = usePage<{ lang: "en" | "ja" }>().props;
 
@@ -46,9 +61,10 @@ export default function Show({
 
   const getIconByIndex = (index: number) => ICONS[index % ICONS.length];
 
+  const safeFaqs = Array.isArray(solution.faqs) ? solution.faqs : []; // ★ NEW
+
   return (
     <Layout>
-      {/* ★ NEW — inject per-page SEO meta tags */}
       {pageSeo && <PageSeo {...pageSeo} />}
 
       <div className="sticky top-16 lg:top-[101px] z-40 bg-white">
@@ -190,6 +206,53 @@ export default function Show({
           ))}
         </div>
       </section>
+
+      {/* ★ NEW — FAQ (same accordion design as the India Desks page) */}
+      {safeFaqs.length > 0 && (
+        <section className="py-16 bg-background">
+          <div className="container mx-auto px-4 max-w-4xl">
+            <h2 className="text-3xl font-bold text-center text-primary mb-4" data-aos="fade-up">
+              {getValue("Frequently Asked Questions", "よくある質問")}
+            </h2>
+            <p className="text-center text-muted-foreground mb-12" data-aos="fade-up">
+              {getValue(
+                `Common questions about ${solution.title}, answered for you.`,
+                `${getValue(solution.title, solution.title_ja)}についてよくいただく質問をQ&A形式でご紹介します。`
+              )}
+            </p>
+            <Accordion type="single" collapsible className="space-y-4">
+              {safeFaqs.map((faq, index) => (
+                <AccordionItem
+                  data-aos="fade-up"
+                  data-aos-delay={index * 90}
+                  key={faq.id ?? index}
+                  value={`item-${faq.id ?? index}`}
+                  className="border border-border rounded-xl px-6 bg-card"
+                >
+                  <AccordionTrigger className="hover:no-underline py-5 text-left">
+                    <div className="flex items-start gap-4">
+                      <p className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold text-sm">
+                        Q
+                      </p>
+                      <p className="text-foreground font-medium pt-1">
+                        {getValue(faq.question, faq.question_ja)}
+                      </p>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-5">
+                    <div className="flex items-start gap-4 pl-12">
+                      <div
+                        className="text-muted-foreground leading-relaxed text-sm prose prose-sm max-w-none"
+                        dangerouslySetInnerHTML={{ __html: getValue(faq.answer, faq.answer_ja) }}
+                      />
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </div>
+        </section>
+      )}
 
       <ContactCTA />
     </Layout>

@@ -43,7 +43,17 @@ interface Seo { meta_title?: string; meta_description?: string; meta_keywords?: 
 interface NewsEvent { id: number; date: string; eventtype: string; eventtype_ja?: string | null; short: string; short_ja?: string | null; }
 interface Service { id: number; title: string; title_ja?: string | null; slug: string; hero_description?: string | null; hero_description_ja?: string | null; }
 interface Solution { id: number; title: string; title_ja?: string | null; slug: string; hero_description?: string | null; hero_description_ja?: string | null; }
-interface CaseStudy { subtitle: string; subtitle_ja?: string; slug: string; hero_image?: string | null; tags?: string; }
+interface CaseStudy {
+  slug: string;
+  title: string;
+  title_ja?: string;
+  hero_image?: string | null;
+  hero_description?: string;
+  hero_description_ja?: string;
+  tags?: string;
+  tags_ja?: string;
+  india_desk_slug: string;
+}
 
 interface IndexProps {
   homepage: HomepageSettings;
@@ -149,37 +159,70 @@ const Index = ({
       </section>
 
       {/* ── CASE STUDIES ──────────────────────────────────────────────────── */}
-      <section className="py-16 relative overflow-hidden">
-        <div className="max-w-6xl mx-auto px-4 lg:px-8 relative z-10 pt-8">
-          <div className="container absolute inset-0 opacity-15 pointer-events-none"
-            style={{ backgroundImage: "url(/image/dot.jpg)", backgroundRepeat: "repeat", backgroundSize: "200px auto", backgroundPosition: "center top" }} />
-          <div className="flex items-center gap-6 mb-10 section-divider">
-            <h2 className="text-2xl font-semibold text-foreground uppercase tracking-wide whitespace-nowrap">
-              {lang === "en" ? "CASE STUDIES" : "導入事例"}
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {caseStudies.map((study) => (
-              <Link key={study.slug} href={`/blogs/casestudies/${study.slug}`} className="group cursor-pointer">
-                <div className="relative overflow-hidden rounded-lg mb-4">
-                  <img src={`/storage/${study.hero_image}`} alt={study.subtitle}
-                    className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105" />
+ {/* ── CASE STUDIES ──────────────────────────────────────────────────── */}
+<section className="py-16 relative overflow-hidden">
+  <div className="max-w-6xl mx-auto px-4 lg:px-8 relative z-10 pt-8">
+    <div className="container absolute inset-0 opacity-15 pointer-events-none"
+      style={{ backgroundImage: "url(/image/dot.jpg)", backgroundRepeat: "repeat", backgroundSize: "200px auto", backgroundPosition: "center top" }} />
+    <div className="flex items-center gap-6 mb-10 section-divider">
+      <h2 className="text-2xl font-semibold text-foreground uppercase tracking-wide whitespace-nowrap">
+        {lang === "en" ? "CASE STUDIES" : "導入事例"}
+      </h2>
+    </div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {caseStudies.map((study) => {
+        const title = lang === "en" ? study.title : study.title_ja || study.title;
+        const description = lang === "en"
+          ? study.hero_description
+          : study.hero_description_ja || study.hero_description;
+        const tags = lang === "en" ? study.tags : study.tags_ja || study.tags;
+        const tagList = tags ? tags.split(",").map(t => t.trim()).filter(Boolean) : [];
+
+        return (
+          <Link
+            key={`${study.india_desk_slug}-${study.slug}`}
+            href={`/india-desks/${study.india_desk_slug}/case-studies/${study.slug}`}
+            className="group cursor-pointer"
+          >
+            <div className="relative overflow-hidden rounded-lg mb-4">
+              {study.hero_image ? (
+                <img src={`/storage/${study.hero_image}`} alt={title}
+                  className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105" />
+              ) : (
+                <div className="w-full h-48 bg-muted flex items-center justify-center text-muted-foreground text-sm rounded-lg">
+                  No Image
                 </div>
-                <div>
-                  <h3 className="font-semibold text-foreground mb-2 line-clamp-2 group-hover:text-primary transition-colors">
-                    {lang === "en" ? study.subtitle : study.subtitle_ja || study.subtitle}
-                  </h3>
-                  {study.tags && <p className="text-sm text-muted-foreground">#{study.tags}</p>}
+              )}
+            </div>
+            <div>
+              <h4 className="font-semibold text-foreground mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                {title}
+              </h4>
+              {description && (
+                <p className="text-sm text-muted-foreground line-clamp-2">
+                  {description.replace(/<[^>]+>/g, "")}
+                </p>
+              )}
+              {tagList.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {tagList.map((tag) => (
+                    <span key={tag} className="text-sm text-primary">
+                      #{tag}
+                    </span>
+                  ))}
                 </div>
-                <div className="mt-3 flex items-center text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                  <span className="text-sm font-medium">{lang === "en" ? "View Details" : "詳細を見る"}</span>
-                  <ArrowRight className="w-4 h-4 ml-1" />
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+              )}
+            </div>
+            {/* <div className="mt-3 flex items-center text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+              <span className="text-sm font-medium">{lang === "en" ? "View Details" : "詳細を見る"}</span>
+              <ArrowRight className="w-4 h-4 ml-1" />
+            </div> */}
+          </Link>
+        );
+      })}
+    </div>
+  </div>
+</section>
 
       {/* ── UPDATES ───────────────────────────────────────────────────────── */}
       <section className="py-16">

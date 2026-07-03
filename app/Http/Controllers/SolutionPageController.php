@@ -10,21 +10,26 @@ use App\Models\SolutionPage;
 
 class SolutionPageController extends Controller
 {
-   public function index()
-{
-    return Inertia::render('Solutions', [
-        'seo'      => Seo::where('page', 'solutions')->first(),
-        'pageData' => SolutionPage::first(), // ← add this
+    public function index()
+    {
+        return Inertia::render('Solutions', [
+            'seo'      => Seo::where('page', 'solutions')->first(),
+            'pageData' => SolutionPage::first(), // ← add this
 
-        'solutions' => Solution::select(
-            'id', 'title', 'title_ja', 'slug',
-            'hero_description', 'hero_description_ja', 'link'
-        )->orderBy('id')->get(),
+            'solutions' => Solution::select(
+                'id',
+                'title',
+                'title_ja',
+                'slug',
+                'hero_description',
+                'hero_description_ja',
+                'link'
+            )->orderBy('id')->get(),
 
-        'solutionNav' => Solution::select('title', 'title_ja', 'slug')
-            ->orderBy('id')->get(),
-    ]);
-}
+            'solutionNav' => Solution::select('title', 'title_ja', 'slug')
+                ->orderBy('id')->get(),
+        ]);
+    }
 
     public function show(string $slug)
     {
@@ -34,6 +39,7 @@ class SolutionPageController extends Controller
                 'useCases:id,solution_id,title,title_ja,subtitle,subtitle_ja,description,description_ja',
                 'industries:id,solution_id,title,title_ja,description,description_ja',
                 'caseStudies:id,solution_id,title,title_ja,summary,summary_ja,result,result_ja',
+                'faqs:id,solution_id,question,question_ja,answer,answer_ja',
             ])
             ->firstOrFail();
 

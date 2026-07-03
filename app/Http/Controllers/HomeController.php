@@ -7,7 +7,7 @@ use App\Models\Service;
 use App\Models\Solution;
 use App\Models\Newsevent;
 use App\Models\Seo;
-use App\Models\CaseStudy;
+use App\Models\IndiaDesk;
 
 use App\Models\HomepageSetting;
 
@@ -17,6 +17,22 @@ class HomeController extends Controller
     {
 
         $homepage = HomepageSetting::firstOrCreate([]);
+
+        $caseStudies = IndiaDesk::allCaseStudiesFlattened()
+            ->sortByDesc(fn ($cs) => $cs['india_desk_id'] ?? 0) // no created_at on the JSON items — newest desk first as a reasonable proxy
+            ->take(4)
+            ->map(fn ($cs) => [
+                'slug'                => $cs['slug'] ?? null,
+                'title'               => $cs['title'] ?? '',
+                'title_ja'            => $cs['title_ja'] ?? null,
+                'hero_image'          => $cs['hero_image'] ?? null,
+                'hero_description'    => $cs['hero_description'] ?? null,
+                'hero_description_ja' => $cs['hero_description_ja'] ?? null,
+                'tags'                => $cs['tags'] ?? null,
+                'tags_ja'             => $cs['tags_ja'] ?? null,
+                'india_desk_slug'     => $cs['india_desk_slug'] ?? null,
+            ])
+            ->values();
 
         return Inertia::render('Index', [
 
@@ -46,16 +62,7 @@ class HomeController extends Controller
                 'hero_description_ja'
             )->orderBy('id')->get(),
 
-            'caseStudies' => CaseStudy::select(
-                'subtitle',
-                'subtitle_ja',
-                'slug',
-                'hero_image',
-                'tags'
-            )
-                ->latest()
-                ->take(4)
-                ->get(),
+            'caseStudies' => $caseStudies,
         ]);
     }
 }

@@ -49,6 +49,11 @@ class Solution extends Model
         return $this->hasMany(SolutionIndustry::class)->orderBy('sort_order');
     }
 
+    public function faqs()
+    {
+        return $this->hasMany(SolutionFaq::class)->orderBy('sort_order');
+    }
+
     /**
      * Resolve the effective meta title for a given locale.
      * Falls back to solution title when not set.
