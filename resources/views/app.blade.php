@@ -16,11 +16,27 @@
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-M6094B5NH9"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
+
+        function gtag() {
+            dataLayer.push(arguments);
+        }
         gtag('js', new Date());
         gtag('config', 'G-M6094B5NH9');
     </script>
-
+    <script>
+        function gtag_report_conversion(url) {
+            var callback = function() {
+                if (typeof(url) != 'undefined') {
+                    window.location = url;
+                }
+            };
+            gtag('event', 'conversion', {
+                'send_to': 'AW-16928759139/qTUsCKi918wcEOO6oYg_',
+                'event_callback': callback
+            });
+            return false;
+        }
+    </script>
     <!-- Scripts -->
     @routes
     @viteReactRefresh

@@ -98,6 +98,7 @@ const Contact = () => {
     setIsSubmitting(true);
     router.post(route("contact.store"), { ...formData }, {
       onSuccess: () => {
+          (window as any).gtag_report_conversion();
         toast({ title: "Message Sent!", description: "Thank you for contacting Indo Sakura. We will get back to you shortly." });
         setFormData(initialFormState);
         setErrors({});

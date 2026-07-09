@@ -101,11 +101,11 @@ export default function Serviceshead({ activeItem }: ServicesheadProps) {
 
                 {showItemDropdown && (
                   <div
-                    className="absolute left-0 top-full mt-1 hidden group-hover:flex flex-col z-50 items-start gap-1
+                    className="absolute left-0 top-full mt-1 hidden group-hover:flex flex-col z-50 items-start gap-2
                                bg-white border border-border rounded-lg shadow-lg px-4 py-2 text-xs whitespace-nowrap"
                   >
-                    <span className="text-muted-foreground">{item.label}</span>
-                    <span className="text-primary font-medium">{activeItemTitle}</span>
+                    <p className="text-[0.9rem] font-bold">{item.label}</p>
+                    <p className="text-primary text-md">{activeItemTitle}</p>
                   </div>
                 )}
 
