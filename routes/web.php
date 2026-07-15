@@ -56,6 +56,8 @@ use App\Http\Controllers\Admin\IndiaDeskController;
 use App\Http\Controllers\IndiaDeskPageController;
 use App\Http\Controllers\Admin\IndiaDeskFaqController;
 use App\Http\Controllers\Admin\ServiceItemController;
+use App\Http\Controllers\Admin\HomeCaseStudyController as AdminHomeCaseStudyController;
+use App\Http\Controllers\HomeCaseStudyController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -277,6 +279,8 @@ Route::get('/india-desks', [IndiaDeskPageController::class, 'index'])
 
 Route::get('/india-desks/{slug}', [IndiaDeskPageController::class, 'show'])
     ->name('india-desks.show');
+
+Route::get('/home-case-studies/{slug}', [HomeCaseStudyController::class, 'show'])->name('home-casestudies.show');
 
 
 /* =======================
@@ -503,7 +507,10 @@ Route::prefix('admin')
         Route::post('services/{service}/items', [ServiceItemController::class, 'store'])->name('services.items.store');
         Route::put('services/{service}/items/{item}', [ServiceItemController::class, 'update'])->name('services.items.update');
         Route::delete('services/{service}/items/{item}', [ServiceItemController::class, 'destroy'])->name('services.items.destroy');
-        
+
+        Route::resource('home-case-studies', AdminHomeCaseStudyController::class)
+            ->except(['create', 'edit', 'show'])
+            ->names('home_case_studies');
     });
 
 Route::get('/storage/{path}', function (string $path) {

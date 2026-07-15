@@ -52,7 +52,6 @@ interface CaseStudy {
   hero_description_ja?: string;
   tags?: string;
   tags_ja?: string;
-  india_desk_slug: string;
 }
 
 interface IndexProps {
@@ -159,8 +158,8 @@ const Index = ({
       </section>
 
       {/* ── CASE STUDIES ──────────────────────────────────────────────────── */}
- {/* ── CASE STUDIES ──────────────────────────────────────────────────── */}
-<section className="py-16 relative overflow-hidden">
+      {caseStudies.length > 0 && (
+      <section className="py-16 relative overflow-hidden">
   <div className="max-w-6xl mx-auto px-4 lg:px-8 relative z-10 pt-8">
     <div className="container absolute inset-0 opacity-15 pointer-events-none"
       style={{ backgroundImage: "url(/image/dot.jpg)", backgroundRepeat: "repeat", backgroundSize: "200px auto", backgroundPosition: "center top" }} />
@@ -180,8 +179,8 @@ const Index = ({
 
         return (
           <Link
-            key={`${study.india_desk_slug}-${study.slug}`}
-            href={`/india-desks/${study.india_desk_slug}/case-studies/${study.slug}`}
+            key={study.slug}
+            href={`/home-case-studies/${study.slug}`}
             className="group cursor-pointer"
           >
             <div className="relative overflow-hidden rounded-lg mb-4">
@@ -223,6 +222,7 @@ const Index = ({
     </div>
   </div>
 </section>
+      )}
 
       {/* ── UPDATES ───────────────────────────────────────────────────────── */}
       <section className="py-16">

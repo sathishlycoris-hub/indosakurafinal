@@ -151,6 +151,12 @@ export const sidebarItems: SidebarItem[] = [
         role: ["admin"],
       },
       {
+        label: "Home Case Studies",
+        icon: Briefcase,
+        href: route("admin.home_case_studies.index"),
+        role: ["admin"],
+      },
+      {
         label: "Infographics",
         icon: Briefcase,
         href: route("admin.infographics.index"),
