@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\CaseStudyPage;
+use App\Models\HomeCaseStudy;
 use App\Models\IndiaDesk;
 use App\Models\Seo;
 use Inertia\Inertia;
@@ -11,6 +12,26 @@ class CaseStudyController extends Controller
 {
     public function index()
     {
+        $homeCaseStudies = HomeCaseStudy::orderBy('sort_order')
+            ->orderByDesc('id')
+            ->get()
+            ->map(fn ($cs) => [
+                'slug'                => $cs->slug,
+                'title'               => $cs->title,
+                'title_ja'            => $cs->title_ja,
+                'company_name'        => $cs->company_name,
+                'company_name_ja'     => $cs->company_name_ja,
+                'ceo_name'            => $cs->ceo_name,
+                'ceo_name_ja'         => $cs->ceo_name_ja,
+                'logo'                => $cs->logo ? (str_starts_with($cs->logo, 'http') ? $cs->logo : asset('storage/' . $cs->logo)) : null,
+                'hero_image'          => $cs->hero_image,
+                'hero_description'    => $cs->hero_description,
+                'hero_description_ja' => $cs->hero_description_ja,
+                'tags'                => $cs->tags,
+                'tags_ja'             => $cs->tags_ja,
+            ])
+            ->values();
+
         $caseStudies = IndiaDesk::allCaseStudiesFlattened()->map(fn ($cs) => [
             'slug'                => $cs['slug'] ?? null,
             'title'               => $cs['title'] ?? '',
@@ -30,9 +51,10 @@ class CaseStudyController extends Controller
         ])->values();
 
         return Inertia::render('Casestudies/Index', [
-            'caseStudies' => $caseStudies,
-            'seo'         => Seo::where('page', 'case-studies')->first(),
-            'pageData'    => CaseStudyPage::first(),
+            'homeCaseStudies' => $homeCaseStudies,
+            'caseStudies'     => $caseStudies,
+            'seo'             => Seo::where('page', 'case-studies')->first(),
+            'pageData'        => CaseStudyPage::first(),
         ]);
     }
 
