@@ -58,6 +58,8 @@ use App\Http\Controllers\Admin\IndiaDeskFaqController;
 use App\Http\Controllers\Admin\ServiceItemController;
 use App\Http\Controllers\Admin\HomeCaseStudyController as AdminHomeCaseStudyController;
 use App\Http\Controllers\HomeCaseStudyController;
+use App\Http\Controllers\WhitepaperController;
+use App\Http\Controllers\Admin\WhitepaperController as AdminWhitepaperController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -281,6 +283,8 @@ Route::get('/india-desks/{slug}', [IndiaDeskPageController::class, 'show'])
     ->name('india-desks.show');
 
 Route::get('/home-case-studies/{slug}', [HomeCaseStudyController::class, 'show'])->name('home-casestudies.show');
+
+Route::post('/whitepaper/request', [WhitepaperController::class, 'store'])->name('whitepaper.request');
 
 
 /* =======================
@@ -511,6 +515,10 @@ Route::prefix('admin')
         Route::resource('home-case-studies', AdminHomeCaseStudyController::class)
             ->except(['create', 'edit', 'show'])
             ->names('home_case_studies');
+
+        Route::get('whitepaper', [AdminWhitepaperController::class, 'index'])->name('whitepaper.index');
+        Route::post('whitepaper', [AdminWhitepaperController::class, 'update'])->name('whitepaper.update');
+        Route::delete('whitepaper/leads/{lead}', [AdminWhitepaperController::class, 'destroyLead'])->name('whitepaper.leads.destroy');
     });
 
 Route::get('/storage/{path}', function (string $path) {

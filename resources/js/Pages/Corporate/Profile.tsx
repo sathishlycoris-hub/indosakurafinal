@@ -7,6 +7,7 @@ import { Link } from "@inertiajs/react";
 import AOS from "aos";
 import "aos/dist/aos.css";
 import { usePage, Head } from "@inertiajs/react";
+import WhitepaperDialog from "@/components/WhitepaperDialog";
 
 
 
@@ -22,6 +23,12 @@ interface Seo {
   meta_title?: string | null;
   meta_description?: string | null;
   meta_keywords?: string | null;
+}
+interface WhitepaperInfo {
+  title?: string | null;
+  title_ja?: string | null;
+  description?: string | null;
+  description_ja?: string | null;
 }
 interface CorpProfileSettings {
   strengths_heading: string; strengths_heading_ja: string;
@@ -62,9 +69,11 @@ interface CorpProfileSettings {
 const Profile = ({
   companyProfiles,
   corpSettings,        // <-- add this
+  whitepaper,          // <-- NEW
 }: {
   companyProfiles: CompanyProfile[];
   corpSettings: CorpProfileSettings;   // <-- add this
+  whitepaper?: WhitepaperInfo | null;  // <-- NEW
 }) => {
   const { lang, seo } = usePage<{
     lang: "en" | "ja";
@@ -429,6 +438,23 @@ services and more, ensuring your business stays ahead in innovation.`
               );
             })}
           </div>
+
+          {/* Gated whitepaper download — only shown when an admin has uploaded a PDF */}
+          {whitepaper && (
+            <p className="text-right text-sm font-semibold mt-3">
+              {(lang === "ja" ? whitepaper.description_ja || whitepaper.description : whitepaper.description) || (
+                lang === "ja"
+                  ? "インドサクラの企業ホワイトペーパーをこちらからダウンロードいただけます（日本語のみ）。"
+                  : "Please download Corporate whitepaper of Indo-sakura here (Japanese only)."
+              )}{" "}
+              <WhitepaperDialog
+                lang={lang}
+                triggerLabel={lang === "ja"
+                  ? (whitepaper.title_ja || whitepaper.title || "ホワイトペーパー")
+                  : (whitepaper.title || "whitepaper")}
+              />
+            </p>
+          )}
 
         </div>
       </section>

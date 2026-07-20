@@ -29,6 +29,7 @@ class AppServiceProvider extends ServiceProvider
             'flash' => fn() => [
                 'success' => session('success'),
                 'error' => session('error'),
+                'whitepaper_url' => session('whitepaper_url'),
             ],
 
             //  GLOBAL service navigation

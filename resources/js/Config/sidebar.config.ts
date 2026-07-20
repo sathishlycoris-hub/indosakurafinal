@@ -200,6 +200,12 @@ export const sidebarItems: SidebarItem[] = [
         href: route("admin.profile.index"),
         role: ["admin"],
       },
+      {
+        label: "Whitepaper",
+        icon: FilePlus,
+        href: route("admin.whitepaper.index"),
+        role: ["admin"],
+      },
 
       {
         label: "Strength & Location",
