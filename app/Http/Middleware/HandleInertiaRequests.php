@@ -37,7 +37,15 @@ class HandleInertiaRequests extends Middleware
 
              // ── Shared globally — used by Header, Footer, FloatingActions ──
             'siteSettings' => fn () => SiteSetting::firstOrCreate([]),
-            
+
+            // ── Shared globally — used by Header and every page that switches
+            // EN/JA copy. Must be a closure (lazy prop): HandleInertiaRequests
+            // runs BEFORE SetLocale in the middleware stack, so a plain
+            // app()->getLocale() call here would capture last request's locale,
+            // not this one. Inertia resolves closures later, when the response
+            // is actually built — by then SetLocale has already run.
+            'lang' => fn () => app()->getLocale(),
+
         ];
     }
 }
