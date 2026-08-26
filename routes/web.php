@@ -127,7 +127,14 @@ Route::middleware('auth')->group(function () {
 
 Route::post('/set-language', function (\Illuminate\Http\Request $request) {
 
-    $lang = $request->lang;
+    // .co.jp is English-only and locked — ignore attempts to switch, even if
+    // someone posts directly to this endpoint (the toggle UI is hidden there,
+    // but this is the server-side guarantee).
+    if ($request->attributes->get('langLocked', false)) {
+        return redirect()->back();
+    }
+
+    $lang = $request->lang === 'ja' ? 'ja' : 'en';
 
     session(['lang' => $lang]);
 
@@ -253,6 +260,9 @@ Route::get('corporate/policy{slug}', [PolicyPageController::class, 'index'])
 
 Route::get('/solutions', [SolutionPageController::class, 'index'])
     ->name('solutions.index');
+
+Route::get('/solutions/{solutionSlug}/case-studies/{caseSlug}', [SolutionPageController::class, 'showCaseStudy'])
+    ->name('solutions.case_studies.show');
 
 Route::get('/solutions/{slug}', [SolutionPageController::class, 'show'])
     ->name('solutions.show');

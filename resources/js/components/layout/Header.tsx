@@ -29,11 +29,19 @@ const NAV_DEFAULTS: SiteSettings = {
 }; 
 
 const Header = () => {
-  const { url, props } = usePage<{ lang: "en" | "ja"; siteSettings?: SiteSettings }>();
+  // 'lang' and 'langLocked' come from SetLocale middleware via HandleInertiaRequests.
+  // langLocked is true on .co.jp (English-only) — the switcher is hidden there.
+  const { url, props } = usePage<{ lang: "en" | "ja"; langLocked?: boolean; siteSettings?: SiteSettings }>();
   const lang = props.lang;
+  const langLocked = props.langLocked ?? false;
   const s: SiteSettings = props.siteSettings ?? NAV_DEFAULTS;
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const switchLang = (next: "en" | "ja") => {
+    if (langLocked || next === lang) return;
+    router.post("/set-language", { lang: next }, { preserveScroll: true });
+  };
 
   // Build nav array from CMS
   const navItems = [
@@ -47,10 +55,6 @@ const Header = () => {
 
   const logoSrc = s.logo_image ? `/storage/${s.logo_image}` : "/image/logo.png";
   const contactLabel = lang === "ja" ? s.contact_label_ja : s.contact_label_en;
-
-  const changeLanguage = (language: "en" | "ja") => {
-    router.post(route("set.language"), { lang: language }, { preserveScroll: true, preserveState: false });
-  };
 
   const isActive = (href: string) => {
     if (!href) return false;
@@ -69,14 +73,29 @@ const Header = () => {
             <Link href="/contact" className="hover:text-primary transition-colors">
               {contactLabel}
             </Link>
-            <span className="text-border">/</span>
-            <button onClick={() => changeLanguage("en")} className={`${lang === "en" ? "text-primary" : "hover:text-primary"} transition-colors`}>
-              English
-            </button>
-            <span className="text-border">/</span>
-            <button onClick={() => changeLanguage("ja")} className={`${lang === "ja" ? "text-primary" : "hover:text-primary"} transition-colors`}>
-              日本語
-            </button>
+
+            {!langLocked && (
+              <div className="flex items-center gap-1 pl-3 border-l border-border" aria-label="Language switcher">
+                <Globe className="w-4 h-4 text-muted-foreground mr-1" />
+                <button
+                  type="button"
+                  onClick={() => switchLang("en")}
+                  className={`px-1.5 transition-colors ${lang === "en" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                  aria-current={lang === "en"}
+                >
+                  EN
+                </button>
+                <span className="text-border">/</span>
+                <button
+                  type="button"
+                  onClick={() => switchLang("ja")}
+                  className={`px-1.5 transition-colors ${lang === "ja" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                  aria-current={lang === "ja"}
+                >
+                  JA
+                </button>
+              </div>
+            )}
           </div>
           <div className="w-72 border-b border-border mt-1" />
         </div>
@@ -136,11 +155,28 @@ const Header = () => {
                   <Globe className="w-5 h-5 text-primary" />
                   {contactLabel}
                 </Link>
-                <div className="flex gap-4 text-sm font-bold">
-                  <button onClick={() => { changeLanguage("en"); setIsMenuOpen(false); }} className={lang === "en" ? "text-primary" : ""}>English</button>
-                  <span className="text-border">|</span>
-                  <button onClick={() => { changeLanguage("ja"); setIsMenuOpen(false); }} className={lang === "ja" ? "text-primary" : ""}>日本語</button>
-                </div>
+
+                {!langLocked && (
+                  <div className="flex items-center gap-2 font-semibold" aria-label="Language switcher">
+                    <button
+                      type="button"
+                      onClick={() => switchLang("en")}
+                      className={lang === "en" ? "text-primary" : "text-foreground"}
+                      aria-current={lang === "en"}
+                    >
+                      EN
+                    </button>
+                    <span className="text-border">/</span>
+                    <button
+                      type="button"
+                      onClick={() => switchLang("ja")}
+                      className={lang === "ja" ? "text-primary" : "text-foreground"}
+                      aria-current={lang === "ja"}
+                    >
+                      JA
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </nav>

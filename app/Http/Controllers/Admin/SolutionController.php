@@ -7,6 +7,7 @@ use Inertia\Inertia;
 use App\Models\Solution;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use App\Models\SolutionPage; // add this import
 
 class SolutionController extends Controller
@@ -47,9 +48,21 @@ class SolutionController extends Controller
             'case_studies'        => 'nullable',
             'industries'          => 'nullable',
             'faqs'                => 'nullable',
+            // Case study media — indexed file inputs, same pattern as India Desk
+            'case_study_logos'             => 'nullable|array',
+            'case_study_logos.*'           => 'nullable|image|max:2048',
+            'case_study_hero_images'       => 'nullable|array',
+            'case_study_hero_images.*'     => 'nullable|image|max:4096',
+            'case_study_secondary_images'  => 'nullable|array',
+            'case_study_secondary_images.*' => 'nullable|image|max:4096',
         ]);
 
         $decoded = $this->decodeRelations($request);
+
+        $decoded['case_studies'] = $this->processCaseStudyMedia(
+            $request,
+            $decoded['case_studies'] ?? []
+        );
 
         $heroImage = $request->hasFile('hero_image')
             ? $request->file('hero_image')->store('solutions', 'public')
@@ -111,9 +124,21 @@ class SolutionController extends Controller
             'case_studies'        => 'nullable',
             'industries'          => 'nullable',
             'faqs'                => 'nullable',
+            'case_study_logos'             => 'nullable|array',
+            'case_study_logos.*'           => 'nullable|image|max:2048',
+            'case_study_hero_images'       => 'nullable|array',
+            'case_study_hero_images.*'     => 'nullable|image|max:4096',
+            'case_study_secondary_images'  => 'nullable|array',
+            'case_study_secondary_images.*' => 'nullable|image|max:4096',
         ]);
 
         $decoded = $this->decodeRelations($request);
+
+        $decoded['case_studies'] = $this->processCaseStudyMedia(
+            $request,
+            $decoded['case_studies'] ?? [],
+            $solution->caseStudies()->orderBy('sort_order')->get()->toArray()
+        );
 
         $heroImage = $solution->hero_image;
         if ($request->hasFile('hero_image')) {
@@ -161,7 +186,14 @@ class SolutionController extends Controller
         }
         $solution->features()->delete();
         $solution->useCases()->delete();
+
+        foreach ($solution->caseStudies as $cs) {
+            $this->deleteOldCaseStudyFile($cs->logo, true);
+            $this->deleteOldCaseStudyFile($cs->hero_image, false);
+            $this->deleteOldCaseStudyFile($cs->secondary_image, false);
+        }
         $solution->caseStudies()->delete();
+
         $solution->industries()->delete();
         $solution->faqs()->delete();
         $solution->delete();
@@ -209,11 +241,36 @@ class SolutionController extends Controller
         $solution->caseStudies()->delete();
         foreach ($decoded['case_studies'] as $i => $c) {
             $solution->caseStudies()->create([
-                'title'      => $c['title'] ?? '',
-                'title_ja'   => $c['title_ja'] ?? null,
-                'summary'    => $c['summary'] ?? null,
-                'summary_ja' => $c['summary_ja'] ?? null,
-                'sort_order' => $i,
+                'slug'                => $c['slug'] ?? null,
+                'title'               => $c['title'] ?? '',
+                'title_ja'            => $c['title_ja'] ?? null,
+                'subtitle'            => $c['subtitle'] ?? null,
+                'subtitle_ja'         => $c['subtitle_ja'] ?? null,
+                'company_name'        => $c['company_name'] ?? null,
+                'company_name_ja'     => $c['company_name_ja'] ?? null,
+                'ceo_name'            => $c['ceo_name'] ?? null,
+                'ceo_name_ja'         => $c['ceo_name_ja'] ?? null,
+                'logo'                => $c['logo'] ?? null,
+                'hero_image'          => $c['hero_image'] ?? null,
+                'secondary_image'     => $c['secondary_image'] ?? null,
+                'tags'                => $c['tags'] ?? null,
+                'tags_ja'             => $c['tags_ja'] ?? null,
+                'hero_description'    => $c['hero_description'] ?? null,
+                'hero_description_ja' => $c['hero_description_ja'] ?? null,
+                'benefit'             => $c['benefit'] ?? null,
+                'benefit_ja'          => $c['benefit_ja'] ?? null,
+                'implementation'      => $c['implementation'] ?? null,
+                'implementation_ja'   => $c['implementation_ja'] ?? null,
+                'content'             => $c['content'] ?? null,
+                'content_ja'          => $c['content_ja'] ?? null,
+                'meta_title'          => $c['meta_title'] ?? null,
+                'meta_title_ja'       => $c['meta_title_ja'] ?? null,
+                'meta_description'    => $c['meta_description'] ?? null,
+                'meta_description_ja' => $c['meta_description_ja'] ?? null,
+                'meta_keywords'       => $c['meta_keywords'] ?? null,
+                'meta_keywords_ja'    => $c['meta_keywords_ja'] ?? null,
+                'og_image'            => $c['og_image'] ?? null,
+                'sort_order'          => $i,
             ]);
         }
 
@@ -237,6 +294,76 @@ class SolutionController extends Controller
                 'answer_ja'   => $f['answer_ja'] ?? null,
                 'sort_order'  => $i,
             ]);
+        }
+    }
+
+    /**
+     * For each case study in the decoded array:
+     *  - If a new file was uploaded at case_study_logos[i]/hero/secondary, store
+     *    it and set the URL/path.
+     *  - Otherwise preserve the existing value from $existing[i].
+     * Old files are deleted from storage when replaced.
+     * Also assigns a stable, unique-per-solution slug (preserved on edit).
+     *
+     * Mirrors IndiaDeskController::processCaseStudyMedia().
+     */
+    private function processCaseStudyMedia(
+        Request $request,
+        array $caseStudies,
+        array $existing = []
+    ): array {
+        $usedSlugs = array_filter(array_column($caseStudies, 'slug'));
+
+        foreach ($caseStudies as $i => &$cs) {
+            // Logo (stored as full asset() URL — legacy behavior, matches India Desk)
+            if ($request->hasFile("case_study_logos.{$i}")) {
+                $this->deleteOldCaseStudyFile($existing[$i]['logo'] ?? null, true);
+                $stored     = $request->file("case_study_logos.{$i}")->store('solutions/cs_logos', 'public');
+                $cs['logo'] = asset('storage/' . $stored);
+            } else {
+                $cs['logo'] = $existing[$i]['logo'] ?? ($cs['logo'] ?? null);
+            }
+
+            // Hero image (relative path)
+            if ($request->hasFile("case_study_hero_images.{$i}")) {
+                $this->deleteOldCaseStudyFile($existing[$i]['hero_image'] ?? null, false);
+                $cs['hero_image'] = $request->file("case_study_hero_images.{$i}")->store('solutions/cs_hero', 'public');
+            } else {
+                $cs['hero_image'] = $existing[$i]['hero_image'] ?? ($cs['hero_image'] ?? null);
+            }
+
+            // Secondary image (relative path)
+            if ($request->hasFile("case_study_secondary_images.{$i}")) {
+                $this->deleteOldCaseStudyFile($existing[$i]['secondary_image'] ?? null, false);
+                $cs['secondary_image'] = $request->file("case_study_secondary_images.{$i}")->store('solutions/cs_secondary', 'public');
+            } else {
+                $cs['secondary_image'] = $existing[$i]['secondary_image'] ?? ($cs['secondary_image'] ?? null);
+            }
+
+            // Slug — preserve on edit (keeps public URLs stable), derive from title otherwise
+            $preserved = $existing[$i]['slug'] ?? ($cs['slug'] ?? null);
+            $base      = $preserved ?: (Str::slug($cs['title'] ?? '') ?: 'case-study-' . ($i + 1));
+            $slug      = $base;
+            $n         = 2;
+            while (in_array($slug, array_diff($usedSlugs, [$preserved]), true) || (isset($cs['slug']) === false && in_array($slug, $usedSlugs, true))) {
+                $slug = $base . '-' . $n++;
+            }
+            $cs['slug']    = $slug;
+            $usedSlugs[$i] = $slug;
+        }
+        unset($cs);
+
+        return $caseStudies;
+    }
+
+    private function deleteOldCaseStudyFile(?string $value, bool $isAssetUrl): void
+    {
+        if (!$value) return;
+        $relative = $isAssetUrl
+            ? ltrim(str_replace(asset('storage'), '', $value), '/')
+            : $value;
+        if ($relative && Storage::disk('public')->exists($relative)) {
+            Storage::disk('public')->delete($relative);
         }
     }
 

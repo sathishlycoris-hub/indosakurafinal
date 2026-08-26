@@ -23,7 +23,25 @@ import { Label } from "@/components/ui/label";
 interface Feature { title: string; title_ja?: string; subtitle: string; description: string; description_ja?: string; }
 interface UseCase { title: string; title_ja?: string; subtitle?: string; subtitle_ja?: string; description: string; description_ja?: string; }
 interface Industry { title: string; title_ja?: string; description: string; description_ja?: string; }
-interface CaseStudy { title: string; title_ja?: string; client?: string; summary?: string; summary_ja?: string; result?: string; result_ja?: string; }
+interface CaseStudy {
+  title: string; title_ja?: string;
+  slug?: string;
+  subtitle?: string; subtitle_ja?: string;
+  company_name?: string; company_name_ja?: string;
+  ceo_name?: string; ceo_name_ja?: string;
+  logo?: string | null;
+  hero_image?: string | null;       // relative path — render as /storage/${hero_image}
+  secondary_image?: string | null;  // relative path
+  tags?: string; tags_ja?: string;
+  hero_description?: string; hero_description_ja?: string;
+  benefit?: string; benefit_ja?: string;               // "Subject" box on the show page
+  implementation?: string; implementation_ja?: string; // "Implementation Effect" box on the show page
+  content?: string; content_ja?: string;               // long-form body at bottom of show page
+  meta_title?: string; meta_title_ja?: string;
+  meta_description?: string; meta_description_ja?: string;
+  meta_keywords?: string; meta_keywords_ja?: string;
+  og_image?: string | null;
+}
 interface Faq { question: string; question_ja?: string; answer: string; answer_ja?: string; }
 // Add PageData interface
 interface PageData {
@@ -66,6 +84,11 @@ export default function Index({
   const [current, setCurrent] = useState<Solution | null>(null);
   const [open, setOpen] = useState(false);
   const [activeLang, setActiveLang] = useState<"en" | "ja">("en");
+
+  // Separate state for case study File objects (not serialisable in useForm) — one map per upload slot
+  const [caseStudyLogoFiles, setCaseStudyLogoFiles] = useState<Map<number, File>>(new Map());
+  const [caseStudyHeroFiles, setCaseStudyHeroFiles] = useState<Map<number, File>>(new Map());
+  const [caseStudySecondaryFiles, setCaseStudySecondaryFiles] = useState<Map<number, File>>(new Map());
   const [pageLang, setPageLang] = useState<"en" | "ja">("en");
   const [pageProcessing, setPageProcessing] = useState(false);
   const [pageFields, setPageFields] = useState({
@@ -118,10 +141,19 @@ export default function Index({
   });
 
   /* ── OPEN HELPERS ── */
-  const openAdd = () => { reset(); setMode("add"); setCurrent(null); setOpen(true); };
+  const openAdd = () => {
+    reset();
+    setCaseStudyLogoFiles(new Map());
+    setCaseStudyHeroFiles(new Map());
+    setCaseStudySecondaryFiles(new Map());
+    setMode("add"); setCurrent(null); setOpen(true);
+  };
 
   const openEdit = (s: Solution) => {
     setMode("edit"); setCurrent(s); setOpen(true);
+    setCaseStudyLogoFiles(new Map());
+    setCaseStudyHeroFiles(new Map());
+    setCaseStudySecondaryFiles(new Map());
     setData({
       title: s.title, title_ja: s.title_ja || "",
       slug: s.slug, link: s.link || "",
@@ -166,6 +198,11 @@ export default function Index({
     if (data.hero_image) form.append("hero_image", data.hero_image);
     if (data.og_image) form.append("og_image", data.og_image);
 
+    // Append case study files keyed by index — one field name per upload slot
+    caseStudyLogoFiles.forEach((file, index) => form.append(`case_study_logos[${index}]`, file));
+    caseStudyHeroFiles.forEach((file, index) => form.append(`case_study_hero_images[${index}]`, file));
+    caseStudySecondaryFiles.forEach((file, index) => form.append(`case_study_secondary_images[${index}]`, file));
+
     form.append("features", JSON.stringify(data.features));
     form.append("use_cases", JSON.stringify(data.use_cases));
     form.append("case_studies", JSON.stringify(data.case_studies));
@@ -176,7 +213,13 @@ export default function Index({
 
   const submitAdd = () => {
     router.post(route("admin.solutions.store"), buildFormData(), {
-      onSuccess: () => { reset(); setOpen(false); },
+      onSuccess: () => {
+        reset();
+        setCaseStudyLogoFiles(new Map());
+        setCaseStudyHeroFiles(new Map());
+        setCaseStudySecondaryFiles(new Map());
+        setOpen(false);
+      },
     });
   };
 
@@ -185,7 +228,13 @@ export default function Index({
     const form = buildFormData();
     form.append("_method", "PUT");
     router.post(route("admin.solutions.update", current.id), form, {
-      onSuccess: () => { reset(); setOpen(false); },
+      onSuccess: () => {
+        reset();
+        setCaseStudyLogoFiles(new Map());
+        setCaseStudyHeroFiles(new Map());
+        setCaseStudySecondaryFiles(new Map());
+        setOpen(false);
+      },
     });
   };
 
@@ -201,8 +250,50 @@ export default function Index({
   const updateItem = (key: keyof typeof data, i: number, field: string, value: string) => {
     const u = [...(data[key] as any[])]; u[i][field] = value; setData(key, u);
   };
+
+  // Re-index a single file map after an item at `removedIndex` is spliced out
+  const reindexFileMap = (map: Map<number, File>, removedIndex: number): Map<number, File> => {
+    const next = new Map<number, File>();
+    map.forEach((file, idx) => {
+      if (idx < removedIndex) next.set(idx, file);
+      else if (idx > removedIndex) next.set(idx - 1, file); // shift down
+      // idx === removedIndex → dropped
+    });
+    return next;
+  };
+
   const removeItem = (key: keyof typeof data, i: number) => {
     const u = [...(data[key] as any[])]; u.splice(i, 1); setData(key, u);
+
+    // Case studies have three independent file slots — keep all three in sync
+    if (key === "case_studies") {
+      setCaseStudyLogoFiles(prev => reindexFileMap(prev, i));
+      setCaseStudyHeroFiles(prev => reindexFileMap(prev, i));
+      setCaseStudySecondaryFiles(prev => reindexFileMap(prev, i));
+    }
+  };
+
+  // Handle logo file selection for a specific case study index
+  const handleCaseStudyLogoChange = (index: number, file: File | null) => {
+    setCaseStudyLogoFiles(prev => {
+      const next = new Map(prev);
+      if (file) next.set(index, file);
+      else next.delete(index);
+      return next;
+    });
+  };
+
+  // Generic handler for hero / secondary image slots
+  const handleCaseStudyFileChange = (
+    setter: React.Dispatch<React.SetStateAction<Map<number, File>>>,
+    index: number,
+    file: File | null,
+  ) => {
+    setter(prev => {
+      const next = new Map(prev);
+      if (file) next.set(index, file); else next.delete(index);
+      return next;
+    });
   };
 
   /* ── SEO setData bridge (SeoFields expects (key, value)) ── */
@@ -419,22 +510,148 @@ export default function Index({
                 )}
               />
 
-              {/* Case Studies */}
+              {/* Case Studies — same rich schema as India Desk case studies */}
               <SectionBlock
                 title="Case Studies"
                 items={data.case_studies}
-                onAdd={() => addItem("case_studies", { title: "", title_ja: "", summary: "", summary_ja: "" })}
+                onAdd={() => addItem("case_studies", {
+                  title: "", title_ja: "",
+                  slug: "",
+                  subtitle: "", subtitle_ja: "",
+                  company_name: "", company_name_ja: "",
+                  ceo_name: "", ceo_name_ja: "",
+                  tags: "", tags_ja: "",
+                  logo: null, hero_image: null, secondary_image: null,
+                  hero_description: "", hero_description_ja: "",
+                  benefit: "", benefit_ja: "",
+                  implementation: "", implementation_ja: "",
+                  content: "", content_ja: "",
+                })}
                 onRemove={(i) => removeItem("case_studies", i)}
                 render={(item, i) => (
-                  <div className="space-y-2">
-                    <Input placeholder="Title"
-                      value={activeLang === "en" ? item.title : item.title_ja || ""}
-                      onChange={(e) => updateItem("case_studies", i, activeLang === "en" ? "title" : "title_ja", e.target.value)}
-                    />
-                    <ReactQuill key={`${activeLang}-cs-${i}`} theme="snow" style={{ height: "180px", marginBottom: "50px" }}
-                      value={activeLang === "en" ? item.summary || "" : item.summary_ja || ""}
-                      onChange={(v) => updateItem("case_studies", i, activeLang === "en" ? "summary" : "summary_ja", v)}
-                    />
+                  <div className="space-y-3">
+                    {/* Logo upload block */}
+                    <div className="border border-dashed border-primary/30 rounded-lg p-3 bg-primary/5">
+                      <p className="text-xs font-semibold text-primary mb-2">Company Logo (optional)</p>
+                      <div className="flex items-center gap-3">
+                        {caseStudyLogoFiles.has(i) ? (
+                          <img
+                            src={URL.createObjectURL(caseStudyLogoFiles.get(i)!)}
+                            alt="logo preview"
+                            className="w-12 h-12 object-contain rounded-lg border bg-white p-1"
+                          />
+                        ) : item.logo ? (
+                          <img
+                            src={item.logo}
+                            alt="current logo"
+                            className="w-12 h-12 object-contain rounded-lg border bg-white p-1"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 rounded-lg border bg-white flex items-center justify-center text-muted-foreground text-xs text-center leading-tight p-1">
+                            No logo
+                          </div>
+                        )}
+                        <div className="flex-1">
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            className="text-xs"
+                            onChange={e => handleCaseStudyLogoChange(i, e.target.files?.[0] ?? null)}
+                          />
+                          <p className="text-xs text-muted-foreground mt-1">PNG/JPG/SVG · Max 2 MB</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Title */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <Field label="Title (EN)"><Input value={item.title} onChange={e => updateItem("case_studies", i, "title", e.target.value)} /></Field>
+                      <Field label="Title (JA)"><Input value={item.title_ja || ""} onChange={e => updateItem("case_studies", i, "title_ja", e.target.value)} /></Field>
+                    </div>
+
+                    {/* Subtitle */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <Field label="Subtitle (EN)"><Input value={item.subtitle || ""} onChange={e => updateItem("case_studies", i, "subtitle", e.target.value)} /></Field>
+                      <Field label="Subtitle (JA)"><Input value={item.subtitle_ja || ""} onChange={e => updateItem("case_studies", i, "subtitle_ja", e.target.value)} /></Field>
+                    </div>
+
+                    {/* Company + CEO name */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <Field label="Company Name (EN)"><Input value={item.company_name || ""} onChange={e => updateItem("case_studies", i, "company_name", e.target.value)} placeholder="Acme Corp" /></Field>
+                      <Field label="Company Name (JA)"><Input value={item.company_name_ja || ""} onChange={e => updateItem("case_studies", i, "company_name_ja", e.target.value)} placeholder="株式会社アクメ" /></Field>
+                      <Field label="CEO Name (EN)"><Input value={item.ceo_name || ""} onChange={e => updateItem("case_studies", i, "ceo_name", e.target.value)} placeholder="Jane Smith, CEO" /></Field>
+                      <Field label="CEO Name (JA)"><Input value={item.ceo_name_ja || ""} onChange={e => updateItem("case_studies", i, "ceo_name_ja", e.target.value)} placeholder="ジェーン・スミス, CEO" /></Field>
+                    </div>
+
+                    {/* Slug + Tags */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <Field label="Slug (auto from title if left blank)">
+                        <Input value={item.slug || ""} onChange={e => updateItem("case_studies", i, "slug", e.target.value)} placeholder="acme-corp-expansion" />
+                      </Field>
+                      <Field label="Tags (comma-separated)">
+                        <Input value={item.tags || ""} onChange={e => updateItem("case_studies", i, "tags", e.target.value)} placeholder="DX, Fintech" />
+                      </Field>
+                    </div>
+
+                    {/* Hero image */}
+                    <div className="border border-dashed rounded-lg p-3 bg-muted/10">
+                      <p className="text-xs font-semibold mb-2">Hero Image (case study detail page)</p>
+                      <div className="flex items-center gap-3">
+                        {caseStudyHeroFiles.has(i) ? (
+                          <img src={URL.createObjectURL(caseStudyHeroFiles.get(i)!)} className="w-16 h-10 object-cover rounded border" />
+                        ) : item.hero_image ? (
+                          <img src={`/storage/${item.hero_image}`} className="w-16 h-10 object-cover rounded border" />
+                        ) : (
+                          <div className="w-16 h-10 rounded border bg-white flex items-center justify-center text-muted-foreground text-[10px]">None</div>
+                        )}
+                        <Input type="file" accept="image/*" className="text-xs flex-1"
+                          onChange={e => handleCaseStudyFileChange(setCaseStudyHeroFiles, i, e.target.files?.[0] ?? null)} />
+                      </div>
+                    </div>
+
+                    {/* Main description shown below the title */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <Field label="Description (EN)"><ReactQuill theme="snow" value={item.hero_description || ""} onChange={v => updateItem("case_studies", i, "hero_description", v)} /></Field>
+                      <Field label="Description (JA)"><ReactQuill theme="snow" value={item.hero_description_ja || ""} onChange={v => updateItem("case_studies", i, "hero_description_ja", v)} /></Field>
+                    </div>
+
+                    {/* Subject / Implementation Effect boxes */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <Field label="Subject (EN)" hint='Shown as the "Subject" box on the detail page'>
+                        <ReactQuill theme="snow" value={item.benefit || ""} onChange={v => updateItem("case_studies", i, "benefit", v)} />
+                      </Field>
+                      <Field label="Subject (JA)">
+                        <ReactQuill theme="snow" value={item.benefit_ja || ""} onChange={v => updateItem("case_studies", i, "benefit_ja", v)} />
+                      </Field>
+                      <Field label="Implementation Effect (EN)">
+                        <ReactQuill theme="snow" value={item.implementation || ""} onChange={v => updateItem("case_studies", i, "implementation", v)} />
+                      </Field>
+                      <Field label="Implementation Effect (JA)">
+                        <ReactQuill theme="snow" value={item.implementation_ja || ""} onChange={v => updateItem("case_studies", i, "implementation_ja", v)} />
+                      </Field>
+                    </div>
+
+                    {/* Secondary image */}
+                    <div className="border border-dashed rounded-lg p-3 bg-muted/10">
+                      <p className="text-xs font-semibold mb-2">Secondary Image (optional, shown in-body)</p>
+                      <div className="flex items-center gap-3">
+                        {caseStudySecondaryFiles.has(i) ? (
+                          <img src={URL.createObjectURL(caseStudySecondaryFiles.get(i)!)} className="w-16 h-10 object-cover rounded border" />
+                        ) : item.secondary_image ? (
+                          <img src={`/storage/${item.secondary_image}`} className="w-16 h-10 object-cover rounded border" />
+                        ) : (
+                          <div className="w-16 h-10 rounded border bg-white flex items-center justify-center text-muted-foreground text-[10px]">None</div>
+                        )}
+                        <Input type="file" accept="image/*" className="text-xs flex-1"
+                          onChange={e => handleCaseStudyFileChange(setCaseStudySecondaryFiles, i, e.target.files?.[0] ?? null)} />
+                      </div>
+                    </div>
+
+                    {/* Long-form content at the bottom of the detail page */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <Field label="Content (EN)"><ReactQuill theme="snow" value={item.content || ""} onChange={v => updateItem("case_studies", i, "content", v)} /></Field>
+                      <Field label="Content (JA)"><ReactQuill theme="snow" value={item.content_ja || ""} onChange={v => updateItem("case_studies", i, "content_ja", v)} /></Field>
+                    </div>
                   </div>
                 )}
               />
@@ -553,6 +770,17 @@ export default function Index({
         </TableBody>
       </Table>
     </Authenticated>
+  );
+}
+
+/* ── FIELD WRAPPER ── */
+function Field({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
+  return (
+    <div className="space-y-1">
+      <label className="text-xs font-medium text-muted-foreground">{label}</label>
+      {hint && <p className="text-[11px] text-muted-foreground -mt-0.5">{hint}</p>}
+      {children}
+    </div>
   );
 }
 

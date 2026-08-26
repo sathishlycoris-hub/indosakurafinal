@@ -46,6 +46,10 @@ class HandleInertiaRequests extends Middleware
             // is actually built — by then SetLocale has already run.
             'lang' => fn () => app()->getLocale(),
 
+            // ── True on .co.jp (English-only, no toggle). Header.tsx uses this
+            // to hide the EN/JA switcher entirely. Set by SetLocale middleware.
+            'langLocked' => fn () => (bool) $request->attributes->get('langLocked', false),
+
         ];
     }
 }
