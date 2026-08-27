@@ -157,7 +157,7 @@ function IndiaDesks({
             {v(pageData?.hero_subtitle, pageData?.hero_subtitle_ja) ||
               (lang === "en" ? "India Desk" : "インドデスク")}
           </span>
-          <h1 className="text-4xl lg:text-5xl font-bold mb-4 max-w-7xl leading-tight text-justify">
+          <h1 className="text-4xl lg:text-5xl font-bold mb-4 max-w-7xl leading-tight">
             {v(pageData?.hero_title, pageData?.hero_title_ja) ||
               (lang === "en" ? "India Desk Services" : "インドデスク サービス")}
           </h1>

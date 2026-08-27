@@ -39,6 +39,18 @@ interface PageData {
   hero_subtitle_ja?: string | null;
 }
 
+// ★ NEW — a blog available to attach to a service, and the shape
+// Service.blogs comes back as from the backend (used to pre-check the list)
+interface BlogOption {
+  id: number;
+  title: string;
+  title_ja?: string | null;
+  slug: string;
+  service_id: number | null;
+  status: "published" | "draft";
+}
+interface AttachedBlog { id: number; }
+
 interface Service {
   id: number;
   title: string; title_ja?: string;
@@ -63,6 +75,8 @@ interface Service {
   approach_steps: ApproachStep[];
   testimonials: Testimonial[];
   tech_stack: TechStack[];
+  blogs?: AttachedBlog[]; // legacy name kept for type compat if referenced elsewhere
+  admin_blogs?: AttachedBlog[]; // ★ FIX — Laravel serializes Service::adminBlogs() as admin_blogs, not adminBlogs
 }
 
 /* ─── STRIP HELPERS (unchanged) ─── */
@@ -82,9 +96,11 @@ const slugify = (text: string) => text.toLowerCase().trim().replace(/[^\w\s-]/g,
 export default function Index({
   services,
   pageData,
+  availableBlogs = [], // ★ NEW — full blog picker list from ServiceController::index
 }: {
   services: Service[];
   pageData: PageData | null;
+  availableBlogs?: BlogOption[];
 }) {
   const [pageOpen, setPageOpen] = useState(false);
   const [pageLang, setPageLang] = useState<"en" | "ja">("en");
@@ -149,6 +165,7 @@ export default function Index({
     tech_stack: [] as TechStack[],
     page_faqs: [] as PageFaq[],
     page_industries: [] as PageIndustry[],
+    blog_ids: [] as number[], // ★ NEW — IDs of existing blogs attached to this service
   });
 
   /* ── OPEN HELPERS ── */
@@ -181,6 +198,7 @@ export default function Index({
       approach_steps: Array.isArray(s.approach_steps) ? s.approach_steps.map(toApproachStep) : [],
       testimonials: Array.isArray(s.testimonials) ? s.testimonials.map(toTestimonial) : [],
       tech_stack: Array.isArray(s.tech_stack) ? s.tech_stack.map(toTechStack) : [],
+      blog_ids: Array.isArray(s.admin_blogs) ? s.admin_blogs.map(b => b.id) : [], // ★ FIX — Laravel serializes adminBlogs() relation as admin_blogs
     });
     setOpen(true);
   };
@@ -231,6 +249,10 @@ export default function Index({
       "testimonials", "tech_stack", "page_faqs", "page_industries"] as const)
       .forEach(k => form.append(k, JSON.stringify(data[k])));
 
+    // ★ NEW — attached blog IDs, sent as repeated blog_ids[] entries so
+    // Laravel receives it as a plain array (matches 'blog_ids' => 'nullable|array' validation)
+    data.blog_ids.forEach(id => form.append("blog_ids[]", String(id)));
+
     const opts = { onSuccess: () => { reset(); setFormErrors({}); setOpen(false); } };
 
     if (mode === "edit" && current) {
@@ -252,6 +274,13 @@ export default function Index({
   const addItem = (k: keyof typeof data, item: any) => setData(k, [...(data[k] as any[]), item]);
   const removeItem = (k: keyof typeof data, i: number) => { const a = [...(data[k] as any[])]; a.splice(i, 1); setData(k, a); };
   const updateItem = (k: keyof typeof data, i: number, field: string, val: string) => { const a = [...(data[k] as any[])]; a[i][field] = val; setData(k, a); };
+
+  // ★ NEW — toggle a blog's id in/out of the attached list
+  const toggleBlogId = (id: number) => {
+    setData("blog_ids", data.blog_ids.includes(id)
+      ? data.blog_ids.filter(x => x !== id)
+      : [...data.blog_ids, id]);
+  };
 
   /* ── SEO setData bridge ── */
   const setSeoData = (key: string, value: any) => setData(key as any, value);
@@ -542,6 +571,61 @@ export default function Index({
                   </div>
                 )}
               />
+
+              {/* ★ NEW — Attached Blogs: pick from existing blogs (authored in
+                  the Blogs admin section) to show in the "Case Studies"-style
+                  card grid at the bottom of this service's public page. */}
+              <div className="border rounded-lg p-4 space-y-3">
+                <div>
+                  <h3 className="font-semibold text-sm">Attached Blogs</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Check the blogs to show on this service's page. A blog can only be attached to one service at a time —
+                    checking it here will detach it from any other service.
+                  </p>
+                </div>
+
+                {availableBlogs.length === 0 ? (
+                  <p className="text-sm text-muted-foreground italic">
+                    No blogs found. Create some first in the Blogs admin section.
+                  </p>
+                ) : (
+                  <div className="max-h-56 overflow-y-auto border rounded-md divide-y">
+                    {availableBlogs.map((blog) => {
+                      const checked = data.blog_ids.includes(blog.id);
+                      // A blog already attached elsewhere shows who has it, but stays selectable —
+                      // selecting it here will move it to this service on save.
+                      const attachedElsewhere = blog.service_id !== null
+                        && blog.service_id !== current?.id
+                        && !checked;
+
+                      return (
+                        <label
+                          key={blog.id}
+                          className="flex items-center gap-3 px-3 py-2 text-sm hover:bg-muted/40 cursor-pointer"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => toggleBlogId(blog.id)}
+                            className="h-4 w-4"
+                          />
+                          <span className="flex-1 truncate">
+                            {blog.title}
+                            {blog.status === "draft" && (
+                              <span className="ml-2 text-[10px] uppercase tracking-wide text-amber-600 font-semibold">Draft</span>
+                            )}
+                          </span>
+                          {attachedElsewhere && (
+                            <span className="text-[10px] text-muted-foreground italic flex-shrink-0">
+                              attached to another service
+                            </span>
+                          )}
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
 
               {/* Per-service FAQs */}
               <SectionBlock title="FAQs (per-service)" items={data.page_faqs}

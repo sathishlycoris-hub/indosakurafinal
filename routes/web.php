@@ -147,6 +147,8 @@ Route::post('/set-language', function (\Illuminate\Http\Request $request) {
 Route::get('/contact', fn() => Inertia::render('Contact', [
     'seo' => Seo::where('page', 'contact')->first(),
 ]));
+Route::get('/contact/thank-you', fn() => Inertia::render('ContactThankYou'))
+    ->name('contact.thank_you');
 Route::get('/sitemap', fn() => Inertia::render('Sitemap'));
 Route::get('/usage', fn() => Inertia::render('Usage'));
 
@@ -261,7 +263,7 @@ Route::get('corporate/policy{slug}', [PolicyPageController::class, 'index'])
 Route::get('/solutions', [SolutionPageController::class, 'index'])
     ->name('solutions.index');
 
-Route::get('/solutions/{solutionSlug}/case-studies/{caseSlug}', [SolutionPageController::class, 'showCaseStudy'])
+Route::get('/solutions/{solutionSlug}/case-studies/{caseSlug}', [CaseStudyController::class, 'showSolutionCaseStudy'])
     ->name('solutions.case_studies.show');
 
 Route::get('/solutions/{slug}', [SolutionPageController::class, 'show'])

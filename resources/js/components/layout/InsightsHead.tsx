@@ -31,10 +31,27 @@ export default function Insightshead() {
     },
   ];
 
+  /**
+   * Normalize a path for comparison: trims whitespace, lowercases, strips a
+   * trailing slash (but keeps a lone "/"), and strips query/hash so links
+   * like "/blogs/casestudies?" or "/blogs/casestudies#top" still match.
+   *
+   * This is the actual fix: tab paths come from the CMS (SiteSetting model,
+   * ins1_href..ins4_href), and a stray trailing slash, different casing, or
+   * surrounding whitespace saved via the admin panel silently broke the
+   * exact-match check below — the Case Studies tab would just never light up
+   * even though the route itself worked fine.
+   */
+  const normalize = (path: string) => {
+    const clean = path.trim().toLowerCase().split(/[?#]/)[0];
+    const noTrailingSlash = clean.length > 1 ? clean.replace(/\/+$/, "") : clean;
+    return noTrailingSlash || "/";
+  };
+
   /* ── Active link logic ── */
   const isActive = (path: string) => {
-    const currentUrl = url.replace(/\/$/, "") || "/";
-    const targetPath = path.replace(/\/$/, "");
+    const currentUrl = normalize(url);
+    const targetPath = normalize(path);
 
     // Seminars: match index or any /blogs/seminars/* path
     if (targetPath === "/blogs/seminars-index" || targetPath.includes("seminars")) {
@@ -47,10 +64,10 @@ export default function Insightshead() {
     // General Blogs tab — active only when NOT on another sub-tab
     if (targetPath === "/blogs") {
       const isOtherTab = tabs.some((tab) => {
-        if (tab.path === "/blogs") return false;
-        const tp = tab.path.replace(/\/$/, "");
+        if (normalize(tab.path) === "/blogs") return false;
+        const tp = normalize(tab.path);
         if (tp.includes("seminars")) return currentUrl.startsWith("/blogs/seminars");
-        return currentUrl.startsWith(tp);
+        return currentUrl === tp || currentUrl.startsWith(`${tp}/`);
       });
       return (
         (currentUrl === "/blogs" || currentUrl.startsWith("/blogs/")) &&

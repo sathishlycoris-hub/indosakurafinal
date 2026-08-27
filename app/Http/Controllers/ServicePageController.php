@@ -39,7 +39,7 @@ class ServicePageController extends Controller
     public function show(string $slug)
 {
     $service = Service::where('slug', $slug)
-        ->with(['highlights', 'benefits', 'pageFaqs', 'pageIndustries', 'items'])
+        ->with(['highlights', 'benefits', 'pageFaqs', 'pageIndustries', 'items', 'blogs'])
         ->firstOrFail();
 
     $lang = app()->getLocale();
@@ -65,6 +65,19 @@ class ServicePageController extends Controller
             'description' => $it->card_description,
             'description_ja' => $it->card_description_ja,
             'slug'        => $it->slug,
+        ]),
+        // ★ NEW — blogs attached to this service, for the "Case Studies"-style
+        // card grid at the bottom of Services/Show. Links out to the shared
+        // /blogs/{slug} detail page under Insights.
+        'blogs' => $service->blogs->map(fn ($b) => [
+            'slug'                  => $b->slug,
+            'title'                 => $b->title,
+            'title_ja'              => $b->title_ja,
+            'short_description'     => $b->short_description,
+            'short_description_ja'  => $b->short_description_ja,
+            'image'                 => $b->image,
+            'category'              => $b->category,
+            'category_ja'           => $b->category_ja,
         ]),
         'pageSeo' => [
             'meta_title'       => $service->getEffectiveMetaTitle($lang),

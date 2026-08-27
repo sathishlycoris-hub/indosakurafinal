@@ -48,6 +48,6 @@ class ContactController extends Controller
         Mail::to('info.india@indosakura.com')->send(new ContactAdminMail($contact));
         Mail::to($contact->email)->send(new ContactUserMail($contact));
 
-        return redirect()->back()->with('success', 'Message sent successfully');
+        return redirect()->route('contact.thank_you');
     }
 }

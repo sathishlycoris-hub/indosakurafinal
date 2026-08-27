@@ -1,7 +1,12 @@
 // resources/js/Pages/Solutions/Show.tsx
-// ★ marks the changes vs your original: FAQ section added, matching the accordion design from IndiaDesks.tsx
+// ★ marks the changes vs your original:
+//   1. FAQ section added, matching the accordion design from IndiaDesks.tsx
+//   2. Case Studies section rebuilt to match IndiaDesks/Show.tsx exactly:
+//      logo, company name, CEO name, and each card links to its own
+//      detail page at /solutions/{slug}/case-studies/{slug} (same template
+//      IndiaDesk case studies use — Casestudies/Show.tsx).
 
-import { usePage } from "@inertiajs/react";
+import { usePage, Link } from "@inertiajs/react"; // ★ Link added
 import Layout from "@/components/layout/Layout";
 import Solutionhead from "@/components/layout/Solutionhead";
 import ContactCTA from "@/components/layout/Contact";
@@ -31,9 +36,27 @@ interface Faq {
   answer: string; answer_ja?: string;
 }
 
+// ★ NEW — same rich shape as India Desk case studies
+interface CaseStudy {
+  slug: string;
+  title: string; title_ja?: string;
+  subtitle?: string; subtitle_ja?: string;
+  company_name?: string; company_name_ja?: string;
+  ceo_name?: string; ceo_name_ja?: string;
+  logo?: string | null;
+  hero_image?: string | null;
+  secondary_image?: string | null;
+  tags?: string; tags_ja?: string;
+  hero_description?: string; hero_description_ja?: string;
+  benefit?: string; benefit_ja?: string;
+  implementation?: string; implementation_ja?: string;
+  content?: string; content_ja?: string;
+}
+
 interface Solution {
   id: number;
   title: string; title_ja?: string;
+  slug: string; // ★ needed to build /solutions/{slug}/case-studies/{caseSlug} links
   subtitle: string | null; subtitle_ja?: string | null;
   hero_description: string | null; hero_description_ja?: string | null;
   hero_image: string | null;
@@ -41,7 +64,7 @@ interface Solution {
   features: any[];
   use_cases: any[];
   industries: any[];
-  case_studies: any[];
+  case_studies: CaseStudy[]; // ★ typed with the rich shape
   faqs?: Faq[]; // ★ NEW
 }
 
@@ -62,6 +85,7 @@ export default function Show({
   const getIconByIndex = (index: number) => ICONS[index % ICONS.length];
 
   const safeFaqs = Array.isArray(solution.faqs) ? solution.faqs : []; // ★ NEW
+  const safeCaseStudies = Array.isArray(solution.case_studies) ? solution.case_studies : []; // ★ NEW
 
   return (
     <Layout>
@@ -101,13 +125,6 @@ export default function Show({
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
-          {/* {solution.hero_image && (
-            <img
-              src={`/storage/${solution.hero_image}`}
-              className="w-full max-w-2xl rounded-2xl shadow border"
-              alt={getValue(solution.title, solution.title_ja)}
-            />
-          )} */}
         </div>
       </section>
 
@@ -191,21 +208,60 @@ export default function Show({
         </div>
       </section>
 
-      {/* CASE STUDIES */}
-      <section className="py-16 bg-section-light">
-        <div className="container mx-auto space-y-6">
-          <div className="section-divider mb-8" data-aos="fade-left">
-            <h2 className="text-2xl font-semibold">{getValue("Case Studies", "導入事例")}</h2>
-          </div>
-          {solution.case_studies.map((c, i) => (
-            <div key={i} data-aos="fade-right" data-aos-delay={i * 90} className="bg-card border rounded-lg p-6">
-              <h3 className="font-semibold text-primary">{getValue(c.title, c.title_ja)}</h3>
-              <div className="prose mt-2" dangerouslySetInnerHTML={{ __html: getValue(c.summary, c.summary_ja) }} />
-              {c.result && <p className="text-primary mt-3">{getValue(c.result, c.result_ja)}</p>}
+      {/* ★ CASE STUDIES — rebuilt to match IndiaDesks/Show.tsx exactly:
+           logo, company/CEO line, whole card is a Link to the detail page. */}
+      {safeCaseStudies.length > 0 && (
+        <section className="py-16 bg-section-light">
+          <div className="container mx-auto px-6 max-w-7xl space-y-6">
+            <div className="section-divider mb-8" data-aos="fade-left">
+              <h2 className="text-2xl font-semibold">{getValue("Case Studies", "導入事例")}</h2>
             </div>
-          ))}
-        </div>
-      </section>
+
+            {safeCaseStudies.map((cs, i) => {
+              const companyName = getValue(cs.company_name, cs.company_name_ja);
+              const ceoName = getValue(cs.ceo_name, cs.ceo_name_ja);
+              const description = getValue(cs.hero_description, cs.hero_description_ja);
+
+              return (
+                <Link
+                  key={cs.slug ?? i}
+                  href={`/solutions/${solution.slug}/case-studies/${cs.slug}`}
+                  data-aos="fade-right"
+                  data-aos-delay={i * 90}
+                  className="block bg-card border rounded-lg p-6 hover:shadow-md transition-shadow"
+                >
+                  {(companyName || ceoName || cs.logo) && (
+                    <div className="flex items-center gap-3 mb-1">
+                      {cs.logo && (
+                        <div className="flex-shrink-0 w-8 h-8 rounded-full border bg-white overflow-hidden flex items-center justify-center">
+                          <img src={cs.logo} alt="" className="w-full h-full object-contain p-0.5" />
+                        </div>
+                      )}
+                      {(companyName || ceoName) && (
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                          {companyName}
+                          {ceoName && <span className="normal-case font-normal"> · {ceoName}</span>}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  <h3 className="font-semibold text-primary">
+                    {getValue(cs.title, cs.title_ja)}
+                  </h3>
+
+                  {description && (
+                    <div
+                      className="prose mt-2"
+                      dangerouslySetInnerHTML={{ __html: description }}
+                    />
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* ★ NEW — FAQ (same accordion design as the India Desks page) */}
       {safeFaqs.length > 0 && (

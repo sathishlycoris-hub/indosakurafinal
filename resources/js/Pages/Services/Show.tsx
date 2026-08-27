@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import AOS from "aos";
 import "aos/dist/aos.css";
-import { usePage } from "@inertiajs/react";
+import { usePage, Link } from "@inertiajs/react";
 
 interface Highlight     { id: number; title: string; title_ja?: string; value?: string; description?: string; description_ja?: string; }
 interface Benefit       { id: number; title: string; title_ja?: string; description?: string; description_ja?: string; }
@@ -51,6 +51,14 @@ interface Service {
   benefits: Benefit[];
 }
 
+interface ServiceBlog {
+  slug: string;
+  title: string; title_ja?: string;
+  short_description?: string; short_description_ja?: string;
+  image?: string | null;
+  category?: string; category_ja?: string;
+}
+
 interface Props {
   service: Service;
   faqs: Faq[];
@@ -59,6 +67,7 @@ interface Props {
   industrySource?: string;
   pageSeo?: PageSeoProps;
   serviceItems?: ServiceItemLink[];
+  blogs?: ServiceBlog[]; // ★ NEW — blogs attached to this service (Insights)
 }
 
 const BENEFIT_ICONS      = [CheckCircle, TrendingUp, Award, Users, Clock, Zap, ShieldCheck, BarChart3];
@@ -83,7 +92,7 @@ function SectionHeading({ title, subtitle, align = "center" }: { title: string; 
   );
 }
 
-export default function Show({ service, faqs = [], industries = [], serviceItems, pageSeo }: Props) {
+export default function Show({ service, faqs = [], industries = [], serviceItems, blogs = [], pageSeo }: Props) {
   const { lang } = usePage<{ lang: "en" | "ja" }>().props;
   const [popup, setPopup] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -103,6 +112,7 @@ export default function Show({ service, faqs = [], industries = [], serviceItems
   const techStack = Array.isArray(service.tech_stack) ? service.tech_stack : [];
   const safeFaqs = Array.isArray(faqs) ? faqs : [];
   const safeIndustries = Array.isArray(industries) ? industries : [];
+  const safeBlogs = Array.isArray(blogs) ? blogs : []; // ★ NEW
 
   // Use the prop if the controller sends it; otherwise fall back to the JSON column.
   const items: ServiceItemLink[] = Array.isArray(serviceItems) && serviceItems.length > 0
@@ -401,6 +411,72 @@ export default function Show({ service, faqs = [], industries = [], serviceItems
                   )}
                 </div>
               ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* 9.5. BLOGS — same "Case Studies"-style card grid, linking out to
+           the shared Insights blog detail page at /blogs/{slug} */}
+      {safeBlogs.length > 0 && (
+        <section className="py-16 bg-section-light">
+          <div className="container mx-auto px-6 max-w-7xl">
+            <div className="section-divider mb-8" data-aos="fade-left">
+              <h2 className="text-2xl font-semibold">
+                {lang === "ja" ? "関連ブログ" : "Related Blogs"}
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {safeBlogs.map((blog, i) => {
+                const blogTitle = v(blog.title, blog.title_ja);
+                const description = v(blog.short_description, blog.short_description_ja);
+                const category = v(blog.category, blog.category_ja);
+
+                return (
+                  <Link
+                    key={blog.slug ?? i}
+                    href={`/blogs/${blog.slug}`}
+                    data-aos="fade-up"
+                    data-aos-delay={i * 80}
+                    className="group block bg-card border border-border rounded-xl overflow-hidden hover:shadow-lg transition-shadow"
+                  >
+                    <div className="relative aspect-[4/3] bg-primary overflow-hidden">
+                      {blog.image ? (
+                        <img
+                          src={`/storage/${blog.image}`}
+                          alt={blogTitle}
+                          className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-primary to-primary/70" />
+                      )}
+                      {/* Overlay banner text, matching the pink-banner card design */}
+                      <div className="absolute inset-0 bg-primary/70 flex items-start p-4">
+                        <p className="text-white font-bold text-sm leading-snug line-clamp-4">
+                          {blogTitle}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="p-5">
+                      {category && (
+                        <p className="text-xs font-semibold text-primary uppercase tracking-wide mb-2">
+                          {category}
+                        </p>
+                      )}
+                      <h3 className="font-semibold text-foreground mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                        {blogTitle}
+                      </h3>
+                      {description && (
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {description}
+                        </p>
+                      )}
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           </div>
         </section>

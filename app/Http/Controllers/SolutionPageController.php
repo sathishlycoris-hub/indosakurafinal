@@ -38,7 +38,7 @@ class SolutionPageController extends Controller
                 'features:id,solution_id,title,title_ja,description,description_ja',
                 'useCases:id,solution_id,title,title_ja,subtitle,subtitle_ja,description,description_ja',
                 'industries:id,solution_id,title,title_ja,description,description_ja',
-                'caseStudies:id,solution_id,title,title_ja,summary,summary_ja,result,result_ja',
+                'caseStudies:id,solution_id,slug,title,title_ja,subtitle,subtitle_ja,company_name,company_name_ja,ceo_name,ceo_name_ja,logo,hero_image,secondary_image,tags,tags_ja,hero_description,hero_description_ja,benefit,benefit_ja,implementation,implementation_ja,content,content_ja,sort_order',
                 'faqs:id,solution_id,question,question_ja,answer,answer_ja',
             ])
             ->firstOrFail();

@@ -10,6 +10,7 @@ class Blog extends Model
     use HasFactory;
 
     protected $fillable = [
+        'service_id', // ★ NEW — optional parent Service this blog is attached to
         'language',
         'title',
         'title_ja',
@@ -38,6 +39,12 @@ class Blog extends Model
     protected $casts = [
         'published_date' => 'date',
     ];
+
+    // ★ NEW
+    public function service()
+    {
+        return $this->belongsTo(Service::class);
+    }
 
     public function pageFaqs()
     {

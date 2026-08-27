@@ -44,6 +44,16 @@ class Solution extends Model
         return $this->hasMany(SolutionCaseStudy::class)->orderBy('sort_order');
     }
 
+    /**
+     * Find one case study belonging to this solution by slug.
+     * Mirrors IndiaDesk::findCaseStudyBySlug(), but queries the real
+     * solution_case_studies relation rather than a JSON array.
+     */
+    public function findCaseStudyBySlug(string $slug): ?SolutionCaseStudy
+    {
+        return $this->caseStudies()->where('slug', $slug)->first();
+    }
+
     public function industries()
     {
         return $this->hasMany(SolutionIndustry::class)->orderBy('sort_order');

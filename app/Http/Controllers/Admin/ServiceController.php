@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\Service;
+use App\Models\Blog;
 use Inertia\Inertia;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -13,7 +14,7 @@ use App\Models\ServicePage;
 
 class ServiceController extends Controller
 {
-    private const WITH = ['highlights', 'benefits', 'pageFaqs', 'pageIndustries'];
+    private const WITH = ['highlights', 'benefits', 'pageFaqs', 'pageIndustries', 'adminBlogs'];
 
     /* ─── INDEX ─── */
     public function index()
@@ -21,6 +22,13 @@ class ServiceController extends Controller
         return Inertia::render('Admin/Services/Index', [
             'services' => Service::with(self::WITH)->latest()->get(),
             'pageData' => ServicePage::first(),
+            // ★ NEW — full blog list for the "attach blogs to this service"
+            // checklist. Kept lightweight (no content/HTML) since this is
+            // just a picker, not an editor — blogs are still authored from
+            // the dedicated Blogs admin section.
+            'availableBlogs' => Blog::select('id', 'title', 'title_ja', 'slug', 'service_id', 'status')
+                ->orderByDesc('published_date')
+                ->get(),
         ]);
     }
 
@@ -65,6 +73,9 @@ class ServiceController extends Controller
             'tech_stack'          => 'nullable',
             'page_faqs'           => 'nullable',
             'page_industries'     => 'nullable',
+            // ★ NEW — array of existing blog IDs to attach to this service
+            'blog_ids'            => 'nullable|array',
+            'blog_ids.*'          => 'integer|exists:blogs,id',
         ], [
             'title.required' => 'The service title is required.',
             'slug.required'  => 'The slug is required. It is used in the URL.',
@@ -89,6 +100,9 @@ class ServiceController extends Controller
                 ? json_decode($request->input($key), true)
                 : [];
         }
+
+        // ★ NEW — plain array field, not a JSON blob like the keys above
+        $decoded['blog_ids'] = $request->input('blog_ids', []);
 
         return $decoded;
     }
@@ -148,6 +162,19 @@ class ServiceController extends Controller
             'testimonials'   => $decoded['testimonials'],
             'tech_stack'     => $decoded['tech_stack'],
         ]);
+
+        // ★ Sync attached blogs — one-to-many (a blog belongs to at most one
+        // service). Detach any blog previously assigned to this service but
+        // no longer in the submitted list, then assign the submitted ones.
+        $blogIds = array_values(array_filter(array_map('intval', $decoded['blog_ids'] ?? [])));
+
+        Blog::where('service_id', $service->id)
+            ->whereNotIn('id', $blogIds)
+            ->update(['service_id' => null]);
+
+        if (!empty($blogIds)) {
+            Blog::whereIn('id', $blogIds)->update(['service_id' => $service->id]);
+        }
     }
 
     /* ─── BUILD PAYLOAD ─── */

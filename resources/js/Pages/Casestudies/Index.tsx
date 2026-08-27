@@ -34,6 +34,12 @@ interface CaseStudy extends BaseCaseStudy {
 // Standalone home case study — its own flat URL
 interface HomeCaseStudy extends BaseCaseStudy {}
 
+// ★ NEW — Solution-nested case study — needs the parent solution slug to build its URL
+interface SolutionCaseStudy extends BaseCaseStudy {
+  solution_slug: string;
+  solution_title: string;
+}
+
 interface Seo {
   meta_title?: string | null;
   meta_description?: string | null;
@@ -50,6 +56,7 @@ interface PageData {
 interface PageProps {
   homeCaseStudies: HomeCaseStudy[];
   caseStudies: CaseStudy[];
+  solutionCaseStudies: SolutionCaseStudy[]; // ★ NEW
   seo?: Seo | null;
   lang: "en" | "ja";
   pageData?: PageData | null;
@@ -81,7 +88,6 @@ function CaseStudyCard({
       data-aos-delay={index * 80}
       className="bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg transition-shadow group flex flex-col"
     >
-      {/* Header: company + CEO */}
       {(companyName || ceoName || study.logo) && (
         <div className="bg-primary px-5 py-4 flex items-center gap-3">
           {study.logo && (
@@ -132,15 +138,11 @@ function CaseStudyCard({
               ))}
           </div>
         )}
-        {/* <span className="mt-auto inline-flex items-center gap-1 text-primary text-sm font-medium">
-          {getLangValue(lang, "Read full case study", "詳細を見る")} <ArrowRight className="w-3.5 h-3.5" />
-        </span> */}
       </div>
     </Link>
   );
 }
 
-// A single combined entry, tagged with the href it should link to
 type CombinedEntry = {
   key: string;
   href: string;
@@ -148,13 +150,21 @@ type CombinedEntry = {
 };
 
 const Casestudies = () => {
-  const { homeCaseStudies = [], caseStudies = [], seo, lang, pageData } = usePage<PageProps>().props;
+  // ★ solutionCaseStudies added — was missing, meaning Solution case studies
+  // never appeared in this grid even though the admin panel stored them fine.
+  const {
+    homeCaseStudies = [],
+    caseStudies = [],
+    solutionCaseStudies = [],
+    seo,
+    lang,
+    pageData,
+  } = usePage<PageProps>().props;
 
   useEffect(() => {
     AOS.init({ duration: 1000, easing: "ease-in-out", once: true, offset: 120, delay: 80 });
   }, []);
 
-  // Merge into one list — Home Case Studies first, then India Desk case studies, no headings splitting them.
   const combined: CombinedEntry[] = [
     ...homeCaseStudies.map((study) => ({
       key: `home-${study.slug}`,
@@ -164,6 +174,12 @@ const Casestudies = () => {
     ...caseStudies.map((study) => ({
       key: `${study.india_desk_slug}-${study.slug}`,
       href: `/india-desks/${study.india_desk_slug}/case-studies/${study.slug}`,
+      study,
+    })),
+    // ★ NEW — Solution case studies, linking to /solutions/{slug}/case-studies/{slug}
+    ...solutionCaseStudies.map((study) => ({
+      key: `${study.solution_slug}-${study.slug}`,
+      href: `/solutions/${study.solution_slug}/case-studies/${study.slug}`,
       study,
     })),
   ];
@@ -182,7 +198,6 @@ const Casestudies = () => {
         <Insightshead />
       </div>
 
-      {/* Hero */}
       <section className="hero-gradient text-primary-foreground py-16 lg:py-16">
         <div className="container mx-auto px-4 lg:px-8" data-aos="fade-right">
           <h1 className="text-4xl lg:text-5xl font-bold mb-4">
@@ -196,7 +211,6 @@ const Casestudies = () => {
         </div>
       </section>
 
-      {/* Case Studies Grid — Home Case Studies first, then India Desk case studies, mixed in one grid */}
       <section className="py-16 bg-section-light">
         <div className="container mx-auto px-4">
           {combined.length === 0 ? (

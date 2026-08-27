@@ -62,6 +62,24 @@ class Service extends Model
         return $this->hasMany(ServicePageIndustry::class)->orderBy('sort_order');
     }
 
+    // ★ NEW — blogs attached to this service, most recently published first
+    // (matches how the "Case Studies" card grid is ordered elsewhere).
+    // Published-only: used by the PUBLIC Services/Show page.
+    public function blogs()
+    {
+        return $this->hasMany(Blog::class)
+            ->where('status', 'published')
+            ->orderByDesc('published_date');
+    }
+
+    // ★ NEW — same relation but WITHOUT the published-only filter, so the
+    // admin edit form's "Attached Blogs" checklist correctly shows drafts as
+    // checked too. The public blogs() above intentionally stays filtered.
+    public function adminBlogs()
+    {
+        return $this->hasMany(Blog::class)->orderByDesc('published_date');
+    }
+
     /**
      * Resolve effective meta title for a given locale.
      */

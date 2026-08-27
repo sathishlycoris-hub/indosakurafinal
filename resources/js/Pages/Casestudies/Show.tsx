@@ -21,10 +21,30 @@ interface CaseStudy {
   implementation?: string; implementation_ja?: string;
   hero_image?: string | null;
   secondary_image?: string | null;
-  india_desk_slug: string;
-  india_desk_title: string;
+  parent_type?: "india_desk" | "solution";
+  india_desk_slug?: string;
+  india_desk_title?: string;
   india_desk_title_ja?: string;
+  solution_slug?: string;
+  solution_title?: string;
+  solution_title_ja?: string;
 }
+
+/** Builds the /india-desks/{slug}/case-studies/{slug} or
+ * /solutions/{slug}/case-studies/{slug} URL for any case study,
+ * regardless of which parent it belongs to. */
+const caseStudyHref = (item: Pick<CaseStudy, "parent_type" | "india_desk_slug" | "solution_slug" | "slug">) =>
+  item.parent_type === "solution"
+    ? `/solutions/${item.solution_slug}/case-studies/${item.slug}`
+    : `/india-desks/${item.india_desk_slug}/case-studies/${item.slug}`;
+
+/** Builds the back-link URL to the parent page (India Desk or Solution). */
+const parentHref = (item: Pick<CaseStudy, "parent_type" | "india_desk_slug" | "solution_slug">) =>
+  item.parent_type === "solution" ? `/solutions/${item.solution_slug}` : `/india-desks/${item.india_desk_slug}`;
+
+/** A stable React key across both parent types. */
+const caseStudyKey = (item: Pick<CaseStudy, "parent_type" | "india_desk_slug" | "solution_slug" | "slug">) =>
+  item.parent_type === "solution" ? `solution-${item.solution_slug}-${item.slug}` : `india_desk-${item.india_desk_slug}-${item.slug}`;
 
 export default function Show({
   caseStudy,
@@ -53,10 +73,12 @@ export default function Show({
       <section className="relative bg-primary py-10">
         <div className="container mx-auto px-4 text-white">
           <Link
-            href={`/india-desks/${caseStudy.india_desk_slug}`}
+            href={parentHref(caseStudy)}
             className="text-white/60 text-xs inline-flex items-center gap-1 mb-4 hover:text-white transition-colors"
           >
-            {getLangValue(lang, caseStudy.india_desk_title, caseStudy.india_desk_title_ja)}
+            {caseStudy.parent_type === "solution"
+              ? getLangValue(lang, caseStudy.solution_title || "", caseStudy.solution_title_ja || "")
+              : getLangValue(lang, caseStudy.india_desk_title || "", caseStudy.india_desk_title_ja || "")}
           </Link>
 
           {/* Company + CEO header */}
@@ -158,10 +180,10 @@ export default function Show({
               {getLangValue(lang, "Refer other case studies", "他の事例を見る")}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {relatedCases.map((item: any) => (
+              {relatedCases.map((item: CaseStudy) => (
                 <Link
-                  key={`${item.india_desk_slug}-${item.slug}`}
-                  href={`/india-desks/${item.india_desk_slug}/case-studies/${item.slug}`}
+                  key={caseStudyKey(item)}
+                  href={caseStudyHref(item)}
                   className="group"
                 >
                   <div className="aspect-video rounded-lg overflow-hidden mb-3 bg-muted">

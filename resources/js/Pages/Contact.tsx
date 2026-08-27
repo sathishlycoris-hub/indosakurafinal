@@ -98,10 +98,9 @@ const Contact = () => {
     setIsSubmitting(true);
     router.post(route("contact.store"), { ...formData }, {
       onSuccess: () => {
-          (window as any).gtag_report_conversion();
-        toast({ title: "Message Sent!", description: "Thank you for contacting Indo Sakura. We will get back to you shortly." });
-        setFormData(initialFormState);
-        setErrors({});
+        (window as any).gtag_report_conversion?.();
+        // Server redirects to /contact/thank-you on success — Inertia follows
+        // it automatically, so no local toast/reset is needed here.
       },
       onError: () => toast({ title: "Submission failed", description: "Something went wrong. Please try again.", variant: "destructive" }),
       onFinish: () => setIsSubmitting(false),
@@ -214,11 +213,11 @@ const Contact = () => {
 
                   {/* reCAPTCHA */}
                   <div
-                    className="g-recaptcha"
+                    className="g-recaptcha mb-6"
                     data-sitekey={recaptchaSiteKey}
                     data-callback="onContactRecaptchaVerify"
                   />
-                  {errors.recaptcha && <p className="text-red-500 text-xs">{errors.recaptcha}</p>}
+                  {errors.recaptcha && <p className="text-red-500 text-xs mb-4">{errors.recaptcha}</p>}
 
                   <Button type="submit" className="w-full h-12 rounded-xl text-md font-semibold transition-all hover:opacity-90 active:scale-[0.98]" disabled={isSubmitting}>
                     {isSubmitting ? ui.submitting : <>{ui.submitBtn} <Send className="w-4 h-4 ml-2" /></>}
