@@ -40,7 +40,18 @@ interface HomepageSettings {
 }
 
 interface Seo { meta_title?: string; meta_description?: string; meta_keywords?: string; }
-interface NewsEvent { id: number; date: string; eventtype: string; eventtype_ja?: string | null; short: string; short_ja?: string | null; }
+
+// ★ CHANGED — a single merged "Information" entry can be either a News/Event
+// item or a Blog post; `source`/`href` tell us which and where to link.
+interface UpdateItem {
+  source: "news" | "blog";
+  id: number;
+  date: string; // Y-m-d
+  type: string; type_ja?: string | null;     // eventtype for news, category for blog
+  title: string; title_ja?: string | null;   // "short" for news, blog title for blog
+  href: string; // fully-built link — /blogs/{slug} for blog, news.show route for news
+}
+
 interface Service { id: number; title: string; title_ja?: string | null; slug: string; hero_description?: string | null; hero_description_ja?: string | null; }
 interface Solution { id: number; title: string; title_ja?: string | null; slug: string; hero_description?: string | null; hero_description_ja?: string | null; }
 interface CaseStudy {
@@ -57,7 +68,7 @@ interface CaseStudy {
 interface IndexProps {
   homepage: HomepageSettings;
   seo?: Seo | null;
-  updates?: NewsEvent[];
+  updates?: UpdateItem[]; // ★ CHANGED — merged News + Blog feed
   services: Service[];
   solutions?: Solution[];
   caseStudies?: CaseStudy[];
@@ -87,10 +98,8 @@ const Index = ({
     AOS.init({ duration: 800, easing: "ease-out-cubic", once: true, offset: 80 });
   }, []);
 
-  // Helper: pick EN or JA value
   const t = (en: string, ja: string) => (lang === "ja" ? ja || en : en);
 
-  // Shorthand for homepage settings fields
   const h = homepage;
 
   const safeServices = Array.isArray(services) ? services : [];
@@ -101,7 +110,6 @@ const Index = ({
     ? `/storage/${h.hero_image}`
     : "/image/osaka.jpg";
 
-  // Stats array built from CMS
   const stats = [
     { value: h.stat1_value, label: t(h.stat1_label, h.stat1_label_ja), sub: t(h.stat1_sub, h.stat1_sub_ja) },
     { value: h.stat2_value, label: t(h.stat2_label, h.stat2_label_ja), sub: t(h.stat2_sub, h.stat2_sub_ja) },
@@ -109,7 +117,6 @@ const Index = ({
     { value: h.stat4_value, label: t(h.stat4_label, h.stat4_label_ja), sub: t(h.stat4_sub, h.stat4_sub_ja) },
   ];
 
-  // Feature cards built from CMS
   const feats = [
     { Icon: featIcons[0], label: t(h.feat1_label, h.feat1_label_ja), sub: t(h.feat1_sub, h.feat1_sub_ja) },
     { Icon: featIcons[1], label: t(h.feat2_label, h.feat2_label_ja), sub: t(h.feat2_sub, h.feat2_sub_ja) },
@@ -212,10 +219,6 @@ const Index = ({
                 </div>
               )}
             </div>
-            {/* <div className="mt-3 flex items-center text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-              <span className="text-sm font-medium">{lang === "en" ? "View Details" : "詳細を見る"}</span>
-              <ArrowRight className="w-4 h-4 ml-1" />
-            </div> */}
           </Link>
         );
       })}
@@ -224,7 +227,7 @@ const Index = ({
 </section>
       )}
 
-      {/* ── UPDATES ───────────────────────────────────────────────────────── */}
+      {/* ── INFORMATION — merged News/Events + Blogs feed ───────────────── */}
       <section className="py-16">
         <div className="max-w-6xl mx-auto px-4 lg:px-8">
           <div className="flex justify-between items-center mb-8">
@@ -235,13 +238,17 @@ const Index = ({
           <p className="text-muted-foreground mb-8">{t(h.updates_intro, h.updates_intro_ja)}</p>
           <div className="space-y-4">
             {safeUpdates.map((update, index) => (
-              <Link key={update.id} href={route("news.show", update.id)} className="block">
+              // ★ CHANGED — href now comes straight from the backend: the
+              // news.show route for News/Events, or /blogs/{slug} for Blogs.
+              <Link key={`${update.source}-${update.id}`} href={update.href} className="block">
                 <div data-aos="fade-up" data-aos-delay={index * 80}
                   className="grid grid-cols-[120px_160px_1fr_30px] items-center py-4 border-b border-border hover:bg-muted/50 transition-colors">
                   <span className="text-md text-muted-foreground">{update.date}</span>
-                  <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium w-fit">{lang === "en" ? update.eventtype : update.eventtype_ja || update.eventtype}</span>
+                  <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium w-fit">
+                    {lang === "en" ? update.type : update.type_ja || update.type}
+                  </span>
                   <p className="text-foreground overflow-hidden line-clamp-1">
-                    {lang === "en" ? update.short : update.short_ja || update.short}
+                    {lang === "en" ? update.title : update.title_ja || update.title}
                   </p>
                   <span className="justify-self-end text-muted-foreground hover:text-primary transition-colors">
                     <ChevronDown className="w-5 h-5 -rotate-90" />
