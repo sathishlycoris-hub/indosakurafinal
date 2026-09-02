@@ -39,7 +39,7 @@ class ServicePageController extends Controller
     public function show(string $slug)
 {
     $service = Service::where('slug', $slug)
-        ->with(['highlights', 'benefits', 'pageFaqs', 'pageIndustries', 'items', 'blogs'])
+        ->with(['highlights', 'benefits', 'pageFaqs', 'pageIndustries', 'items', 'blogs', 'featuredCaseStudies.solution:id,slug,title,title_ja'])
         ->firstOrFail();
 
     $lang = app()->getLocale();
@@ -78,6 +78,27 @@ class ServicePageController extends Controller
             'image'                 => $b->image,
             'category'              => $b->category,
             'category_ja'           => $b->category_ja,
+        ]),
+        // ★ NEW — Case Studies "featured" on this Service page (via the
+        // service_solution_case_study pivot). These are existing
+        // SolutionCaseStudy rows — content stays owned by their actual
+        // parent Solution — so each card still links to
+        // /solutions/{solution_slug}/case-studies/{slug}, same detail page
+        // used everywhere else.
+        'featuredCaseStudies' => $service->featuredCaseStudies->map(fn ($cs) => [
+            'slug'                => $cs->slug,
+            'title'               => $cs->title,
+            'title_ja'            => $cs->title_ja,
+            'company_name'        => $cs->company_name,
+            'company_name_ja'     => $cs->company_name_ja,
+            'ceo_name'            => $cs->ceo_name,
+            'ceo_name_ja'         => $cs->ceo_name_ja,
+            'logo'                => $cs->logo,
+            'hero_description'    => $cs->hero_description,
+            'hero_description_ja' => $cs->hero_description_ja,
+            'solution_slug'       => $cs->solution?->slug,
+            'solution_title'      => $cs->solution?->title,
+            'solution_title_ja'   => $cs->solution?->title_ja,
         ]),
         'pageSeo' => [
             'meta_title'       => $service->getEffectiveMetaTitle($lang),

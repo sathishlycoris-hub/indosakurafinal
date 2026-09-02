@@ -40,6 +40,11 @@ class SolutionPageController extends Controller
                 'industries:id,solution_id,title,title_ja,description,description_ja',
                 'caseStudies:id,solution_id,slug,title,title_ja,subtitle,subtitle_ja,company_name,company_name_ja,ceo_name,ceo_name_ja,logo,hero_image,secondary_image,tags,tags_ja,hero_description,hero_description_ja,benefit,benefit_ja,implementation,implementation_ja,content,content_ja,sort_order',
                 'faqs:id,solution_id,question,question_ja,answer,answer_ja',
+                // ★ NEW — Blogs "featured" on this Solution page. Content
+                // stays owned by whichever Service the blog is actually
+                // attached to (Blog.service_id) — this is purely a display
+                // link via the solution_blog pivot.
+                'featuredBlogs:id,slug,title,title_ja,short_description,short_description_ja,image,category,category_ja',
             ])
             ->firstOrFail();
 

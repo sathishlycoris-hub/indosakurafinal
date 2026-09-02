@@ -80,6 +80,20 @@ class Service extends Model
         return $this->hasMany(Blog::class)->orderByDesc('published_date');
     }
 
+    // ★ NEW — Case Studies "featured" on this Service page, via the
+    // service_solution_case_study pivot. These are existing SolutionCaseStudy
+    // rows (owned by their actual Solution) simply linked here for display —
+    // no duplication of case-study content.
+    public function featuredCaseStudies()
+    {
+        return $this->belongsToMany(
+            SolutionCaseStudy::class,
+            'service_solution_case_study',
+            'service_id',
+            'solution_case_study_id'
+        )->withPivot('sort_order')->orderBy('service_solution_case_study.sort_order');
+    }
+
     /**
      * Resolve effective meta title for a given locale.
      */

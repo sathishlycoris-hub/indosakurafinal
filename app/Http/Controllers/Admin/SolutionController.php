@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Inertia\Inertia;
 use App\Models\Solution;
+use App\Models\Blog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -15,9 +16,15 @@ class SolutionController extends Controller
     public function index()
     {
         return Inertia::render('Admin/Solutions/Index', [
-            'solutions' => Solution::with(['features', 'useCases', 'caseStudies', 'industries', 'faqs'])
+            'solutions' => Solution::with(['features', 'useCases', 'caseStudies', 'industries', 'faqs', 'featuredBlogs'])
                 ->latest()->get(),
             'pageData' => SolutionPage::first(), // ← add this
+            // ★ NEW — full blog list for the "feature blogs on this solution"
+            // checklist. Blogs are still authored under their actual parent
+            // Service (Blogs admin section) — this is a display-only picker.
+            'availableBlogs' => Blog::select('id', 'title', 'title_ja', 'slug', 'service_id', 'status')
+                ->orderByDesc('published_date')
+                ->get(),
         ]);
     }
 
@@ -55,6 +62,9 @@ class SolutionController extends Controller
             'case_study_hero_images.*'     => 'nullable|image|max:4096',
             'case_study_secondary_images'  => 'nullable|array',
             'case_study_secondary_images.*' => 'nullable|image|max:4096',
+            // ★ NEW — array of existing blog IDs to feature on this solution
+            'blog_ids'            => 'nullable|array',
+            'blog_ids.*'          => 'integer|exists:blogs,id',
         ]);
 
         $decoded = $this->decodeRelations($request);
@@ -130,6 +140,9 @@ class SolutionController extends Controller
             'case_study_hero_images.*'     => 'nullable|image|max:4096',
             'case_study_secondary_images'  => 'nullable|array',
             'case_study_secondary_images.*' => 'nullable|image|max:4096',
+            // ★ NEW — array of existing blog IDs to feature on this solution
+            'blog_ids'            => 'nullable|array',
+            'blog_ids.*'          => 'integer|exists:blogs,id',
         ]);
 
         $decoded = $this->decodeRelations($request);
@@ -211,6 +224,8 @@ class SolutionController extends Controller
                 ? json_decode($request->input($key), true) ?? []
                 : [];
         }
+        // ★ NEW — plain array field, not a JSON blob like the keys above
+        $decoded['blog_ids'] = $request->input('blog_ids', []);
         return $decoded;
     }
 
@@ -295,6 +310,17 @@ class SolutionController extends Controller
                 'sort_order'  => $i,
             ]);
         }
+
+        // ★ NEW — Sync featured blogs — many-to-many via the solution_blog
+        // pivot (a blog can be featured on several solutions; a solution can
+        // feature several blogs). Blog content stays owned by its actual
+        // parent Service (Blog.service_id) — untouched by this sync.
+        $blogIds = array_values(array_filter(array_map('intval', $decoded['blog_ids'] ?? [])));
+        $syncData = [];
+        foreach ($blogIds as $i => $id) {
+            $syncData[$id] = ['sort_order' => $i];
+        }
+        $solution->featuredBlogs()->sync($syncData);
     }
 
     /**

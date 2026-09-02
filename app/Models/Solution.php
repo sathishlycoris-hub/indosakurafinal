@@ -64,6 +64,16 @@ class Solution extends Model
         return $this->hasMany(SolutionFaq::class)->orderBy('sort_order');
     }
 
+    // ★ NEW — Blogs "featured" on this Solution page, via the solution_blog
+    // pivot. These are existing Blog rows (owned by their actual Service via
+    // Blog.service_id) simply linked here for display — no duplication.
+    public function featuredBlogs()
+    {
+        return $this->belongsToMany(Blog::class, 'solution_blog')
+            ->withPivot('sort_order')
+            ->orderBy('solution_blog.sort_order');
+    }
+
     /**
      * Resolve the effective meta title for a given locale.
      * Falls back to solution title when not set.

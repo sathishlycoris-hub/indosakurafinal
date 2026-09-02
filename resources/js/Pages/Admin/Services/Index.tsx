@@ -51,6 +51,15 @@ interface BlogOption {
 }
 interface AttachedBlog { id: number; }
 
+// ★ NEW — matches availableCaseStudies from ServiceController::index
+interface CaseStudyOption {
+  id: number;
+  title: string;
+  title_ja?: string | null;
+  solution_title?: string | null;
+}
+interface AttachedCaseStudy { id: number; }
+
 interface Service {
   id: number;
   title: string; title_ja?: string;
@@ -77,6 +86,7 @@ interface Service {
   tech_stack: TechStack[];
   blogs?: AttachedBlog[]; // legacy name kept for type compat if referenced elsewhere
   admin_blogs?: AttachedBlog[]; // ★ FIX — Laravel serializes Service::adminBlogs() as admin_blogs, not adminBlogs
+  featured_case_studies?: AttachedCaseStudy[]; // ★ NEW — Laravel serializes featuredCaseStudies() as featured_case_studies
 }
 
 /* ─── STRIP HELPERS (unchanged) ─── */
@@ -97,10 +107,12 @@ export default function Index({
   services,
   pageData,
   availableBlogs = [], // ★ NEW — full blog picker list from ServiceController::index
+  availableCaseStudies = [], // ★ NEW — full case-study picker list
 }: {
   services: Service[];
   pageData: PageData | null;
   availableBlogs?: BlogOption[];
+  availableCaseStudies?: CaseStudyOption[];
 }) {
   const [pageOpen, setPageOpen] = useState(false);
   const [pageLang, setPageLang] = useState<"en" | "ja">("en");
@@ -166,6 +178,7 @@ export default function Index({
     page_faqs: [] as PageFaq[],
     page_industries: [] as PageIndustry[],
     blog_ids: [] as number[], // ★ NEW — IDs of existing blogs attached to this service
+    case_study_ids: [] as number[], // ★ NEW — IDs of existing case studies featured on this service
   });
 
   /* ── OPEN HELPERS ── */
@@ -199,6 +212,7 @@ export default function Index({
       testimonials: Array.isArray(s.testimonials) ? s.testimonials.map(toTestimonial) : [],
       tech_stack: Array.isArray(s.tech_stack) ? s.tech_stack.map(toTechStack) : [],
       blog_ids: Array.isArray(s.admin_blogs) ? s.admin_blogs.map(b => b.id) : [], // ★ FIX — Laravel serializes adminBlogs() relation as admin_blogs
+      case_study_ids: Array.isArray(s.featured_case_studies) ? s.featured_case_studies.map(c => c.id) : [], // ★ NEW
     });
     setOpen(true);
   };
@@ -252,6 +266,8 @@ export default function Index({
     // ★ NEW — attached blog IDs, sent as repeated blog_ids[] entries so
     // Laravel receives it as a plain array (matches 'blog_ids' => 'nullable|array' validation)
     data.blog_ids.forEach(id => form.append("blog_ids[]", String(id)));
+    // ★ NEW — featured case study IDs, same repeated-field pattern
+    data.case_study_ids.forEach(id => form.append("case_study_ids[]", String(id)));
 
     const opts = { onSuccess: () => { reset(); setFormErrors({}); setOpen(false); } };
 
@@ -280,6 +296,13 @@ export default function Index({
     setData("blog_ids", data.blog_ids.includes(id)
       ? data.blog_ids.filter(x => x !== id)
       : [...data.blog_ids, id]);
+  };
+
+  // ★ NEW — toggle a case study's id in/out of the featured list
+  const toggleCaseStudyId = (id: number) => {
+    setData("case_study_ids", data.case_study_ids.includes(id)
+      ? data.case_study_ids.filter(x => x !== id)
+      : [...data.case_study_ids, id]);
   };
 
   /* ── SEO setData bridge ── */
@@ -618,6 +641,55 @@ export default function Index({
                           {attachedElsewhere && (
                             <span className="text-[10px] text-muted-foreground italic flex-shrink-0">
                               attached to another service
+                            </span>
+                          )}
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* ★ NEW — Featured Case Studies: pick from existing Solution
+                  case studies to show in a "Case Studies" card grid on this
+                  service's public page. Many-to-many — a case study can be
+                  featured on multiple services with no data duplication;
+                  the case study's actual content still lives under its
+                  parent Solution. */}
+              <div className="border rounded-lg p-4 space-y-3">
+                <div>
+                  <h3 className="font-semibold text-sm">Featured Case Studies</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Check the case studies to show on this service's page. Case studies are authored under their
+                    parent Solution — this just features existing ones here too. A case study can be featured on
+                    multiple services at once.
+                  </p>
+                </div>
+
+                {availableCaseStudies.length === 0 ? (
+                  <p className="text-sm text-muted-foreground italic">
+                    No case studies found. Create some first under a Solution in the Solutions admin section.
+                  </p>
+                ) : (
+                  <div className="max-h-56 overflow-y-auto border rounded-md divide-y">
+                    {availableCaseStudies.map((cs) => {
+                      const checked = data.case_study_ids.includes(cs.id);
+
+                      return (
+                        <label
+                          key={cs.id}
+                          className="flex items-center gap-3 px-3 py-2 text-sm hover:bg-muted/40 cursor-pointer"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => toggleCaseStudyId(cs.id)}
+                            className="h-4 w-4"
+                          />
+                          <span className="flex-1 truncate">{cs.title}</span>
+                          {cs.solution_title && (
+                            <span className="text-[10px] text-muted-foreground italic flex-shrink-0">
+                              {cs.solution_title}
                             </span>
                           )}
                         </label>

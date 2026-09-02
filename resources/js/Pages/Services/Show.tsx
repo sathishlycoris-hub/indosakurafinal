@@ -59,6 +59,22 @@ interface ServiceBlog {
   category?: string; category_ja?: string;
 }
 
+// ★ NEW — a SolutionCaseStudy "featured" on this Service page via the
+// service_solution_case_study pivot. Content is still owned by its actual
+// parent Solution, so each card links to
+// /solutions/{solution_slug}/case-studies/{slug} — same detail page used
+// everywhere else, not a new one.
+interface ServiceFeaturedCaseStudy {
+  slug: string;
+  title: string; title_ja?: string;
+  company_name?: string; company_name_ja?: string;
+  ceo_name?: string; ceo_name_ja?: string;
+  logo?: string | null;
+  hero_description?: string; hero_description_ja?: string;
+  solution_slug?: string;
+  solution_title?: string; solution_title_ja?: string;
+}
+
 interface Props {
   service: Service;
   faqs: Faq[];
@@ -68,6 +84,7 @@ interface Props {
   pageSeo?: PageSeoProps;
   serviceItems?: ServiceItemLink[];
   blogs?: ServiceBlog[]; // ★ NEW — blogs attached to this service (Insights)
+  featuredCaseStudies?: ServiceFeaturedCaseStudy[]; // ★ NEW
 }
 
 const BENEFIT_ICONS      = [CheckCircle, TrendingUp, Award, Users, Clock, Zap, ShieldCheck, BarChart3];
@@ -92,7 +109,7 @@ function SectionHeading({ title, subtitle, align = "center" }: { title: string; 
   );
 }
 
-export default function Show({ service, faqs = [], industries = [], serviceItems, blogs = [], pageSeo }: Props) {
+export default function Show({ service, faqs = [], industries = [], serviceItems, blogs = [], featuredCaseStudies = [], pageSeo }: Props) {
   const { lang } = usePage<{ lang: "en" | "ja" }>().props;
   const [popup, setPopup] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -113,6 +130,7 @@ export default function Show({ service, faqs = [], industries = [], serviceItems
   const safeFaqs = Array.isArray(faqs) ? faqs : [];
   const safeIndustries = Array.isArray(industries) ? industries : [];
   const safeBlogs = Array.isArray(blogs) ? blogs : []; // ★ NEW
+  const safeFeaturedCaseStudies = Array.isArray(featuredCaseStudies) ? featuredCaseStudies : []; // ★ NEW
 
   // Use the prop if the controller sends it; otherwise fall back to the JSON column.
   const items: ServiceItemLink[] = Array.isArray(serviceItems) && serviceItems.length > 0
@@ -412,6 +430,67 @@ export default function Show({ service, faqs = [], industries = [], serviceItems
                 </div>
               ))}
             </div>
+          </div>
+        </section>
+      )}
+
+      {/* ★ NEW — CASE STUDIES "featured" on this Service page, via the
+           service_solution_case_study pivot. Same card design used on
+           IndiaDesks/Show.tsx and Solutions/Show.tsx. Content stays owned by
+           each case study's actual parent Solution, so cards link to
+           /solutions/{solution_slug}/case-studies/{slug} — the existing
+           detail page, not a new one. */}
+      {safeFeaturedCaseStudies.length > 0 && (
+        <section className="py-16 bg-section-light">
+          <div className="container mx-auto px-6 max-w-7xl space-y-6">
+            <div className="section-divider mb-8" data-aos="fade-left">
+              <h2 className="text-2xl font-semibold">
+                {lang === "ja" ? "導入事例" : "Case Studies"}
+              </h2>
+            </div>
+
+            {safeFeaturedCaseStudies.map((cs, i) => {
+              const companyName = v(cs.company_name, cs.company_name_ja);
+              const ceoName = v(cs.ceo_name, cs.ceo_name_ja);
+              const description = v(cs.hero_description, cs.hero_description_ja);
+
+              return (
+                <Link
+                  key={cs.slug ?? i}
+                  href={`/solutions/${cs.solution_slug}/case-studies/${cs.slug}`}
+                  data-aos="fade-right"
+                  data-aos-delay={i * 90}
+                  className="block bg-card border rounded-lg p-6 hover:shadow-md transition-shadow"
+                >
+                  {(companyName || ceoName || cs.logo) && (
+                    <div className="flex items-center gap-3 mb-1">
+                      {cs.logo && (
+                        <div className="flex-shrink-0 w-8 h-8 rounded-full border bg-white overflow-hidden flex items-center justify-center">
+                          <img src={cs.logo} alt="" className="w-full h-full object-contain p-0.5" />
+                        </div>
+                      )}
+                      {(companyName || ceoName) && (
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                          {companyName}
+                          {ceoName && <span className="normal-case font-normal"> · {ceoName}</span>}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  <h3 className="font-semibold text-primary">
+                    {v(cs.title, cs.title_ja)}
+                  </h3>
+
+                  {description && (
+                    <div
+                      className="prose mt-2"
+                      dangerouslySetInnerHTML={{ __html: description }}
+                    />
+                  )}
+                </Link>
+              );
+            })}
           </div>
         </section>
       )}

@@ -51,6 +51,16 @@ interface PageData {
   hero_subtitle_ja?: string | null;
 }
 
+// ★ NEW — matches availableBlogs from admin SolutionController::index
+interface BlogOption {
+  id: number;
+  title: string;
+  title_ja?: string | null;
+  service_id: number | null;
+  status: "published" | "draft";
+}
+interface AttachedBlog { id: number; }
+
 interface Solution {
   id: number;
   title: string; title_ja?: string;
@@ -69,15 +79,18 @@ interface Solution {
   industries: Industry[];
   case_studies: CaseStudy[];
   faqs: Faq[];
+  featured_blogs?: AttachedBlog[]; // ★ NEW — Laravel serializes featuredBlogs() as featured_blogs
 }
 
 /* ── COMPONENT ── */
 export default function Index({
   solutions,
   pageData,
+  availableBlogs = [], // ★ NEW — full blog picker list from admin SolutionController::index
 }: {
   solutions: Solution[];
   pageData: PageData | null;
+  availableBlogs?: BlogOption[];
 }) {
   const [pageOpen, setPageOpen] = useState(false);
   const [mode, setMode] = useState<"add" | "edit" | "view">("add");
@@ -138,6 +151,7 @@ export default function Index({
     industries: [] as any[],
     case_studies: [] as any[],
     faqs: [] as any[],
+    blog_ids: [] as number[], // ★ NEW — IDs of existing blogs featured on this solution
   });
 
   /* ── OPEN HELPERS ── */
@@ -172,6 +186,7 @@ export default function Index({
       industries: s.industries || [],
       case_studies: s.case_studies || [],
       faqs: s.faqs || [],
+      blog_ids: Array.isArray(s.featured_blogs) ? s.featured_blogs.map(b => b.id) : [], // ★ NEW
     });
   };
 
@@ -208,6 +223,8 @@ export default function Index({
     form.append("case_studies", JSON.stringify(data.case_studies));
     form.append("industries", JSON.stringify(data.industries));
     form.append("faqs", JSON.stringify(data.faqs));
+    // ★ NEW — featured blog IDs, sent as repeated blog_ids[] entries
+    data.blog_ids.forEach(id => form.append("blog_ids[]", String(id)));
     return form;
   };
 
@@ -247,6 +264,13 @@ export default function Index({
 
   /* ── ARRAY HELPERS ── */
   const addItem = (key: keyof typeof data, item: any) => setData(key, [...(data[key] as any[]), item]);
+
+  // ★ NEW — toggle a blog's id in/out of the featured list
+  const toggleBlogId = (id: number) => {
+    setData("blog_ids", data.blog_ids.includes(id)
+      ? data.blog_ids.filter(x => x !== id)
+      : [...data.blog_ids, id]);
+  };
   const updateItem = (key: keyof typeof data, i: number, field: string, value: string) => {
     const u = [...(data[key] as any[])]; u[i][field] = value; setData(key, u);
   };
@@ -675,6 +699,54 @@ export default function Index({
                   </div>
                 )}
               />
+
+              {/* ★ NEW — Featured Blogs: pick from existing blogs (authored
+                  under their actual parent Service) to show in a "Related
+                  Blogs" card grid on this solution's public page.
+                  Many-to-many — a blog can be featured on multiple
+                  solutions with no data duplication. */}
+              <div className="border rounded-lg p-4 space-y-3">
+                <div>
+                  <h3 className="font-semibold text-sm">Featured Blogs</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Check the blogs to show on this solution's page. Blogs are authored under their parent Service
+                    (Blogs admin section) — this just features existing ones here too. A blog can be featured on
+                    multiple solutions at once.
+                  </p>
+                </div>
+
+                {availableBlogs.length === 0 ? (
+                  <p className="text-sm text-muted-foreground italic">
+                    No blogs found. Create some first in the Blogs admin section.
+                  </p>
+                ) : (
+                  <div className="max-h-56 overflow-y-auto border rounded-md divide-y">
+                    {availableBlogs.map((blog) => {
+                      const checked = data.blog_ids.includes(blog.id);
+
+                      return (
+                        <label
+                          key={blog.id}
+                          className="flex items-center gap-3 px-3 py-2 text-sm hover:bg-muted/40 cursor-pointer"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => toggleBlogId(blog.id)}
+                            className="h-4 w-4"
+                          />
+                          <span className="flex-1 truncate">
+                            {blog.title}
+                            {blog.status === "draft" && (
+                              <span className="ml-2 text-[10px] uppercase tracking-wide text-amber-600 font-semibold">Draft</span>
+                            )}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
 
               {/* FAQs */}
               <SectionBlock

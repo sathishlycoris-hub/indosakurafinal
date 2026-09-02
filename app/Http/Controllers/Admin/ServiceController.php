@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Models\Service;
 use App\Models\Blog;
+use App\Models\SolutionCaseStudy;
 use Inertia\Inertia;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -14,7 +15,7 @@ use App\Models\ServicePage;
 
 class ServiceController extends Controller
 {
-    private const WITH = ['highlights', 'benefits', 'pageFaqs', 'pageIndustries', 'adminBlogs'];
+    private const WITH = ['highlights', 'benefits', 'pageFaqs', 'pageIndustries', 'adminBlogs', 'featuredCaseStudies'];
 
     /* ─── INDEX ─── */
     public function index()
@@ -29,6 +30,19 @@ class ServiceController extends Controller
             'availableBlogs' => Blog::select('id', 'title', 'title_ja', 'slug', 'service_id', 'status')
                 ->orderByDesc('published_date')
                 ->get(),
+            // ★ NEW — full case-study list for the "feature case studies on
+            // this service" checklist. These are owned by their actual
+            // parent Solution — this is a picker for the display-only
+            // service_solution_case_study pivot, not an editor.
+            'availableCaseStudies' => SolutionCaseStudy::with('solution:id,title,title_ja')
+                ->orderBy('sort_order')
+                ->get(['id', 'solution_id', 'slug', 'title', 'title_ja'])
+                ->map(fn ($cs) => [
+                    'id'             => $cs->id,
+                    'title'          => $cs->title,
+                    'title_ja'       => $cs->title_ja,
+                    'solution_title' => $cs->solution?->title,
+                ]),
         ]);
     }
 
@@ -76,6 +90,9 @@ class ServiceController extends Controller
             // ★ NEW — array of existing blog IDs to attach to this service
             'blog_ids'            => 'nullable|array',
             'blog_ids.*'          => 'integer|exists:blogs,id',
+            // ★ NEW — array of existing SolutionCaseStudy IDs to feature on this service
+            'case_study_ids'      => 'nullable|array',
+            'case_study_ids.*'    => 'integer|exists:solution_case_studies,id',
         ], [
             'title.required' => 'The service title is required.',
             'slug.required'  => 'The slug is required. It is used in the URL.',
@@ -101,8 +118,9 @@ class ServiceController extends Controller
                 : [];
         }
 
-        // ★ NEW — plain array field, not a JSON blob like the keys above
+        // ★ NEW — plain array fields, not JSON blobs like the keys above
         $decoded['blog_ids'] = $request->input('blog_ids', []);
+        $decoded['case_study_ids'] = $request->input('case_study_ids', []);
 
         return $decoded;
     }
@@ -175,6 +193,18 @@ class ServiceController extends Controller
         if (!empty($blogIds)) {
             Blog::whereIn('id', $blogIds)->update(['service_id' => $service->id]);
         }
+
+        // ★ NEW — Sync featured case studies — true many-to-many via the
+        // service_solution_case_study pivot (a case study can be featured on
+        // several services; a service can feature several case studies).
+        // sync() handles attach/detach/reorder in one call; sort_order is
+        // written per-row so admin ordering (checklist order) is preserved.
+        $caseStudyIds = array_values(array_filter(array_map('intval', $decoded['case_study_ids'] ?? [])));
+        $syncData = [];
+        foreach ($caseStudyIds as $i => $id) {
+            $syncData[$id] = ['sort_order' => $i];
+        }
+        $service->featuredCaseStudies()->sync($syncData);
     }
 
     /* ─── BUILD PAYLOAD ─── */

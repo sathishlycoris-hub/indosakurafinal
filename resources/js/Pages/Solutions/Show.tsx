@@ -53,6 +53,16 @@ interface CaseStudy {
   content?: string; content_ja?: string;
 }
 
+// ★ NEW — a blog "featured" on this Solution page via the solution_blog
+// pivot. Same shape as the ServiceBlog used on Services/Show.tsx.
+interface SolutionBlog {
+  slug: string;
+  title: string; title_ja?: string;
+  short_description?: string; short_description_ja?: string;
+  image?: string | null;
+  category?: string; category_ja?: string;
+}
+
 interface Solution {
   id: number;
   title: string; title_ja?: string;
@@ -66,6 +76,7 @@ interface Solution {
   industries: any[];
   case_studies: CaseStudy[]; // ★ typed with the rich shape
   faqs?: Faq[]; // ★ NEW
+  featured_blogs?: SolutionBlog[]; // ★ NEW — Laravel serializes featuredBlogs() as featured_blogs
 }
 
 AOS.init({ duration: 1000, easing: "ease-in-out", once: true, offset: 120, delay: 80 });
@@ -86,6 +97,7 @@ export default function Show({
 
   const safeFaqs = Array.isArray(solution.faqs) ? solution.faqs : []; // ★ NEW
   const safeCaseStudies = Array.isArray(solution.case_studies) ? solution.case_studies : []; // ★ NEW
+  const safeFeaturedBlogs = Array.isArray(solution.featured_blogs) ? solution.featured_blogs : []; // ★ NEW
 
   return (
     <Layout>
@@ -259,6 +271,75 @@ export default function Show({
                 </Link>
               );
             })}
+          </div>
+        </section>
+      )}
+
+      {/* ★ NEW — BLOGS "featured" on this Solution page, via the
+           solution_blog pivot. Same card design as the "Related Blogs"
+           section on Services/Show.tsx, linking out to the shared Insights
+           blog detail page at /blogs/{slug}. Blog content stays owned by
+           whichever Service it's actually attached to — this is a display
+           link only, no duplicated data. */}
+      {safeFeaturedBlogs.length > 0 && (
+        <section className="py-16 bg-section-light">
+          <div className="container mx-auto px-6 max-w-7xl">
+            <div className="section-divider mb-8" data-aos="fade-left">
+              <h2 className="text-2xl font-semibold">
+                {getValue("Related Blogs", "関連ブログ")}
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {safeFeaturedBlogs.map((blog, i) => {
+                const blogTitle = getValue(blog.title, blog.title_ja);
+                const description = getValue(blog.short_description, blog.short_description_ja);
+                const category = getValue(blog.category, blog.category_ja);
+
+                return (
+                  <Link
+                    key={blog.slug ?? i}
+                    href={`/blogs/${blog.slug}`}
+                    data-aos="fade-up"
+                    data-aos-delay={i * 80}
+                    className="group block bg-card border border-border rounded-xl overflow-hidden hover:shadow-lg transition-shadow"
+                  >
+                    <div className="relative aspect-[4/3] bg-primary overflow-hidden">
+                      {blog.image ? (
+                        <img
+                          src={`/storage/${blog.image}`}
+                          alt={blogTitle}
+                          className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-primary to-primary/70" />
+                      )}
+                      <div className="absolute inset-0 bg-primary/70 flex items-start p-4">
+                        <p className="text-white font-bold text-sm leading-snug line-clamp-4">
+                          {blogTitle}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="p-5">
+                      {category && (
+                        <p className="text-xs font-semibold text-primary uppercase tracking-wide mb-2">
+                          {category}
+                        </p>
+                      )}
+                      <h3 className="font-semibold text-foreground mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                        {blogTitle}
+                      </h3>
+                      {description && (
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {description}
+                        </p>
+                      )}
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         </section>
       )}
